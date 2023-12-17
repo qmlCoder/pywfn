@@ -1,0 +1,803 @@
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |154|atom normal vector   2->1: [-9.81432988e-06  1.34478890e-05  1.00000000e+00]
+atom.py   |154|atom normal vector   2->4: [ 7.82230867e-04 -3.23872155e-04  9.99999642e-01]
+atom.py   |154|atom normal vector   2->15: [ 1.85500531e-04 -8.12283487e-04  9.99999653e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,None,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->None: None
+atom.py   |154|atom normal vector   2->None: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->None: None
+atom.py   |154|atom normal vector   4->None: [1.75431896e-04 4.91078611e-04 9.99999864e-01]
+atom.py   |154|atom normal vector   5->None: [-3.20983467e-04  7.27238101e-04  9.99999684e-01]
+atom.py   |154|atom normal vector   6->None: [-2.79731067e-04  2.10259659e-04  9.99999939e-01]
+atom.py   |154|atom normal vector   7->None: [-2.88489943e-04  3.97594405e-04  9.99999879e-01]
+atom.py   |154|atom normal vector   9->None: [-3.15246008e-04  3.68925185e-04  9.99999882e-01]
+atom.py   |154|atom normal vector  11->None: [-4.95755550e-04  3.93690187e-04  9.99999800e-01]
+atom.py   |154|atom normal vector  15->None: None
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,None,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->None: None
+atom.py   |154|atom normal vector   2->None: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->None: None
+atom.py   |154|atom normal vector   4->None: [1.75431896e-04 4.91078611e-04 9.99999864e-01]
+atom.py   |154|atom normal vector   5->None: [-3.20983467e-04  7.27238101e-04  9.99999684e-01]
+atom.py   |154|atom normal vector   6->None: [-2.79731067e-04  2.10259659e-04  9.99999939e-01]
+atom.py   |154|atom normal vector   7->None: [-2.88489943e-04  3.97594405e-04  9.99999879e-01]
+atom.py   |154|atom normal vector   9->None: [-3.15246008e-04  3.68925185e-04  9.99999882e-01]
+atom.py   |154|atom normal vector  11->None: [-4.95755550e-04  3.93690187e-04  9.99999800e-01]
+atom.py   |154|atom normal vector  15->None: None
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,None,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->None: None
+atom.py   |154|atom normal vector   2->None: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->None: None
+atom.py   |154|atom normal vector   4->None: [1.75431896e-04 4.91078611e-04 9.99999864e-01]
+atom.py   |154|atom normal vector   5->None: [-3.20983467e-04  7.27238101e-04  9.99999684e-01]
+atom.py   |154|atom normal vector   6->None: [-2.79731067e-04  2.10259659e-04  9.99999939e-01]
+atom.py   |154|atom normal vector   7->None: [-2.88489943e-04  3.97594405e-04  9.99999879e-01]
+atom.py   |154|atom normal vector   9->None: [-3.15246008e-04  3.68925185e-04  9.99999882e-01]
+atom.py   |154|atom normal vector  11->None: [-4.95755550e-04  3.93690187e-04  9.99999800e-01]
+atom.py   |154|atom normal vector  15->None: None
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,None,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->None: None
+atom.py   |154|atom normal vector   2->None: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->None: None
+atom.py   |154|atom normal vector   4->None: [1.75431896e-04 4.91078611e-04 9.99999864e-01]
+atom.py   |154|atom normal vector   5->None: [-3.20983467e-04  7.27238101e-04  9.99999684e-01]
+atom.py   |154|atom normal vector   6->None: [-2.79731067e-04  2.10259659e-04  9.99999939e-01]
+atom.py   |154|atom normal vector   7->None: [-2.88489943e-04  3.97594405e-04  9.99999879e-01]
+atom.py   |154|atom normal vector   9->None: [-3.15246008e-04  3.68925185e-04  9.99999882e-01]
+atom.py   |154|atom normal vector  11->None: [-4.95755550e-04  3.93690187e-04  9.99999800e-01]
+atom.py   |154|atom normal vector  15->None: None
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,None,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->None: None
+atom.py   |154|atom normal vector   2->None: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->None: None
+atom.py   |154|atom normal vector   4->None: [1.75431896e-04 4.91078611e-04 9.99999864e-01]
+atom.py   |154|atom normal vector   5->None: [-3.20983467e-04  7.27238101e-04  9.99999684e-01]
+atom.py   |154|atom normal vector   6->None: [-2.79731067e-04  2.10259659e-04  9.99999939e-01]
+atom.py   |154|atom normal vector   7->None: [-2.88489943e-04  3.97594405e-04  9.99999879e-01]
+atom.py   |154|atom normal vector   9->None: [-3.15246008e-04  3.68925185e-04  9.99999882e-01]
+atom.py   |154|atom normal vector  11->None: [-4.95755550e-04  3.93690187e-04  9.99999800e-01]
+atom.py   |154|atom normal vector  15->None: None
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |154|atom normal vector   2->1: [-9.81432988e-06  1.34478890e-05  1.00000000e+00]
+atom.py   |154|atom normal vector   2->4: [ 7.82230867e-04 -3.23872155e-04  9.99999642e-01]
+atom.py   |154|atom normal vector   2->15: [ 1.85500531e-04 -8.12283487e-04  9.99999653e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->1: None
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |154|atom normal vector   2->1: [-9.81432988e-06  1.34478890e-05  1.00000000e+00]
+atom.py   |154|atom normal vector   2->4: [ 7.82230867e-04 -3.23872155e-04  9.99999642e-01]
+atom.py   |154|atom normal vector   2->15: [ 1.85500531e-04 -8.12283487e-04  9.99999653e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   3->1: None
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |154|atom normal vector   2->1: [-9.81432988e-06  1.34478890e-05  1.00000000e+00]
+atom.py   |154|atom normal vector   2->4: [ 7.82230867e-04 -3.23872155e-04  9.99999642e-01]
+atom.py   |154|atom normal vector   2->15: [ 1.85500531e-04 -8.12283487e-04  9.99999653e-01]
+atom.py   |154|atom normal vector   3->1: None
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43313_     Beta Molecular Orbital Coefficients:
+log.py    |238|end read coefficients: 50648_     Alpha Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 43251_     Density Matrix:
+atom.py   |132|1,2,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+atom.py   |132|1,3,angle=0.9994990509951658
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.22632263e-04 -3.81714337e-04  9.99999875e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31076_     Density Matrix:
+atom.py   |154|atom normal vector   2->1: [ 2.52232697e-05 -5.00442289e-01  8.65769897e-01]
+atom.py   |154|atom normal vector   2->10: [ 3.30779825e-05 -5.00438798e-01  8.65771915e-01]
+atom.py   |154|atom normal vector   2->6: [ 3.30779241e-05 -5.00445780e-01  8.65767879e-01]
+atom.py   |132|1,2,angle=0.999987215595974
+atom.py   |154|atom normal vector   1->2: None
+atom.py   |154|atom normal vector   2->2: [ 3.06277615e-05 -5.00442289e-01  8.65769897e-01]
+atom.py   |132|1,3,angle=0.999987215595974
+atom.py   |154|atom normal vector   1->3: None
+atom.py   |154|atom normal vector   2->3: [ 3.06277615e-05 -5.00442289e-01  8.65769897e-01]
+main.py   |  2|程序启动
+atom.py   |154|atom normal vector   5->18: [-4.96528445e-06  8.65763740e-01  5.00452942e-01]
+atom.py   |154|atom normal vector   5->4: [-1.27410235e-05  8.65761742e-01  5.00456398e-01]
+atom.py   |154|atom normal vector   5->14: [-4.96539131e-06  8.65759744e-01  5.00459854e-01]
+atom.py   |132|4,3,angle=0.9999958623856168
+atom.py   |154|atom normal vector   4->3: None
+atom.py   |154|atom normal vector   5->3: [-7.39085283e-06  8.65761742e-01  5.00456398e-01]
+atom.py   |132|4,5,angle=0.9999958623856168
+atom.py   |154|atom normal vector   4->5: None
+atom.py   |154|atom normal vector   5->5: [-7.39085283e-06  8.65761742e-01  5.00456398e-01]
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 78|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  1,最小值: -0.208180,最大值:  0.215269
+atom.py   | 78|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  2,最小值: -0.283938,最大值:  0.269010
+atom.py   | 78|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  3,最小值: -0.197952,最大值:  0.199327
+cub.py    | 63|渲染轨道:9,数据量:7678200,最小值:-0.340408 ,最大值:0.376116  ,耗时4.674003601074219
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 78|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  1,最小值: -0.189855,最大值:  0.176295
+atom.py   | 78|渲染原子轨道，原子:  2,最小值: -0.204138,最大值:  0.220015
+atom.py   | 78|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  3,最小值: -0.163880,最大值:  0.146491
+atom.py   | 78|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+cub.py    | 64|渲染轨道:9,数据量:1145542,最小值:-0.291094 ,最大值:0.330899  ,耗时1.6760013103485107
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 78|渲染原子轨道，原子:  1,最小值: -0.180021,最大值:  0.170423
+atom.py   | 78|渲染原子轨道，原子:  2,最小值: -0.202221,最大值:  0.217893
+atom.py   | 78|渲染原子轨道，原子:  3,最小值: -0.161864,最大值:  0.153043
+atom.py   | 78|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+cub.py    | 69|渲染轨道:9,数据量:2100,最小值:-0.304323 ,最大值:0.322242  ,耗时1.2910022735595703
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 78|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+atom.py   | 78|渲染原子轨道，原子:  1,最小值: -0.219539,最大值:  0.222063
+atom.py   | 78|渲染原子轨道，原子:  2,最小值: -0.291582,最大值:  0.289447
+atom.py   | 78|渲染原子轨道，原子:  3,最小值: -0.203393,最大值:  0.199337
+cub.py    | 69|渲染轨道:9,数据量:106848,最小值:-0.355071 ,最大值:0.381002  ,耗时1.3640029430389404
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 75|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+atom.py   | 75|渲染原子轨道，原子:  1,最小值: -0.219514,最大值:  0.222094
+atom.py   | 75|渲染原子轨道，原子:  2,最小值: -0.281336,最大值:  0.294247
+atom.py   | 75|渲染原子轨道，原子:  3,最小值: -0.198905,最大值:  0.198562
+atom.py   | 75|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 75|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+atom.py   | 75|渲染原子轨道，原子:  6,最小值:  0.000000,最大值:  0.000000
+atom.py   | 75|渲染原子轨道，原子:  1,最小值: -0.219514,最大值:  0.222094
+atom.py   | 75|渲染原子轨道，原子:  2,最小值: -0.281336,最大值:  0.294247
+atom.py   | 75|渲染原子轨道，原子:  4,最小值:  0.000000,最大值:  0.000000
+atom.py   | 75|渲染原子轨道，原子:  3,最小值: -0.198905,最大值:  0.198562
+atom.py   | 75|渲染原子轨道，原子:  5,最小值:  0.000000,最大值:  0.000000
+cub.py    | 69|渲染轨道:9,数据量:33300,最小值:-0.347349 ,最大值:0.379312  ,耗时3.465689182281494
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+atom.py   | 75|渲染分子轨道9，原子:  6,最小值:  0.000000,最大值:  0.000000
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47321_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47321_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47321_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47321_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47321_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47272_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+log.py    |238|end read coefficients: 47320_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+atom.py   |151|atom normal vector   1->None: [ 5.86895462e-05 -6.07976447e-06  9.99999998e-01]
+atom.py   |151|atom normal vector   3->None: [-7.00015773e-05  1.01960696e-05  9.99999997e-01]
+atom.py   |151|atom normal vector   5->None: [1.71763448e-04 2.53706852e-05 9.99999985e-01]
+atom.py   |151|atom normal vector   8->None: [-1.32440708e-04 -5.41567899e-05  9.99999990e-01]
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 7024_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+log.py    |238|end read coefficients: 31939_     Density Matrix:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |268|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |271|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |271|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+log.py    |271|end read coefficients: 7212_     Beta Molecular Orbital Coefficients:
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动
+main.py   |  2|程序启动

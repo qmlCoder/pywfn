@@ -1,0 +1,12 @@
+__pycache__
+.ipynb_checkpoints/
+.qt_for_python/
+/manager/storages
+venv
+*.pyc
+*.zip
+*.cfg
+*.psd
+main.build
+logs
+out
