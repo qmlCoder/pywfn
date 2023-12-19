@@ -249,12 +249,13 @@ class Shell:
             match opt:
                 case None:return
                 case '1':
-                    text=self.input.Text()
+                    path,text=self.input.Text()
                     temps.gjf=text
-                    printer(temps.gjf)
+                    config.set_config('TEMPLATE_PATH_GJF',path)
                 case '2':
-                    text=self.input.Text()
+                    path,text=self.input.Text()
                     temps.si=text
+                    config.set_config('TEMPLATE_PATH_SI',path)
             printer.res('设置成功')
                 
 class Input:
@@ -342,4 +343,4 @@ class Input:
     def Text(self)->str:
         path=input('请输入文件: ')
         if not Path(path).exists():return None
-        return Path(path).read_text()
+        return path,Path(path).read_text()

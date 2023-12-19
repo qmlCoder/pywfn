@@ -66,3 +66,5 @@ atom=mol.atoms[1]
 > 有些元素根本用不着，所以不需要存储对不对
 
 H Be C N O F P S Cl 
+
+## 方向的确定

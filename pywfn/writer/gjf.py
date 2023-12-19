@@ -2,6 +2,8 @@
 将分子对象保存为gif文件
 """
 from pathlib import Path
+import json
+
 from pywfn.base import Mol
 from pywfn import config
 from pywfn.data import temps
@@ -9,8 +11,8 @@ from pywfn.data import temps
 class gjfWriter:
     def __init__(self,mol:Mol):
         self.mol:Mol=mol
-
-        self.template=temps.gjf
+        temp=config.TEMPLATE_PATH_GJF
+        self.template=temps.gjf if temp is None else json.loads(Path(temp).read_text())
         self.resStr=''
         
     def get_coordStr(self):

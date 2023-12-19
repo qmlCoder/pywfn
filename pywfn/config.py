@@ -1,8 +1,27 @@
 # 用来管理程序的一些设置
 from pathlib import Path
 import numpy as np
+import json
 
-BOND_LIMIT=1.7 # 判断量原子之间是否成键的长度限制
+configPath=Path.cwd()/'config.json'
+if not configPath.exists():
+    configPath.touch()
+    configPath.write_text('{}')
+
+configDict:dict=json.loads(configPath.read_text())
+
+def get_config(key:str,value):
+    if key in configDict.keys():
+        return configDict[key]
+    else:
+        return value
+
+def set_config(key:str,value):
+    global configDict
+    configDict[key]=value
+    configPath.write_text(json.dumps(configDict))
+
+BOND_LIMIT=get_config('BOND_LIMIT',1.7) # 判断量原子之间是否成键的长度限制
 
 IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell中的print冲突
 IF_SHELL=False # 是否在shell中执行
@@ -19,7 +38,5 @@ RENDER_CLOUD_BORDER=3
 
 BOHR_RADIUS=1.889
 
-TEMPLATES:dict[str,Path]={
-    'gif':None,
-    'si':None
-}
+TEMPLATE_PATH_GJF=get_config('TEMPLATE_PATH_GJF',None)
+TEMPLATE_PATH_SI=get_config('TEMPLATE_PATH_SI',None)
