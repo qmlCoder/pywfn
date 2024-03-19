@@ -53,4 +53,5 @@ python main.py
 
 ```
 python -m nuitka --mingw64 --standalone --show-progress --output-dir=out main.py
+python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windows-icon-from-ico=./ico.ico main.py
 ```

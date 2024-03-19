@@ -120,6 +120,8 @@ def normalize(vector):
 from rich.console import Console
 from rich .table import Table,box
 from typing import Sequence,Iterable
+from pywfn import config
+import inspect
 class Printer:
     def __init__(self) -> None:
         self.ifDebug=config.IF_DEBUG
@@ -127,46 +129,52 @@ class Printer:
         self.console=Console()
         self.tables:dict[str,Table]={}
 
-    def __call__(self,text,end='\n'):
-        if config.IF_SHELL:print(text,end=end)
+    def __call__(self,text,style='',end='\n'):
+        if self.ifShell:self.console.print(text,style=style,end=end)
 
     def warn(self,text):
-        self.console.print(text,style='#fcc419')
+        self.__call__(text,style='#fcc419')
 
     def info(self,text):
-        self.console.print(text,style='#91a7ff')
+        self.__call__(text,style='#91a7ff')
 
     def wrong(self,text):
-        self.console.print(text,style='#e03131')
+        self.__call__(text,style='#e03131')
     
     def res(self,text):
-        self.console.print(text,style='#a9e34b')
+        self.__call__(text,style='#a9e34b')
         self.bar()
     
     def print(self,text):
-        self.console.print(text)
+        self.__call__(text)
     
     def multi(self,texts:list[str]):
+        self.__call__(text,style='')
         for text in texts:
             self.console.print(text,end='')
         self.console.print('')
     
     def bar(self,len=40):
-        self.console.print('-'*len,style='#6741d9')
+        self.__call__('-'*len,style='#6741d9')
 
     def space(self):
-        print('')
+        self.__call__('')
     
     def log(self,text):
-        self.console.log(text)
+        if self.ifDebug: # 只有debug模式启动的时候才会打印
+            frame=inspect.stack()[1]
+            text=f'{frame.function}|{frame.filename}:{frame.lineno}\n{text}'
+            self.__call__(text,style='#228be6')
     
     def vector(self,tip:str,vector:np.ndarray):
+        if not config.IF_SHELL:return
         vector=[f'{v:.2f}' for v in vector]
         vectorStr=','.join(vector)
         self.console.print(tip,end='',style='#dee2e6')
         self.console.print(vectorStr,style='#f59f00')
     
     def options(self,title,opts:list[tuple[str]]):
+        if not config.IF_SHELL:return
         if title not in self.tables.keys():
             table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
             table.add_column('选项',justify="left")
@@ -178,6 +186,7 @@ class Printer:
         self.console.print(table)
     
     def track(self,seq:Sequence,tip:str='')->Iterable:
+        if not config.IF_SHELL:return
         from rich import progress
         return progress.track(seq,description=tip)
 

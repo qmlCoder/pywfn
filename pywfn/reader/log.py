@@ -10,6 +10,7 @@ import numpy as np
 from pathlib import Path
 from functools import lru_cache
 from collections import namedtuple
+import threading
 
 from pywfn.data.basis import Basis
 from pywfn.maths.gto import Gto
@@ -30,6 +31,7 @@ class LogReader(Reader):
         Reader.__init__(self,path)
         if 'Normal termination of Gaussian' not in self.text:
             printer.wrong('文件未正常结束!')
+        self.keyWords=re.search(r'^ # .+$',self.text,re.M).group()
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
             'coords':Title(pate=r'(Input orientation|Standard orientation)'),
@@ -58,18 +60,22 @@ class LogReader(Reader):
         symbols,coords=self.read_coords()
         return symbols
 
+    @lru_cache
     def get_CM(self) -> np.ndarray:
         atoms,layer,engs,type_,CM=self.read_CMs()
         return CM
     
+    @lru_cache
     def get_obtAtoms(self) -> list[int]:
         atoms,layer,engs,type_,CM=self.read_CMs()
         return atoms
     
+    @lru_cache
     def get_obtEngs(self) -> list[float]:
         atoms,layer,engs,type_,CM=self.read_CMs()
         return engs
     
+    @lru_cache
     def get_obtLayer(self) -> list[str]:
         atoms,layer,engs,type_,CM=self.read_CMs()
         return layer
@@ -78,6 +84,7 @@ class LogReader(Reader):
         atoms,layer,engs,type_,CM=self.read_CMs()
         return type_
 
+    @lru_cache
     def get_SM(self)->np.ndarray:
         return self.read_SM()
     
@@ -107,14 +114,21 @@ class LogReader(Reader):
         搜索到需要用到的标题行就停止
         """
         # 所有标题所在的行
-        start=self.index
-        for i in range(start,len(self.lines)):
-            line=self.lines[i]
-            for key_ in self.titles.keys():
-                # if self.titles['line'] is None:continue #如果当前标题已经找到则跳过
-                pate=self.titles[key_].pate
-                if re.search(pate,line) is None:continue #如果不匹配则跳过
-                self.titles[key_].line=i
+        def sear_group(lines,start):
+            for j,line in enumerate(lines):
+                for key_ in self.titles.keys():
+                    pate=self.titles[key_].pate
+                    if re.search(pate,line) is None:continue #如果不匹配则跳过
+                    self.titles[key_].line=start+j
+                    printer.log(self.titles[key_])
+        threads:list[threading.Thread]=[]
+        for i in range(0,len(self.lines),100_000):
+            lines=self.lines[i:i+100_000]
+            t=threading.Thread(target=sear_group,args=(lines,i,))
+            t.start()
+            threads.append(t)
+        for t in threads:
+            t.join()
 
     @lru_cache
     def read_coords(self):
@@ -166,6 +180,7 @@ class LogReader(Reader):
         原子类型
             电子层
         """
+        assert 'gfinput' in self.keyWords,'关键词应该包含：gfinput'
         titleNum=self.titles['basisData'].line
         symbols=self.get_symbols()
         if titleNum is None:return
@@ -235,7 +250,7 @@ class LogReader(Reader):
     #情况4   1 1   C  1S         -0.00901  -0.01132   0.00047  -0.01645  -0.02767
     #情况5   2        2S         -0.00131  -0.00175  -0.00041  -0.00184  -0.00173
     @lru_cache
-    def read_CM(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
+    def read_CM_(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
         s1='^(( +\d+){1,5}) *$'
         s2=r'^(( *(\(\w+\)--)?[OV]){1,5})$'
         s3=r'^ +Eigenvalues --(( +-?\d+.\d+){1,5})'
@@ -246,9 +261,7 @@ class LogReader(Reader):
         # for i,line in enumerate(self.logLines):
         #     if title in line:
         #         titleNum=i
-        
         titleNum=self.titles[title].line
-        print('读取系数',title,titleNum)
         if titleNum is None:return None
 
         OrbitalAtom=[] # 系数矩阵每一行对应的原子
@@ -295,7 +308,7 @@ class LogReader(Reader):
                 # self.OCdict[atomIDX].set(layer,nums)
             else: # 若不满足以上任意一种情况，说明已经查找完毕，则对收集到的数据进行处理
                 # print(dataDict)
-                print(f'读取完成{i=}{line=}')
+                printer.console.log(f'读取完成,i={i},line={line}')
                 for atomic,matrics in dataDict.items():
                     for i,matrix in enumerate(matrics):
                         dataDict[atomic][i]=np.array(matrix)
@@ -303,9 +316,71 @@ class LogReader(Reader):
                     dataDict[atomic]=np.concatenate(matrics,axis=1)
                 CM=np.concatenate([m for m in dataDict.values()],axis=0)
                 break
-        print(f'读取完成CM,shape={CM.shape}')
+        printer.console.log(f'读取完成CM,shape={CM.shape}')
         assert CM.shape[0]==CM.shape[1],"CM需要为正方形矩阵"
         return OrbitalAtom,OrbitalLayer,OrbitalEngs,OrbitalType,CM
+    
+    @lru_cache
+    def read_CM(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
+        assert 'pop=full' in self.keyWords,'关键词应包含：pop=full'
+        find=re.search('NBasis *= *(\d+)',self.text).groups()[0]
+        NBasis=int(find)
+        NBlock=NBasis//5+(0 if NBasis%5==0 else 1)
+        titleNum=self.titles[title].line
+        
+        if titleNum is None:return None
+        blockLen=NBasis+3
+        # print(titleNum,NBlock,blockLen)
+        OrbitalAtom=[]
+        OrbitalEngs=[]
+        OrbitalType=[]
+        OrbitalLaye=[]
+        CM=np.zeros(shape=(NBasis,NBasis))
+        for i,l in enumerate(range(titleNum+1,titleNum+NBlock*blockLen+1,blockLen)):
+            # print(i,l,self.lines[l])
+            types=self.lines[l+1][21:71]
+            # print(types)
+            types=[types[i:i+10].strip() for i in range(0,50,10)]
+            types=[e for e in types if e!='']
+            # print(types)
+            # types=[float(e) for e in types]
+            OrbitalType+=types
+            engs =re.split(' +',self.lines[l+2][21:].strip())
+            engs=[float(e) for e in engs]
+            OrbitalEngs+=engs
+            
+            coefs=[line[21:] for line in self.lines[l+3:l+3+NBasis]]
+            for j,line in enumerate(coefs):
+                coef=re.findall('-?\d+.\d+',line)
+                coef=[float(e) for e in coef]
+                # print(i,j,coef)
+                a=i*5
+                b=i*5+len(coef)
+                CM[j,i*5:i*5+len(coef)]=coef
+            # print(coefs)
+
+            if i==0:
+                atomID=''
+                for l2 in range(l+3,l+blockLen):
+                    line=self.lines[l2][:15]
+                    # print(l2,line)
+                    obtLaye=line[12:].strip()
+                    OrbitalLaye.append(obtLaye)
+                    obtAtom=line[5:9].strip()
+                    # print(obtAtom)
+                    if obtAtom!='':
+                        atomID=int(obtAtom)
+                    OrbitalAtom.append(atomID)
+                    # print(line,obtAtom,atomID)
+        # print(NBasis)
+        
+        # print('OrbitalAtom',OrbitalAtom,len(OrbitalAtom))
+        # print('OrbitalLaye',OrbitalLaye,len(OrbitalLaye))
+        # print('OrbitalEngs',OrbitalEngs,len(OrbitalEngs))
+        # print('OrbitalType',OrbitalType,len(OrbitalType))
+        # print(CM.shape)
+        return OrbitalAtom,OrbitalLaye,OrbitalEngs,OrbitalType,CM
+
     
     @lru_cache
     def read_CMs(self)->tuple[list,list,list,list,np.ndarray]:

@@ -36,12 +36,14 @@ from functools import cached_property, lru_cache
 from tqdm import tqdm
 import multiprocessing as mp
 from multiprocessing.pool import AsyncResult
+import threading
 
 class Mol:
     def __init__(self,reader:"reader.Reader"=None) -> None:
         self._atoms:Atoms=Atoms(self)
         self._bonds:Bonds=Bonds(self)
         self.reader:"reader.Reader"=reader
+        self.datas={}
     
     @cached_property
     def basis(self)->data.Basis: # 设为属性，可以保证用不到的时候不被实例化
@@ -156,7 +158,11 @@ class Mol:
     @cached_property
     def CM(self)->np.ndarray:
         """分子轨道系数矩阵"""
-        return self.reader.get_CM()
+        if 'CM' not in self.datas.keys():
+            CM=self.reader.get_CM()
+            CM.setflags(write=False)
+            self.datas['CM']=CM
+        return self.datas['CM']
     
     @property
     def SM(self):
@@ -170,31 +176,37 @@ class Mol:
     
     
     
-    def projCM(self,atoms:list[int],obts:list[int],vects:list[np.ndarray],zero:bool=False):
+    def projCM(self,atoms:list[int],obts:list[int],
+               vects:list[np.ndarray],zero:bool=False,
+               keep:bool=False,abs:bool=False):
         """
         获取投影后的系数矩阵
         atoms:需要投影的原子
         obts:需要投影的轨道
         vects:投影到的方向
-        zero:其他系数是否置0
+        zero:其它原子系数是否置零
+        keep:其它价层系数是否保留
         atoms和vects的长度必须相同
         """
         assert isinstance(vects,list),"方向想两需要为列表"
-        assert len(atoms)==len(vects),"原子的长度和方向的长度不同"
-        
+        assert len(atoms)==len(vects),"原子和方向数量不同"
         if zero:
             CM_=np.zeros_like(self.CM,dtype=np.float32) #新的系数矩阵
         else:
             CM_=np.copy(self.CM)
-        atoms:list[Atom]=(self.atom(a) for a in atoms)
-        for a,(atom,vect) in enumerate(zip(atoms,vects)):
+        
 
+        for a,(atom,vect) in enumerate(zip(atoms,vects)):
+            atom=self.atom(atom)
             a_1,a_2=atom.obtBorder
             layers=self.obtLayer[a_1:a_2]
             pIdx=[i for i,l in enumerate(layers) if 'P' in l]
             for o,obt in enumerate(obts):
-                Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
-                Cop=atom.get_pProj(vect,obt)
+                if keep:
+                    Co=self.CM.copy()[a_1:a_2,obt]
+                else:
+                    Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
+                Cop=atom.get_pProj(vect,obt,abs)
                 Co[pIdx]=np.concatenate(Cop)
                 CM_[a_1:a_2,obt]=Co
         return CM_
@@ -212,8 +224,8 @@ class Mol:
         print(f'渲染轨道{obt=},{pos.shape},{atoms}')
         assert pos.shape[1]==3,'坐标的形状需为[n,3]'
         values=np.zeros(len(pos))
-        pool=mp.Pool(mp.cpu_count())
-        proces:list[AsyncResult]=[]
+        # pool=mp.Pool(mp.cpu_count())
+        # proces:list[AsyncResult]=[]
         # multi=True
         # if multi:
         #     for idx in atoms:

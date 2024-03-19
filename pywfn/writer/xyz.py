@@ -3,6 +3,8 @@
 """
 from pywfn import base
 from pathlib import Path
+from pywfn.data import elements
+from pywfn.utils import printer
 
 class xyzWriter:
     def __init__(self,mol:"base.Mol") -> None:
@@ -14,11 +16,13 @@ class xyzWriter:
         self.resStr+=f'generate by pywfn\n'
         for atom in self.mol.atoms:
             x,y,z=atom.coord
-            s=atom.symbol
-            self.resStr+=f' {s:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}\n'
+            sym=atom.symbol
+            idx=elements[sym].charge
+            self.resStr+=f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}\n'
 
     def save(self):
         self.write()
         path=self.mol.reader.path
         path=Path(path)
         (path.parent/f'{path.stem}.xyz').write_text(self.resStr)
+        printer.res('导出成功!😄')

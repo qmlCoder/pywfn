@@ -19,11 +19,12 @@ class Calculator:
     def valence(self,idx:int):
         """计算一个原子的自由价，从1开始"""
         printer.info(f'计算原子 {idx} 自由价')
+        assert self.direct is not None,'未指定方向'
         centAtom=self.mol.atom(idx)
         valence1=STAND
         valence2=STAND
-        if self.direct is not None:
-            self.caler.direct=self.direct.copy()
+        self.caler.direct=self.direct.copy()
+
         for arouAtom in centAtom.neighbors:
             self.caler.bond=[idx,arouAtom.idx]
             orders=self.caler.calculate()

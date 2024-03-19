@@ -9,10 +9,10 @@ class Calculator:
     def __init__(self,mol:"Mol"):
         self.mol=mol
     
-    @lru_cache
     def calculate(self)->list[float]:
         elects=lutils.get_ects(self.mol,self.mol.O_obts,self.mol.CM)
         charges=[atom.atomic-elect for atom,elect in zip(self.mol.atoms,elects)]
+        printer.log('计算mulliken电荷')
         return charges
             
     def print(self,result):

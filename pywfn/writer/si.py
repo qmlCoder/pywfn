@@ -21,7 +21,7 @@ class siWriter:
         self.reader:LogReader=mol.reader #已经实例化的
         self.content=self.reader.text
         self.template=temps.si
-        self.selects:list[int]=['1','2','3']
+        self.selects:list[int]=[1,2,3]
         self.sameFile:bool=True
     
     def write_energy(self):
@@ -56,14 +56,18 @@ class siWriter:
         2. 能量 energy
         3. 频率 freq
         """
-
-        for opt in self.selects:
-            if opt=='1':
-                self.write_coord()
-            elif opt=='2':
-                self.write_energy()
-            elif opt=='3':
-                self.write_freq()
+        if 1 in self.selects:
+            self.write_coord()
+        else:
+            self.template=self.template.replace('<COORD>\n','')
+        if 2 in self.selects:
+            self.write_energy()
+        else:
+            self.template=self.template.replace('<ENERGY>\n','')
+        if 3 in self.selects:
+            self.write_freq()
+        else:
+            self.template=self.template.replace('<FREQ>\n','')
 
         path_=Path(self.reader.path)
         if self.sameFile:

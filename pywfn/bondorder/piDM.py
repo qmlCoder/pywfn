@@ -16,10 +16,10 @@ class Calculator(Caler):
         self.mol=mol
         self.values={}
         self.direct:Union[None,np.ndarray]=None
-        self.bond:List[int]=None
+        self.bond:list[int,int]=None
 
 
-    def calculate(self)->List[float]:
+    def calculate(self)->list[float,float]:
         """
         计算pi键级，当指定方向时计算方向键级
         """
@@ -29,7 +29,7 @@ class Calculator(Caler):
         centerAtom=self.mol.atom(idx1)
         aroundAtom=self.mol.atom(idx2)
         if centerAtom.symbol=='H' or aroundAtom.symbol=='H':
-            return 0,0
+            return 0.,0.
         obts=self.mol.O_obts #占据轨道的索引
 
         direct=self.direct
@@ -41,25 +41,33 @@ class Calculator(Caler):
         
         if len(centerAtom.neighbors)==3:
             printer.vector('法向方向: ',normal)
-            return self.calerWay(obts,normal),0
+            return self.calerWay(obts,normal),0.
         elif len(centerAtom.neighbors) in [2,1]:
             bondVector=aroundAtom.coord-centerAtom.coord
             if normal is None:
                 idxn=maths.search_sp2(idx1,self.mol)
                 if idxn is None:
-                    normal=centerAtom.get_vertObt(aroundAtom.idx,centerAtom.idx)
+                    normal=centerAtom.get_vertObt(idx1,idx2)
+                    printer.vector('轨道方向: ',normal)
                 else:
                     normal=self.mol.atom(idxn).get_Normal(idx2)
+                    printer.vector('相邻法向: ',normal)
+            else:
+                printer.vector('法向方向: ',normal)
             
-            printer.vector('法向方向: ',normal)
+            
             cross=np.cross(bondVector,normal)
             cross/=np.linalg.norm(cross)
             printer.vector('交叉方向: ',cross)
             return self.calerWay(obts,normal),self.calerWay(obts,cross)
         else:
-            return 0,0
+            return 0.,0.
 
-    def calerWay(self,obts,norm):
+    def calerWay(self,obts:list[int],norm:np.ndarray):
+        
+        norm.flags.writeable=False
+        length=np.linalg.norm(norm)
+        assert abs(length-1)<1e-4,"向量长度应为1"
         idx1,idx2=self.bond
         """计算两个原子之间某个方向的键级"""
         atom1=self.mol.atom(idx1)

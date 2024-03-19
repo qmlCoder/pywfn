@@ -6,7 +6,7 @@ from pywfn import config
 from pywfn import base
 from pywfn import maths
 
-from pywfn.utils import vectStr,printer
+from pywfn.utils import printer
 
 """
 一个原子的轨道组合系数就是一个矩阵，行数是基函数的数量，列数是分子轨道的数量
@@ -23,6 +23,7 @@ class Atom:
     def __init__(self,symbol:str,coord:np.ndarray,idx:int,mol:"base.Mol"): # 每个原子应该知道自己属于哪个分子
         self.symbol=symbol
         self.coord=coord
+        self.coord.flags.writeable=False
         self.idx=idx
         self.mol:"base.Mol"=mol
 
@@ -46,7 +47,7 @@ class Atom:
     def obtCoeffs(self):
         """获取该原子对应的系数"""
         u,l=self.obtBorder
-        print(f'{u=},{l=}')
+        # printer.console.log(f'{u=},{l=}')
         return self.mol.CM[u:l,:]
 
     @cached_property
@@ -69,7 +70,6 @@ class Atom:
         dis=np.sqrt(np.sum(pos**2,axis=1)) #所有点距离原子的距离
         idx=np.argwhere(dis<renderRange).flatten() # 挑选出距离小于指定距离的点,根据距离少渲染一些点可以加快渲染速度
         values=np.zeros(len(pos))
-        coeff=self.obtCoeffs[:,obt]
         vs=self.mol.gto.agto(pos[idx,:],self.idx,obt)
         values[idx]=vs
         return values
@@ -82,16 +82,39 @@ class Atom:
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
-    def get_pProj(self,direct:np.ndarray,obt:int):
+    def get_pProj(self,direct:np.ndarray,obt:int,positive=False):
+        """计算原子p系数在某个方向上的投影,返回n个三维向量"""
+        assert isinstance(direct,np.ndarray),"方向需要为np.ndarray"
+        # printer.console.log(f'direct={direct}')
+        # print('direct=',direct)
+        assert direct.shape==(3,),'方向向量长度应该为3'
+        length=np.linalg.norm(direct)
+        assert abs(length-1)<1e-4,'方向范数应该为1'
+        assert length!=0,"方向向量长度不能为0"
+        cs=self.pLayersCs(obt) # p轨道的系数
+        assert len(cs)%3==0,"p轨道系数的长度应为3n"
+        ps=[np.array(cs[i:i+3]) for i in range(0,len(cs),3)] #每一项都是长度为3的数组
+        # print('ps=',ps)
+        lens=np.dot(ps,direct)
+
+        if positive:
+            ps_=[abs(l)*direct for l in lens]
+        else:
+            ps_=[l*direct for l in lens] # 轨道向量在法向量方向上的投影
+        # printer.log('获取投影后的系数')
+        # print(ps,direct,ps_)
+        return ps_
+    
+    def get_sProj(self,direct:np.ndarray,obt:int):
         """计算原子p系数在某个方向上的投影,返回n个三维向量"""
         assert isinstance(direct,np.ndarray),"方向需要为np.ndarray"
         assert np.linalg.norm(direct)!=0,"方向向量长度不能为0"
         direct/=np.linalg.norm(direct) # 投影向量归一化
-        cs=self.pLayersCs(obt) # p轨道的系数
-        assert len(cs)%3==0,"p轨道系数的长度应为3n"
-        ps=[np.array(cs[i:i+3]) for i in range(0,len(cs),3)] #每一项都是长度为3的数组
-        ps_=[np.dot(p, direct)*direct for p in ps] # 轨道向量在法向量方向上的投影
-        return ps_
+        a,b=self.obtBorder
+        layers=self.mol.obtLayer[a:b]
+        sIndex=[i for i,l in enumerate(layers) if 'S' in l]
+        return self.obtCoeffs[sIndex,obt]
+    
     
     @lru_cache
     def get_Normal(self,aroundIdx:int=None,main:bool=True)->None|np.ndarray: # 一个原子应该知道自己的法向量是多少
@@ -148,10 +171,11 @@ class Atom:
     def get_vertObt(self,idx1:int,idx2:int)->np.ndarray:
         """从HOMO轨道开始寻找垂直于键轴的轨道方向"""
         obts=self.mol.O_obts
+        bondVector=self.mol.atom(idx1).coord-self.mol.atom(idx2).coord
         for obt in obts[::-1]:
             obtWay=self.get_obtWay(obt)
+            if obtWay is None:continue
             printer.info(f'以{obt}号轨道方向作为法向量')
-            bondVector=self.mol.atoms[idx2].coord-self.mol.atoms[idx1].coord
             if maths.vector_angle(bondVector,obtWay,trans=True)>0.4:
                 if maths.vector_angle(obtWay,config.BASE_VECTOR)>0.5:obtWay*=-1
                 return obtWay
@@ -172,7 +196,6 @@ class Atom:
     @lru_cache
     def get_obtWay(self,obt:int)->np.ndarray:
         """获得原子某一轨道的方向"""
-        atomPos=self.coord
         maxPos,maxValue=maths.get_extraValue(self,obt)
         way=maxPos # 如果两者相同说明完全没有电子云、这显然不对啊
         if np.linalg.norm(way)==0:
@@ -190,6 +213,14 @@ class Atom:
         s=self.OC[0,orbital]
         contribution=s**2/self.mol.As[orbital]
         return contribution
+
+    def get_direct(self):
+        """
+        获取反应方向
+        对于两个键的，为平面内夹角相同方向
+        
+        """
+        
 
 
 class Atoms:

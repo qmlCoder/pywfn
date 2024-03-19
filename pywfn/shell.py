@@ -23,8 +23,10 @@ import numpy as np
 class Shell:
     def __init__(self):
         self.paths:list[Path]=None
+        printer.ifShell=True
         printer.info(data.start)
         self.input=Input()
+        
 
     def homePage(self):
         opts=[
@@ -54,7 +56,8 @@ class Shell:
             ['3','pi 电子分布'],
             ['4','方向 电子分布'],
             ['5','方向 电子自旋'],
-            ['6','原子自由价'],
+            ['6','原子 自由价'],
+            ['7','原子 相关方向'],
         ]
         path=self.paths[0]
         mol=Mol(reader=get_reader(path))
@@ -82,8 +85,8 @@ class Shell:
                         if atom is None:break
                         vect=self.input.Number(tip='请输入要计算的方向: ',length=3)
                         if vect is None:break
-                        caler.atom=atom
-                        caler.vect=np.array(vect)
+                        caler.atoms=[atom]
+                        caler.vects=[np.array(vect)]
                         caler.printRes()
                 case '5': # 方向 电子自旋
                     from pywfn.atomprop import directSpin
@@ -93,8 +96,8 @@ class Shell:
                         if atom is None:break
                         vect=self.input.Number(tip='请输入要计算的方向: ',length=3)
                         if vect is None:break
-                        caler.atom=atom
-                        caler.vect=np.array(vect)
+                        caler.atoms=[atom]
+                        caler.vects=[np.array(vect)]
                         caler.printRes()
                 case '6': # 原子自由价
                     from pywfn.atomprop import freeValence
@@ -104,14 +107,28 @@ class Shell:
                         if idx is None:break
                         caler.direct=self.input.Number('输入方向向量(,)[法向量]: ',length=3)
                         caler.print(caler.resStr([idx]))
+                case '7':
+                    while True:
+                        idx=self.input.Number(tip='请输入原子编号: ',type_='int',length=1)
+                        if idx is None:break
+                        atom=mol.atom(idx)
+
+                        normal=atom.get_Normal()
+                        obtWay=atom.get_obtWay(len(mol.O_obts)-1)
+
+                        if normal is not None:
+                            printer.vector('原子法向量',normal)
+                        else:
+                            printer.warn('原子没有法向量')
+                        printer.vector('HOMO轨道方向',obtWay)
+                        
+                        
                 case _:
                     return
                          
     def bondProp(self):
         """计算各种键级"""
         opts=[
-            # ['1','piDH'],
-            # ['2','piSH'],
             ['1','π 键级(OP)'],
             ['2','π 键级(SMO)'],
             ['3','Mayer 键级'],
@@ -153,6 +170,7 @@ class Shell:
             ['3','分割 link 任务'],
             ['4','生成 PES 文件'],
             ['5','计算 反应活化能'],
+            ['6','计算 立体选择性ee值'],
         ]
         while True:
             opt=self.input.Option('使用工具页面',opts)
@@ -184,6 +202,14 @@ class Shell:
                     g0=-x*R*T*1e-3 # kJ/mol
                     g1=g0/4.184
                     printer.res(f'G(吉布斯自由能):\n{g0:>10.4f} kJ/mol\n{g1:>10.4f} Kcal/mol')
+                case '6':
+                    deR,deS=self.input.Number(tip='分别输入ΔG(R),ΔG(S): ',length=2)
+                    T=self.input.Number(tip='输入T(反应温度,K): ',length=1)
+                    R=8.314
+                    RT=R*T
+                    RS=np.exp((deS-deR)*4185.8518/RT)
+                    ee=(RS-1)/(RS+1)
+                    printer.res(f'立体选择性ee值:\n{ee*100:.2f}%')
                     
     def writePage(self):
         while True:

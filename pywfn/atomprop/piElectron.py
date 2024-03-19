@@ -17,9 +17,10 @@ class Calculator:
         每个原子都有应该根据自己的法向量方向来计算(当法向量都相同时相当于都一样)
         """
         atoms=self.mol.heavyAtoms
-        vects=lutils.get_vects(self.mol,atoms)
+        atoms=lutils.atomIdxs(atoms)
+        vects=lutils.get_vects(self.mol,atoms) # 每个原子都获得自己的法向量
 
-        CM_=self.mol.projCM(lutils.atomIdxs(atoms),self.mol.O_obts,vects)
+        CM_=self.mol.projCM(atoms,self.mol.O_obts,vects)
         elects=lutils.get_ects(self.mol,self.mol.O_obts,CM_)
         elects=[elect if atom.symbol!='H' else 0 for atom,elect in zip(self.mol.atoms,elects)]
         return elects

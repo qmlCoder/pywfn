@@ -21,7 +21,7 @@ def get_vects(mol:Mol,atoms:list[int]=None):
         vects.append(vect)
     return vects
 
-def get_ects(mol:Mol,obts,CM_):
+def get_ects(mol:Mol,obts,CM_)->list[int]:
     """
     计算电子数量,如果不指定则计算所有的π电子
     如果指定方向，则计算方向电子

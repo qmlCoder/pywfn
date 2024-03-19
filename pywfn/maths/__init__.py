@@ -168,3 +168,23 @@ def search_sp2(idx:int,mol:"base.Mol")->int:
         searchs+=searchn
     printer.warn('没有找到sp2类型原子')
     return None
+
+def points_rotate(points:np.ndarray,axis_center:np.ndarray,axis_vector:np.ndarray,angle:float): # 旋转点
+    """
+    将一个点或一系列点绕空间中的某个轴旋转指定角度
+    """
+    axis_length=np.linalg.norm(axis_vector)
+    axis_vector /=axis_length 
+    a = np.cos(angle / 2.0)
+    b, c, d = -axis_vector * np.sin(angle / 2.0)
+    # 旋转矩阵
+    matrix = np.array([
+        [a**2 + b**2 - c**2 - d**2, 2 * (b*c - a*d), 2 * (b*d + a*c)],
+        [2 * (b*c + a*d), a**2 - b**2 + c**2 - d**2, 2 * (c*d - a*b)],
+        [2 * (b*d - a*c), 2 * (c*d + a*b), a**2 - b**2 - c**2 + d**2]
+    ])
+    points=np.copy(points)
+    points-=axis_center
+    points = np.dot(matrix, points.T).T
+    points+=axis_center
+    return points

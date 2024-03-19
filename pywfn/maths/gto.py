@@ -53,7 +53,6 @@ class Gto:
                 if key not in coes.keys(): # 保证唯一性
                     coes[key]=coeff[idxo]
                     idxo+=1
-                    print(idxo,key)
                 data_.append([coes[key],exp,coe,l,m,n])
         assert idxo==len(coeff),f'系数没有匹配完全{idxo=},{coeff=}'
         return data_
@@ -64,8 +63,7 @@ class Gto:
         R=np.sum(pos**2,axis=1)
         values=np.zeros(len(pos),dtype=np.float32)
         data_=self.bind(atom,obt)
-        for C,exp,coe,l,m,n in printer.track(data_,f'agto:{atom=}'):
-            # print(f'{C=:.4f}\t{exp=:+.2e}\t{coe=:+.2e}\t{l=}\t{m=}\t{n=}\t{self.basis.lName(l,m,n)}')
+        for C,exp,coe,l,m,n in printer.track(data_,f'agto:atom={atom}'):
             if not (l+m+n in self.angs):continue #可以筛选角动量
             if abs(C)<1e-6:continue #系数很小的忽略
             values+=C*self.gto(exp,coe,R,pos,l,m,n)
