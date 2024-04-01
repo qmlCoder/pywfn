@@ -155,13 +155,15 @@ class Mol:
     def heavyAtoms(self)->list[Atom]:
         return [atom for atom in self.atoms if atom.symbol!='H']
 
-    @cached_property
+    @property
     def CM(self)->np.ndarray:
         """分子轨道系数矩阵"""
         if 'CM' not in self.datas.keys():
             CM=self.reader.get_CM()
             CM.setflags(write=False)
             self.datas['CM']=CM
+        if 'CMp' in self.datas.keys() and config.IF_CM_P:
+            return self.datas['CMp']
         return self.datas['CM']
     
     @property
@@ -176,9 +178,8 @@ class Mol:
     
     
     
-    def projCM(self,atoms:list[int],obts:list[int],
-               vects:list[np.ndarray],zero:bool=False,
-               keep:bool=False,abs:bool=False):
+    def projCM(self,atoms:list[int],obts:list[int],vects:list[np.ndarray]
+               ,zero:bool,keep:bool,abs:bool,ins:bool):
         """
         获取投影后的系数矩阵
         atoms:需要投影的原子
@@ -186,7 +187,9 @@ class Mol:
         vects:投影到的方向
         zero:其它原子系数是否置零
         keep:其它价层系数是否保留
-        atoms和vects的长度必须相同
+            atoms和vects的长度必须相同
+        abs:是否取绝对值
+        ins:是否包含价层s轨道
         """
         assert isinstance(vects,list),"方向想两需要为列表"
         assert len(atoms)==len(vects),"原子和方向数量不同"
@@ -194,21 +197,29 @@ class Mol:
             CM_=np.zeros_like(self.CM,dtype=np.float32) #新的系数矩阵
         else:
             CM_=np.copy(self.CM)
+            
         
 
         for a,(atom,vect) in enumerate(zip(atoms,vects)):
             atom=self.atom(atom)
             a_1,a_2=atom.obtBorder
             layers=self.obtLayer[a_1:a_2]
+            
+            sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
             pIdx=[i for i,l in enumerate(layers) if 'P' in l]
+            if len(pIdx)==0:continue # 没有p轨道则跳过
             for o,obt in enumerate(obts):
                 if keep:
                     Co=self.CM.copy()[a_1:a_2,obt]
                 else:
                     Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
+                Cos=atom.obtCoeffs.copy()[sIdx,obt]
+                # Co[sIdx]=Cos
                 Cop=atom.get_pProj(vect,obt,abs)
                 Co[pIdx]=np.concatenate(Cop)
-                CM_[a_1:a_2,obt]=Co
+                CM_[a_1:a_2,obt]=Co.copy()
+                # print(CM_[:,obt])
+        self.datas['CMp']=CM_ # 将投影的分子轨道记录下来
         return CM_
 
     def __repr__(self):

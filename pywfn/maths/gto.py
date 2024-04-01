@@ -38,7 +38,7 @@ class Gto:
     def __init__(self,mol:"base.Mol"):
         self.mol=mol
         self.basis=mol.basis
-        self.angs=[1,2,3,4]
+        self.angs=[0,1,2,3,4] # 默认全部绘制
 
     def bind(self,atom:int,obt:int):
         atom:"base.Atom"=self.mol.atom(atom)

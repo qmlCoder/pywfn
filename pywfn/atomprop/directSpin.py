@@ -16,14 +16,14 @@ class Calculator:
         self.atoms:list[int]=None
         self.zero=True
         self.keep=True
-        
+        self.abs=False
         self.index=0
         self.total=0
     
     def get_Es(self,obts:list[int],atom:int,vect:np.ndarray,idx:int,spin:int): 
         """计算电子数量"""
         
-        CM_=self.mol.projCM([atom],obts,[vect],zero=self.zero,keep=self.keep,abs=True)
+        CM_=self.mol.projCM([atom],obts,[vect],zero=self.zero,keep=self.keep,abs=self.abs)
         elect=lutils.get_ects(self.mol,obts,CM_)[atom-1]
         return atom,elect,idx,spin
     

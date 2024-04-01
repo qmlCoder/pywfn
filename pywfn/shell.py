@@ -22,15 +22,14 @@ import numpy as np
 
 class Shell:
     def __init__(self):
-        self.paths:list[Path]=None
+        self.paths:list[Path]=[]
         printer.ifShell=True
         printer.info(data.start)
-        self.input=Input()
+        self.input=Input(self)
         
 
     def homePage(self):
         opts=[
-            ['0','导入文件'],
             ['1','键级计算'],
             ['2','原子属性'],
             ['3','实用工具'],
@@ -38,9 +37,8 @@ class Shell:
             ['5','程序设置']
         ]
         while True:
-            opt=self.input.Option('首页',opts,canNone=False)
+            opt=self.input.Option('首页',opts,must=True)
             match opt:
-                case '0':self.paths=self.input.Files()
                 case '1':self.bondProp()
                 case '2':self.atomProp()
                 case '3':self.toolsPage()
@@ -57,59 +55,81 @@ class Shell:
             ['4','方向 电子分布'],
             ['5','方向 电子自旋'],
             ['6','原子 自由价'],
-            ['7','原子 相关方向'],
+            ['7','方向 活性指标'],
         ]
-        path=self.paths[0]
-        mol=Mol(reader=get_reader(path))
+        
         while True:
             opt=self.input.Option('计算原子属性',opts)
             match opt:
                 case None:break
-                
                 case '1': # mulliken 电荷分布
+                    mol=self.input.Moles()[0]
                     caler=mullikenCharge.Calculator(mol)
                     caler.print(caler.resStr())
                 case '2': # mulliken 电子自旋
                     from pywfn.atomprop import mullikenSpin
+                    mol=self.input.Moles()[0]
                     caler=mullikenSpin.Calculator(mol)
                     caler.print(caler.resStr())
                 case '3': # π 电子分布
                     from pywfn.atomprop import piElectron
+                    mol=self.input.Moles()[0]
                     caler=piElectron.Calculator(mol)
                     caler.print(caler.resStr())
                 case '4': # 方向 电子分布
                     from pywfn.atomprop import directElectron
+                    mol=self.input.Moles()[0]
                     caler=directElectron.Calculator(mol)
                     while True:
-                        atom=self.input.Number(tip='请输入要计算的原子: ',type_='int',length=1)
+                        atom=self.input.Number(tip='输入原子编号: ',type_='int',length=1)
                         if atom is None:break
-                        vect=self.input.Number(tip='请输入要计算的方向: ',length=3)
+                        vect=self.input.Vector(tip='输入方向向量')
                         if vect is None:break
                         caler.atoms=[atom]
-                        caler.vects=[np.array(vect)]
+                        caler.vects=[vect]
                         caler.printRes()
                 case '5': # 方向 电子自旋
                     from pywfn.atomprop import directSpin
+                    mol=self.input.Moles()[0]
                     caler=directSpin.Calculator(mol)
                     while True:
-                        atom=self.input.Number(tip='请输入要计算的原子: ',type_='int',length=1)
+                        atom=self.input.Number(tip='输入原子编号: ',type_='int',length=1)
                         if atom is None:break
-                        vect=self.input.Number(tip='请输入要计算的方向: ',length=3)
+                        vect=self.input.Vector(tip='输入方向向量',norm=True)
                         if vect is None:break
                         caler.atoms=[atom]
-                        caler.vects=[np.array(vect)]
+                        caler.vects=[vect]
                         caler.printRes()
                 case '6': # 原子自由价
                     from pywfn.atomprop import freeValence
                     caler=freeValence.Calculator(mol)
                     while True:
-                        idx=self.input.Number(tip='请输入原子编号: ',type_='int',length=1)
+                        idx=self.input.Number(tip='输入原子编号: ',type_='int',length=1)
                         if idx is None:break
-                        caler.direct=self.input.Number('输入方向向量(,)[法向量]: ',length=3)
+                        caler.direct=self.input.Vector(tip='输入法向量',norm=True)
                         caler.print(caler.resStr([idx]))
-                case '7':
+                case '7': # 方向反应指标
+                    from pywfn.atomprop import directElectron
+                    printer.info('分别输入-,0,+对应的分子编号：')
+                    mols=self.input.Moles()
+                    calers=[directElectron.Calculator(mol) for mol in mols]
                     while True:
-                        idx=self.input.Number(tip='请输入原子编号: ',type_='int',length=1)
+                        atom=self.input.Number(tip='输入原子编号: ',type_='int',length=1)
+                        if atom is None:break
+                        vect=self.input.Vector(tip='输入方向向量：',norm=True)
+                        if vect is None:break
+                        values=[]
+                        for caler in calers:
+                            caler.atoms=[atom]
+                            caler.vects=[vect]
+                            value=caler.calculate()[0]
+                            values.append(value)
+                        vn,v0,vp=values
+                        printer.res(f'方向电子数：{vn:.4f},{v0:.4f},{vp:.4f}\n方向亲电/亲核指标：{vn-v0:.4f},{v0-vp:.4f}')
+                            
+                case '8':
+                    while True:
+                        idx=self.input.Number(tip='输入原子编号: ',type_='int',length=1)
                         if idx is None:break
                         atom=mol.atom(idx)
 
@@ -238,13 +258,15 @@ class Shell:
                     obts=[obt-1 for obt in obts]
                     step=self.input.Number(tip=f'请输入渲染间隔()[{config.RENDER_CLOUD_STEP}]: ',type_='float',length=1)
                     atoms=self.input.Number(tip='请输入渲染原子(,)[全选]: ',type_='int')
+                    direct=self.input.Vector(tip='请输入投影方向[]',norm=True,must=False)
                     for path in self.paths:
                         mol=Mol(reader=get_reader(path))
                         writer=cubWriter(mol)
                         if step is not None:writer.step=step
                         if atoms is not None:writer.atoms=atoms
+                        if direct is not None:writer.direct=direct
                         writer.obts=obts
-                        writer.save()
+                        writer.save('')
                 case '4':
                     from pywfn.writer import siWriter
                     printer.info('1.坐标 2.能量 3.频率')
@@ -258,7 +280,7 @@ class Shell:
                         writer.save()
 
     def showFiles(self):
-        printer.info('当前的读取的文件有：')
+        printer.info(f'当前读取{len(self.paths)}文件：')
         for i,path in enumerate(self.paths):
             print(f'{i},{path.stem}')
         printer.print('')
@@ -285,8 +307,8 @@ class Shell:
             printer.res('设置成功')
                 
 class Input:
-    def __init__(self) -> None:
-        pass
+    def __init__(self,shell:Shell) -> None:
+        self.shell=shell
 
     def input(self,tip:str):
         res=input(tip)
@@ -295,15 +317,26 @@ class Input:
 
     def Number(self,tip:str,type_:str='float',length:int=None)->int|float:
         """输入整数"""
+        def split1(frg:str):
+            if '-' in frg:
+                num1,num2=[int(e) for e in frg.split('-')]
+                assert num1<num2,'数字1要大于数字2'
+                return list(f'{e}' for e in range(num1,num2+1))
+            else:
+                return [frg]
         while True:
             opt=input(tip)
             if opt== '':
                 return None
             else:
-                if not re.match(r'^-?\d+[\.\d+]*([,，]-?\d+[\.\d+]*)*$',opt):
+                if not re.match(r'^-?\d+[\.\d+]*([,，-]-?\d+[\.\d+]*)*$',opt):
                     printer.warn('格式不正确！！')
                     continue
-                nums=re.split(r'[,，]',opt)
+                
+                frgs=re.split(r'[,，]',opt)
+                nums=[]
+                for frg in frgs:
+                    nums+=split1(frg)
                 nums=[int(num) if type_=='int' else float(num) for num in nums]
                 if length is None:
                     return nums
@@ -314,6 +347,26 @@ class Input:
                         return nums[0]
                     else:
                         return nums
+    
+    def Vector(self,tip:str,norm:bool=False,must=False)->np.ndarray:
+        """
+        输入向量
+        tip:提示
+        norm:是否归一化
+        must:是否必须
+        """
+        while True:
+            opt=input(tip)
+            if opt=='':
+                if must:
+                    continue
+                else:
+                    return None
+            nums=re.split(r'[,，]',opt)
+            if len(nums)!=3:continue
+            nums=np.array(nums,dtype=np.float32)
+            if norm:nums/=np.linalg.norm(nums)
+            return nums
     
     def Bool(self,tip:str,default:bool=True):
         opt=input(tip)
@@ -328,45 +381,65 @@ class Input:
                 printer.warn('请输入正确选项!')
                 return self.Bool(tip,default)
     
-    def Option(self,title,opts,canNone=True):
+    def Option(self,title:str,opts,must=False):
         # maxLen=max([len(text) for idx,text in opts])
         printer.options(title,opts)
-        
-        
         idxs=[idx for idx,text in opts]
         while True:
             opt=self.input('请输入对应选项: ')
-            if opt=='' and canNone:
-                return None
+            if opt=='':
+                if must:
+                    continue
+                else:
+                    return None
             elif opt in idxs:
                 return opt
+            elif Path(opt).exists(): # 如果输入的是一个文件
+                self.Files(opt)
+            elif opt=='sf':
+                self.shell.showFiles()
+            elif opt=='cf':
+                printer.info('清空文件')
+                self.shell.paths=[]
+                self.shell.showFiles()
             else:
-                printer.warn('输入选项不存在!')
+                printer.warn('无效的输入!')
     
-    def Files(self):
+    def Files(self,path):
         types=['.log','.out','.fch','.gjf'] #支持的文件类型
-        while True:
-            path=self.input('输入文件[夹]名: ')
-            if path=='':continue
-            
-            path=Path(path)
-            if not path.exists():
-                printer.wrong('路径不存在')
-                continue #如果路径存在
-            if path.is_file(): # 如果是文件
-                if path.suffix in types:
-                    return [path]
-                else:
-                    printer.warn('不支持的文件类型')
-            elif path.is_dir(): # 如果是文件夹
-                paths=[]
-                for each in path.iterdir(): # 对文件夹中的每个文件进行循环
-                    if each.suffix in types: # 如果文件类型是支持的文件类型
-                        paths.append(each)
-                printer.info(f'共{len(paths)}个文件')
-                return paths
+        path=Path(path)
+        if path.is_file(): # 如果是文件
+            if path.suffix in types:
+                printer.info(f'共1个文件')
+                self.shell.paths+=[path]
+            else:
+                printer.warn('不支持的文件类型')
+        elif path.is_dir(): # 如果是文件夹
+            paths=[]
+            for each in path.iterdir(): # 对文件夹中的每个文件进行循环
+                if each.suffix in types: # 如果文件类型是支持的文件类型
+                    paths.append(each)
+            printer.info(f'输入{len(paths)}个文件')
+            self.shell.paths+=paths
     
     def Text(self)->str:
         path=input('请输入文件: ')
         if not Path(path).exists():return None
         return path,Path(path).read_text()
+
+    def Moles(self)->list[Mol]:
+        paths=self.shell.paths
+        if len(paths)==0:
+            path=paths[0]
+            reader=get_reader(path)
+            return [Mol(reader=reader)]
+        self.shell.showFiles()
+        idxs=[0] if len(paths)==0 else self.Number('输入分子编号：',type_='int')
+
+        mols=[]
+        for idx in idxs:
+            path=paths[idx]
+            reader=get_reader(path)
+            mol=Mol(reader=reader)
+            mols.append(mol)
+        return mols

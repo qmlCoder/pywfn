@@ -23,17 +23,18 @@ class cubWriter:
         self.step:float=config.RENDER_CLOUD_STEP
         self.border:float=config.RENDER_CLOUD_BORDER
         self.atoms:list[int]=[atom.idx for atom in self.mol.atoms]
+        self.direct:np.ndarray=None
         self.floatNum=12
         self.obts=[]
     
-    def init_file(self):
-        title0='genetrate by pywfn'
-        title1=time.strftime('%Y-%m-%d %H:%M:%S')
+    def init_file(self,name:str):
+        self.title0='genetrate by pywfn'
+        self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
         path=Path(self.mol.reader.path)
-        obts=','.join((f'{e+1}' for e in self.obts))
-        self.filePath=(path.parent/f'{path.stem}_{obts}.cub')
+        # obts=','.join((f'{e+1}' for e in self.obts))
+        self.filePath=(path.parent/f'{path.stem}_{name}.cub')
         self.file=open(self.filePath,mode='w')
-        self.file.write(f'{title0}\n{title1}\n')
+        
 
     def get_gridPos(self):
         """生成格点数据"""
@@ -43,10 +44,13 @@ class cubWriter:
         bord=self.border
         
         (Nx,Ny,Nz),gridPos=maths.gridPos(p0-bord,p1+bord,self.step,getN=True) #计算波函数时的坐标还是要使用原子单位的坐标
+        self.gridSize=(Nx,Ny,Nz)
         assert Nx*Ny*Nz==len(gridPos),"网格点数量不匹配"
+        self.file.write(f'{self.title0}\n{self.title1} {len(gridPos)*len(self.obts)}\n')
         x0,y0,z0=[e*config.BOHR_RADIUS for e in p0-bord]
         step=self.step*config.BOHR_RADIUS
-        self.file.write(f'{-len(self.mol.atoms):>5}{x0:>12.6f}{y0:>12.6f}{z0:>12.6f}\n')
+        natm=len(self.mol.atoms)
+        self.file.write(f'{-natm:>5}{x0:>12.6f}{y0:>12.6f}{z0:>12.6f}\n')
         self.file.write(f'{Nx:>5}{step:>12.6f}{0:>12.6f}{0:>12.6f}\n')
         self.file.write(f'{Ny:>5}{0:>12.6f}{step:>12.6f}{0:>12.6f}\n')
         self.file.write(f'{Nz:>5}{0:>12.6f}{0:>12.6f}{step:>12.6f}\n')
@@ -62,15 +66,37 @@ class cubWriter:
     
     def render(self):
         obts=self.obts
+        
         gridPos=self.get_gridPos()
-        self.file.write(f'{len(obts):>5}'+''.join(f'{obt+1:>5}' for obt in obts)+'\n')
-        for obt in obts:
-            values=self.mol.get_cloud(obt,gridPos,self.atoms)
-            for i in printer.track(range(0,len(values),6),'正在写入'):
-                self.file.write(''.join([f'{v:>13.5E}' for v in values[i:i+6]])+'\n')
+        Nx,Ny,Nz=self.gridSize
+        obtInfo=[len(obts)]+[o+1 for o in obts]
+
+        for i,info in enumerate(obtInfo): # 写入轨道信息
+            self.file.write(f'{info:>5}')
+            if(i+1)%10==0:self.file.write('\n')
+        if(i+1)%10!=0:self.file.write('\n')
+        allVals=[self.mol.get_cloud(obt,gridPos,self.atoms) for obt in obts]
+        lenVals=len(gridPos)
+        index=0
+        for i in range(lenVals):
+            for j in range(len(allVals)):
+                v=allVals[j][i]
+                # if v==0:v=1e-8
+                self.file.write(f'{v:13.5E}')
+                index+=1
+                if index==Nz*len(obts):
+                    self.file.write('\n')
+                    index=0
+                    continue
+                if index%6==0:self.file.write('\n')
     
-    def save(self):
-        self.init_file()
+    def save(self,name):
+        if self.direct is not None:
+            self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,abs=False,ins=False)
+            config.IF_CM_P=True
+            print('开启投影')
+        self.init_file(name)
         self.render()
         printer.res(f'导出文件至{self.filePath}')
         self.file.close()
+        config.IF_CM_P=False

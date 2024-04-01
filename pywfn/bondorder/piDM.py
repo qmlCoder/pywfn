@@ -76,7 +76,7 @@ class Calculator(Caler):
         b_1,b_2=atom2.obtBorder
         atoms=[idx1,idx2]
         vects=[norm]*len(atoms)
-        CM_=self.mol.projCM(atoms=atoms,obts=obts,vects=vects)
+        CM_=self.mol.projCM(atoms,obts,vects,zero=True,keep=False,abs=False,ins=False)
 
         oe=1 if self.mol.isOpenShell else 2
         SM=self.mol.SM
