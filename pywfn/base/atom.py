@@ -82,7 +82,7 @@ class Atom:
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
-    def get_pProj(self,direct:np.ndarray,obt:int,abs):
+    def get_pProj(self,direct:np.ndarray,obt:int,abs:bool)->list[np.ndarray]:
         """计算原子p系数在某个方向上的投影,返回n个三维向量"""
         assert isinstance(direct,np.ndarray),"方向需要为np.ndarray"
         # printer.console.log(f'direct={direct}')
@@ -235,6 +235,14 @@ class Atoms:
     def add(self,symbol:str,coord:np.ndarray):
         atom=Atom(symbol,coord,len(self.atoms)+1,self.mol)
         self.atoms.append(atom)
+    
+    @property
+    def atomics(self)->list[int]:
+        return [a.atomic for a in self.atoms]
+    
+    @property
+    def indexs(self)->list[int]:
+        return [a.idx for a in self.atoms]
 
     def __getitem__(self,item)->Atom:
         return self.atoms[item]

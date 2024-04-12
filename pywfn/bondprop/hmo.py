@@ -1,7 +1,7 @@
 """
 使用HMO方法计算键级
 """
-from pywfn.bondorder import Caler
+from pywfn.bondprop import Caler
 import numpy as np
 from pywfn.base import Mol
 from pywfn.utils import printer

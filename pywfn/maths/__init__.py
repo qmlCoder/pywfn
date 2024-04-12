@@ -29,21 +29,21 @@ def gridPos(p0:np.ndarray,p1:np.ndarray,step:float,bord:float=0,getN:bool=False)
     else:
         return np.array(pos,dtype=np.float32)
 
-def CM2PM(CM,orbital:list[int],oe:int)->np.ndarray:
+def CM2PM(CM,obts:list[int],oe:int)->np.ndarray:
     """
     根据系数矩阵构建密度矩阵
     CM:系数矩阵,如果是开壳层的话,列数是行数的两倍[n,n]/[n,2n]
     n:分子轨道占据电子数
     """
-    PMs=CM2PMs(CM,orbital,oe)
+    PMs=CM2PMs(CM,obts,oe)
     return np.sum(PMs,axis=0)
 
-def CM2PMs(CM,orbital:list[int],oe:int):
+def CM2PMs(CM,obts:list[int],oe:int):
     """
     构建三维密度矩阵，不要空轨道，形状为[占据轨道数,原子轨道数,原子轨道数]
     """
-    A=(CM[:,orbital].T)[:,:,np.newaxis]
-    B=(CM[:,orbital].T)[:,np.newaxis,:]
+    A=(CM[:,obts].T)[:,:,np.newaxis]
+    B=(CM[:,obts].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算多了
 
 def vector_angle(a,b,trans=False): # 计算两向量之间的夹角

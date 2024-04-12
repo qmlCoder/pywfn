@@ -21,21 +21,24 @@ def get_vects(mol:Mol,atoms:list[int]=None):
         vects.append(vect)
     return vects
 
-def get_ects(mol:Mol,obts,CM_)->list[int]:
+def get_ects(mol:Mol,obts:list[int],CM:np.ndarray)->list[int]:
     """
     计算电子数量,如果不指定则计算所有的π电子
     如果指定方向，则计算方向电子
     每个原子都有应该根据自己的法向量方向来计算(当法向量都相同时相当于都一样)
     """
     # 计算密度矩阵
-    PM_=maths.CM2PM(CM_,obts,mol.oE) # 计算密度矩阵
-    PS=PM_*mol.SM
-    PSS=PS.sum(axis=0)
+    PM=maths.CM2PM(CM,obts,mol.oE) # 计算密度矩阵
+    # PS=PM*mol.SM
+    # PSS=PS.sum(axis=0)
+    # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
+    PS=PM@mol.SM
+    EV=np.diagonal(PS)
     elects=[]
     for atom in mol.atoms:
-        a_1,a_2=atom.obtBorder
-        electron=np.sum(PSS[a_1:a_2])
-        elects.append(electron)
+        a1,a2=atom.obtBorder
+        elect=EV[a1:a2].sum()
+        elects.append(elect)
     return elects
 
 def atomValueStr(mol:Mol,satoms:list[int],values:list[float]):

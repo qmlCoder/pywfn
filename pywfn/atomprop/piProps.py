@@ -4,11 +4,18 @@
 from pywfn.base import Mol,Atom
 from pywfn.maths import CM2PM
 from pywfn.utils import printer
-from pywfn.atomprop import lutils
+from pywfn.atomprop import lutils,dirProps,AtomCaler
+from typing import Literal
 
-class Calculator:
+
+class Calculator(AtomCaler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
+        self.caler=dirProps.Calculator(mol)
+        self.chrg:Literal['mulliken','lowdin']=None
+        self.prop:Literal['charge','spin']=None
+        self.atoms:list[int]=None
+        self.logTip:str=''
 
     def calculate(self):
         """
@@ -20,10 +27,12 @@ class Calculator:
         atoms=lutils.atomIdxs(atoms)
         vects=lutils.get_vects(self.mol,atoms) # 每个原子都获得自己的法向量
 
-        CM_=self.mol.projCM(atoms,self.mol.O_obts,vects,zero=True,keep=False,abs=False,ins=False)
-        elects=lutils.get_ects(self.mol,self.mol.O_obts,CM_)
-        elects=[elect if atom.symbol!='H' else 0 for atom,elect in zip(self.mol.atoms,elects)]
-        return elects
+        self.caler.chrg=self.chrg
+        self.caler.prop=self.prop
+        self.caler.vects=vects
+        self.caler.atoms=atoms
+        values=self.caler.calculate()
+        return values
 
     def print(self,resStr:str):
         printer.info('所有非H原子的pi电子分布: ')

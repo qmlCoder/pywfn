@@ -1,5 +1,5 @@
 """
-轨道分解法+Mayer计算π键级
+轨道投影法+Mayer计算π键级
 根据投影计算新的分子轨道系数矩阵,然后重构密度矩阵
 """
 
@@ -8,21 +8,21 @@ from typing import *
 import numpy as np
 
 from pywfn import maths
-from pywfn.bondorder import Caler
+from pywfn.bondprop import Caler
 from pywfn.utils import printer
 
 class Calculator(Caler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.values={}
-        self.direct:Union[None,np.ndarray]=None
+        self.vect:Union[None,np.ndarray]=None
         self.bond:list[int,int]=None
 
-
-    def calculate(self)->list[float,float]:
+    def calculate(self)->np.ndarray:
         """
         计算pi键级，当指定方向时计算方向键级
         """
+        assert self.bond is None,'没有指定键级'
         idx1,idx2=self.bond
         printer.info(f'计算{idx1} → {idx2}的键级')
         
@@ -32,11 +32,11 @@ class Calculator(Caler):
             return 0.,0.
         obts=self.mol.O_obts #占据轨道的索引
 
-        direct=self.direct
-        if direct is None:
+        vect=self.vect
+        if vect is None:
             normal=centerAtom.get_Normal(aroundAtom.idx)
         else:
-            normal=direct/np.linalg.norm(direct)
+            normal=vect/np.linalg.norm(vect)
         
         
         if len(centerAtom.neighbors)==3:
@@ -59,12 +59,13 @@ class Calculator(Caler):
             cross=np.cross(bondVector,normal)
             cross/=np.linalg.norm(cross)
             printer.vector('交叉方向: ',cross)
-            return self.calerWay(obts,normal),self.calerWay(obts,cross)
+            vn,vc=self.calerWay(obts,normal),self.calerWay(obts,cross)
+            return np.array([vn,vc])
         else:
-            return 0.,0.
+            return np.array([0.,0.])
 
     def calerWay(self,obts:list[int],norm:np.ndarray):
-        
+        """计算某个方向的键级"""
         norm.flags.writeable=False
         length=np.linalg.norm(norm)
         assert abs(length-1)<1e-4,"向量长度应为1"

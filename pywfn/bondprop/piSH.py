@@ -4,7 +4,7 @@
 import numpy as np
 
 from pywfn.base import Mol
-from pywfn.bondorder import lutils,Caler
+from pywfn.bondprop import lutils,Caler
 
 class Calculator(Caler):
     def __init__(self,mol:Mol) -> None:

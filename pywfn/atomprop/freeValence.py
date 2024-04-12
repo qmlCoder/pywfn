@@ -3,27 +3,29 @@
 原子自由价=最大键级-该原子键级之和
 这里的键级就先用DH
 """
-from pywfn.bondorder import piDM
+from pywfn.bondprop import piDM
 from pywfn.base import Mol,Atom
 from pywfn.utils import printer
+from pywfn.atomprop import AtomCaler
 import numpy as np
 
 STAND=1.6494416218465484
 
-class Calculator:
+class Calculator(AtomCaler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.caler=piDM.Calculator(self.mol)
-        self.direct:np.ndarray=None
+        self.vect:np.ndarray=None
+        self.atom:int=None
     
     def valence(self,idx:int):
         """计算一个原子的自由价，从1开始"""
         printer.info(f'计算原子 {idx} 自由价')
-        assert self.direct is not None,'未指定方向'
+        assert self.vect is not None,'未指定方向'
         centAtom=self.mol.atom(idx)
         valence1=STAND
         valence2=STAND
-        self.caler.direct=self.direct.copy()
+        self.caler.direct=self.vect.copy()
 
         for arouAtom in centAtom.neighbors:
             self.caler.bond=[idx,arouAtom.idx]

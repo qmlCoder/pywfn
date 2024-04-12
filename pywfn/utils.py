@@ -174,13 +174,13 @@ class Printer:
         self.console.print(tip,end='',style='#dee2e6')
         self.console.print(vectorStr,style='#f59f00')
     
-    def options(self,title,opts:list[tuple[str]]):
+    def options(self,title,opts:dict[str,str]):
         if not config.IF_SHELL:return
         if title not in self.tables.keys():
             table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
             table.add_column('选项',justify="left")
             table.add_column('功能',justify="left")
-            for idx,text in opts:
+            for idx,text in opts.items():
                 table.add_row(f'{idx: >2}. ',f'{text}')
             self.tables[title]=table
         table=self.tables[title]

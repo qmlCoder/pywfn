@@ -1,6 +1,6 @@
 # `pywfn` -- 基于python的波函数分析工具
 
-详情请查看 https://feifeiboys.github.io/pywfnDOC/
+详情请查看 https://www.xiaofei911.top/mkdocs/pywfn/
 
 
 ## 安装
@@ -55,3 +55,10 @@ python main.py
 python -m nuitka --mingw64 --standalone --show-progress --output-dir=out main.py
 python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windows-icon-from-ico=./ico.ico main.py
 ```
+
+## 物理量缩写
+- 轨道 obt
+- 能量 eng
+- 电子 ele elec
+- 原子 atm atom
+- 电荷 chrg

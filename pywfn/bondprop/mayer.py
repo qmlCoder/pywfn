@@ -5,7 +5,9 @@ $\sum_{a\in A}\sum_{b\in B}PS$
 """
 import numpy as np
 from pywfn.base import Atom,Mol
-from pywfn.bondorder import Caler
+from pywfn.bondprop import Caler
+from pywfn.maths import CM2PM
+from pywfn.utils import printer
 
 class Calculator(Caler):
     def __init__(self,mol:"Mol"):
@@ -18,13 +20,23 @@ class Calculator(Caler):
         atom2=self.mol.atom(idx2)
         """计算两原子之间的mayer键级"""
         # 获取密度矩阵 P
-        PM=self.mol.PM
+        PM=CM2PM(self.mol.CM,self.mol.O_obts,self.mol.oE)
         # 获取重叠矩阵
         SM=self.mol.SM
         PS=PM@SM
-
-        a_1,a_2=atom1.obtRange
-        b_1,b_2=atom2.obtRange
-
-        order=np.sum(PS[a_1:a_2,b_1:b_2]*PS[b_1:b_2,a_1:a_2].T)
+        OM=PS*PS.T
+        a1,b1=atom1.obtBorder
+        a2,b2=atom2.obtBorder
+        # PS1=PS[a1:b1,a2:b2]
+        # PS2=PS[a2:b2,a1:b1]
+        # order=np.sum((PS1*PS2.T))**0.5
+        order=np.sum(OM[a1:b1,a2:b2])
         return order
+    
+    def resStr(self) -> str:
+        order=self.calculate()
+        return f'{order:.4f}'
+    
+    def print(self):
+        printer.res(self.resStr())
+

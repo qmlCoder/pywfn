@@ -5,7 +5,7 @@ from pywfn.base import Mol,Atom,Bond
 import numpy as np
 from pywfn import utils
 from pywfn import maths
-from pywfn.bondorder import Caler
+from pywfn.bondprop import Caler
 
 class Calculator(Caler):
     def __init__(self,mol:Mol) -> None:

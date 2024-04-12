@@ -143,9 +143,11 @@ class Mol:
         """返回原子坐标矩阵[n,3]"""
         return np.array([atom.coord for atom in self.atoms])
 
-    @cached_property
+    @property
     def O_obts(self)->list[int]:
-        return [i for i,e in enumerate(self.obtEcts) if e!=0]
+        if 'O_obts' not in self.datas.keys():
+            self.datas['O_obts']=[i for i,e in enumerate(self.obtEcts) if e!=0]
+        return self.datas['O_obts']
     
     @cached_property
     def V_obts(self)->list[int]:
@@ -170,6 +172,11 @@ class Mol:
     def SM(self):
         """重叠矩阵"""
         return self.reader.get_SM()
+    
+    @property
+    def PM(self):
+        """密度矩阵"""
+        return maths.CM2PM(self.CM,self.O_obts,self.oE)
     
     @property
     def oE(self):
@@ -198,23 +205,25 @@ class Mol:
         else:
             CM_=np.copy(self.CM)
             
-        
-
         for a,(atom,vect) in enumerate(zip(atoms,vects)):
             atom=self.atom(atom)
+            nebNum=len(atom.neighbors)
             a_1,a_2=atom.obtBorder
             layers=self.obtLayer[a_1:a_2]
             
-            sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
+            
             pIdx=[i for i,l in enumerate(layers) if 'P' in l]
+            
             if len(pIdx)==0:continue # 没有p轨道则跳过
+            sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
             for o,obt in enumerate(obts):
                 if keep:
                     Co=self.CM.copy()[a_1:a_2,obt]
                 else:
                     Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
-                Cos=atom.obtCoeffs.copy()[sIdx,obt]
-                # Co[sIdx]=Cos
+                if ins:
+                    Cos=atom.obtCoeffs.copy()[sIdx,obt]
+                    Co[sIdx]=Cos*(3-nebNum)/3
                 Cop=atom.get_pProj(vect,obt,abs)
                 Co[pIdx]=np.concatenate(Cop)
                 CM_[a_1:a_2,obt]=Co.copy()

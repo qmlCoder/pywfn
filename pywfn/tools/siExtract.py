@@ -1,6 +1,6 @@
 """
 该脚本用来生成SI(支持信息)文件,包含
-校正
+能量
 坐标
 频率
 """
@@ -12,7 +12,7 @@ from pywfn.utils import printer
 from pywfn.data import temps
 from pywfn.reader import LogReader
 
-class siWriter:
+class Tool:
     def __init__(self,mol:Mol) -> None:
         """
         读取文件貌似只需要log/out文件就行了
