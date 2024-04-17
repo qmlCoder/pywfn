@@ -132,11 +132,11 @@ def get_extraValue(atom:"base.Atom",obt:int,valueType='max'):
     # p0=atom.coord.copy() # 起始点,p是原子坐标不变
     # p=p0.copy()
     p0=np.array([0.,0.,0.]).reshape(1,3)
-    v0=atom.get_cloud(p0,obt) # 计算原子坐标处的初始值
+    v0=atom.get_wfnv(p0,obt) # 计算原子坐标处的初始值
     step=0.1
     while True:
         aroundPs=get_aroundPoints(p0,step) # aroundPs:(n,3)
-        aroundVs=atom.get_cloud(aroundPs,obt)
+        aroundVs=atom.get_wfnv(aroundPs,obt)
         if valueType=='max' and np.max(aroundVs)>v0:
             maxID=np.argmax(aroundVs) #最大值的索引
             p0=aroundPs[maxID] # 最大值坐标

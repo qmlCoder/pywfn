@@ -59,6 +59,37 @@ class Calculator(AtomCaler):
             charges[a]=atom.atomic-eleNum
         return charges
     
+    def hirshfeld(self):
+        """
+        计算原子的Hirshfeld电荷
+        """
+        self.mol.bohr=True
+        from pywfn.data import sphGrid,radDens
+        coords=sphGrid.gridData[:,:3]# 原点为0的坐标
+        weight=sphGrid.gridData[:,3]
+        obts=self.mol.O_obts
+        atoms:list[int]=self.mol.atoms.indexs
+        chargs=np.zeros(shape=(len(atoms)))
+        for a1,atom1 in enumerate(self.mol.atoms): # 计算每一个原子的电荷
+            coord=atom1.coord+coords # 该原子周围点的空间坐标
+            # molDens=self.mol.get_dens(atoms,obts,coord)*weight # 计算分子的电子密度
+            molDens=np.zeros(shape=(len(coords))) # 计算分子的电子密度
+            proDens=np.zeros(shape=(len(coords)))
+            for a2,atom2 in enumerate(self.mol.atoms): #计算前置分子密度
+                radius=np.linalg.norm(coord-atom2.coord,axis=1) #所有坐标对应的半径
+                dens1=radDens.get_radDens(atom2.atomic,radius)*weight # 插值法计算提前存储好的密度
+                # print(a1==a2,a2+1,np.sum(dens))
+                proDens+=dens1
+                if a2==a1:atmDens=dens1
+                dens2=atom2.get_dens(obts,coord-atom2.coord,weight)
+                molDens+=dens2
+                print(f'{dens1.sum():.4f},{dens2.sum():.4f}')
+            ratio=np.divide(atmDens,proDens,out=np.zeros_like(atmDens),where=proDens!=0)
+            chargs[a1]=np.sum(ratio*molDens)
+            atmQ,proQ,molQ=np.sum(atmDens),np.sum(proDens),np.sum(molDens)
+            print(f'{atmQ=:.4f},{proQ=:.4f},{molQ=:.4f}')
+        return chargs
+    
     def resStr(self)->str:
         """获取结果的打印内容"""
         satoms=lutils.atomIdxs(self.mol.atoms)

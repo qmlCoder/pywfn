@@ -28,13 +28,13 @@ class Shell:
         self.input = Input(self)
 
     def homePage(self):
-        opts = [
-            ["1", "键属性"],
-            ["2", "原子属性"],
-            ["3", "实用工具"],
-            ["4", "导出文件"],
-            ["5", "程序设置"],
-        ]
+        opts = {
+            "1": "键属性",
+            "2": "原子属性",
+            "3": "实用工具",
+            "4": "导出文件",
+            "5": "程序设置",
+        }
         while True:
             opt = self.input.Option("首页", opts, must=True)
             match opt:
@@ -248,14 +248,14 @@ class Shell:
 
     def toolsPage(self):
         """进入实用工具页面"""
-        opts = [
-            ["1", "分割 扫描 文件"],
-            ["2", "分割 IRC 文件"],
-            ["3", "分割 link 任务"],
-            ["4", "生成 PES 文件"],
-            ["5", "计算 反应活化能"],
-            ["6", "计算 立体选择性ee值"],
-        ]
+        opts = {
+            "1": "分割 扫描 文件",
+            "2": "分割 IRC 文件",
+            "3": "分割 link 任务",
+            "4": "生成 PES 文件",
+            "5": "计算 反应活化能",
+            "6": "计算 立体选择性ee值",
+        }
         while True:
             opt = self.input.Option("使用工具页面", opts)
             match opt:
@@ -301,12 +301,12 @@ class Shell:
 
     def writePage(self):
         while True:
-            opts = [
-                ["1", "gif 文件"],
-                ["2", "xyz 文件"],
-                ["3", "cub 文件"],
-                ["4", "si  文件"],
-            ]
+            opts = {
+                "1": "gif 文件",
+                "2": "xyz 文件",
+                "3": "cub 文件",
+                "4": "si  文件",
+            }
             opt = self.input.Option("导出文件", opts)
             match opt:
                 case None:
@@ -374,10 +374,10 @@ class Shell:
         """设置页面"""
         from pywfn.data import temps
 
-        opts = [
-            ["1", "gif 模板"],
-            ["2", "si  模板"],
-        ]
+        opts = {
+            "1": "gif 模板",
+            "2": "si  模板",
+        }
         while True:
             opt = self.input.Option("设置页面", opts)
             match opt:

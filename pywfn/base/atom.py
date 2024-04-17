@@ -22,8 +22,8 @@ from pywfn.data import elements
 class Atom:
     def __init__(self,symbol:str,coord:np.ndarray,idx:int,mol:"base.Mol"): # 每个原子应该知道自己属于哪个分子
         self.symbol=symbol
-        self.coord=coord
-        self.coord.flags.writeable=False
+        self.coord_=coord
+        self.coord_.flags.writeable=False
         self.idx=idx
         self.mol:"base.Mol"=mol
 
@@ -33,6 +33,13 @@ class Atom:
         self._sContribution:dict={}
         self.OC:np.ndarray=None
     
+    @property
+    def coord(self):
+        if self.mol.bohr:
+            return self.coord_.copy()*1.889
+        else:
+            return self.coord_.copy()
+
     @cached_property
     def atomic(self)->int:
         return elements[self.symbol].idx
@@ -47,7 +54,6 @@ class Atom:
     def obtCoeffs(self):
         """获取该原子对应的系数"""
         u,l=self.obtBorder
-        
         return self.mol.CM[u:l,:]
 
     @cached_property
@@ -61,18 +67,34 @@ class Atom:
             if idx2==self.idx:idxs.append(idx1)
         return [self.mol.atom(idx) for idx in set(idxs)]
     
-    def get_cloud(self,pos:np.ndarray,obt:int,renderRange:float=config.RENDER_ATOM_RANGE)->np.ndarray:
+    def get_wfnv(self,coords:np.ndarray,obt:int,range_:float=config.RENDER_ATOM_RANGE)->np.ndarray:
         """
-        获取波函数的点云数据
-        以原子中心为原点
-        pos[n,3]
+        计算波函数值
+        pos：原子中心为原点的笛卡尔坐标[n,3]
+        obt：分子轨道序数
+        range_：计算的范围
         """
-        dis=np.sqrt(np.sum(pos**2,axis=1)) #所有点距离原子的距离
-        idx=np.argwhere(dis<renderRange).flatten() # 挑选出距离小于指定距离的点,根据距离少渲染一些点可以加快渲染速度
-        values=np.zeros(len(pos))
-        vs=self.mol.gto.agto(pos[idx,:],self.idx,obt)
-        values[idx]=vs
-        return values
+        dis=np.linalg.norm(coords,axis=1) #所有点距离原子的距离
+        idx=np.argwhere(dis<range_).flatten() # 挑选出距离小于指定距离的点,根据距离少渲染一些点可以加快计算速度
+        wfnv=np.zeros(len(coords))
+        wfni=self.mol.gto.agto(coords[idx,:],self.idx,obt)
+        wfnv[idx]=wfni
+        return wfnv
+
+    def get_dens(self,obts:list[int],coords:np.ndarray,weight:np.ndarray):
+        """
+        计算电子密度
+        obts:要计算的分子轨道
+        coords:空间笛卡尔坐标[n,3]，原子中心为原点
+        weights:每一个坐标的权重[n]
+        """
+        atmDens=np.zeros(shape=(len(coords)))
+        for obt in obts:
+            wfnv=self.get_wfnv(coords,obt)
+            obte=self.mol.obtEcts[obt] # 轨道占据数0/1/2
+            dens=obte*wfnv**2*weight # 波函数的平方乘轨道占据数
+            atmDens+=dens
+        return atmDens
 
     @lru_cache
     def pLayersCs(self,obt:int):

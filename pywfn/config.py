@@ -30,7 +30,7 @@ BASE_VECTOR=np.array([0,0,1]) # 标准向量，求原子法向量和轨道方向
 
 IF_ORBITAL_ORDER=False #是否计算键级中每个轨道的成分，尤其是mayer键级拆分成每个轨道的成分很麻烦
 
-RENDER_ATOM_RANGE=20  # 原子轨道的渲染范围
+RENDER_ATOM_RANGE=20000  # 原子轨道的渲染范围
 
 RENDER_CLOUD_STEP=0.2  # 渲染间隔
 

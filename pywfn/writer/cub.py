@@ -38,6 +38,7 @@ class cubWriter:
 
     def get_gridPos(self):
         """生成格点数据"""
+        self.mol.bohr=False
         atoms=[atom-1 for atom in self.atoms]
         p0=self.mol.coords[atoms,:].min(axis=0)
         p1=self.mol.coords[atoms,:].max(axis=0)
@@ -60,14 +61,16 @@ class cubWriter:
 
     
     def write_coord(self):
+        
         for atom in self.mol.atoms:
             x,y,z=atom.coord*config.BOHR_RADIUS
             self.file.write(f'{atom.atomic:>5}{atom.atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
     
     def render(self):
         obts=self.obts
-        
         gridPos=self.get_gridPos()
+        self.mol.bohr=True
+        gridPos*=1.889*1.889
         Nx,Ny,Nz=self.gridSize
         obtInfo=[len(obts)]+[o+1 for o in obts]
 
@@ -75,7 +78,7 @@ class cubWriter:
             self.file.write(f'{info:>5}')
             if(i+1)%10==0:self.file.write('\n')
         if(i+1)%10!=0:self.file.write('\n')
-        allVals=[self.mol.get_cloud(obt,gridPos,self.atoms) for obt in obts]
+        allVals=[self.mol.get_wfnv(obt,gridPos,self.atoms) for obt in obts]
         lenVals=len(gridPos)
         index=0
         for i in range(lenVals):
@@ -91,6 +94,7 @@ class cubWriter:
                 if index%6==0:self.file.write('\n')
     
     def save(self,name):
+        
         if self.direct is not None:
             self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,abs=False,ins=False)
             config.IF_CM_P=True

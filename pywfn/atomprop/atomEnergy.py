@@ -18,7 +18,7 @@ class Calculator:
         engs=np.zeros(len(atoms))
         for a,atom in enumerate(self.mol.atoms):
             u,l=atom.obtBorder
-            atomEng=EM[u:l,:].sum()*self.mol.oE
+            atomEng=EM[u:l,:].sum()
             engs[a]=atomEng
         return engs
         

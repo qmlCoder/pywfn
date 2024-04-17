@@ -44,6 +44,7 @@ class Mol:
         self._bonds:Bonds=Bonds(self)
         self.reader:"reader.Reader"=reader
         self.datas={}
+        self.bohr:bool=False # 是否使用波尔坐标
     
     @cached_property
     def basis(self)->data.Basis: # 设为属性，可以保证用不到的时候不被实例化
@@ -164,8 +165,6 @@ class Mol:
             CM=self.reader.get_CM()
             CM.setflags(write=False)
             self.datas['CM']=CM
-        if 'CMp' in self.datas.keys() and config.IF_CM_P:
-            return self.datas['CMp']
         return self.datas['CM']
     
     @property
@@ -234,7 +233,7 @@ class Mol:
     def __repr__(self):
         return f'atom number: {len(self.atoms)}'
 
-    def get_cloud(self,obt:int,pos:np.ndarray,atoms:list[int])->np.ndarray:
+    def get_wfnv(self,obt:int,pos:np.ndarray,atoms:list[int])->np.ndarray:
         """
         导出指定点的分子轨道数据
         obt: 要渲染的分子轨道
@@ -251,7 +250,7 @@ class Mol:
         #     for idx in atoms:
         #         atom=self.atom(idx)
         #         posi=pos-atom.coord
-        #         proce=pool.apply_async(atom.get_cloud,(posi,obt,))
+        #         proce=pool.apply_async(atom.get_wfnv,(posi,obt,))
         #         proces.append(proce)
         #     for proce in tqdm(proces):
         #         values+=proce.get()
@@ -260,5 +259,19 @@ class Mol:
         for idx in atoms:
             atom=self.atom(idx)
             posi=pos-atom.coord
-            values+=atom.get_cloud(posi,obt)
+            values+=atom.get_wfnv(posi,obt)
         return values
+    
+    def get_dens(self,atoms:list[int],obts:list[int],coords:np.ndarray)->np.ndarray:
+        """
+        计算分子的电子密度
+        atoms:要计算的原子，从1开始
+        coords:空间笛卡尔坐标
+        """
+        molDens=np.zeros(shape=(len(coords))) # 每一个坐标的电子密度值
+        for a in atoms:
+            atom=self.atom(a)
+            coord=coords-atom.coord #以原子为中心的坐标
+            atmDens=atom.get_dens(obts,coord)
+            molDens+=atmDens
+        return molDens

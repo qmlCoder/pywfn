@@ -34,17 +34,25 @@ from pywfn.utils import printer
 π=np.pi
 e=np.e
 
+def fac2(num): # 该例中一定是奇数
+    """计算双阶乘"""
+    if num<=1:
+        fac = 1
+    else:
+        fac = np.prod(np.arange(1,num+1,2))
+    return fac
+
 class Gto:
     def __init__(self,mol:"base.Mol"):
         self.mol=mol
         self.basis=mol.basis
         self.angs=[0,1,2,3,4] # 默认全部绘制
 
-    def bind(self,atom:int,obt:int):
-        atom:"base.Atom"=self.mol.atom(atom)
+    def bind(self,atm:int,obt:int):
+        atom=self.mol.atom(atm)
         datas=self.basis.get(atom.atomic)
         coeff=atom.obtCoeffs[:,obt]
-        data_=[]
+        params=[]
         idxo=0
         coes={}
         for shl,ang,exp,coe in datas:
@@ -53,31 +61,41 @@ class Gto:
                 if key not in coes.keys(): # 保证唯一性
                     coes[key]=coeff[idxo]
                     idxo+=1
-                data_.append([coes[key],exp,coe,l,m,n])
+                params.append([coes[key],exp,coe,l,m,n])
         assert idxo==len(coeff),f'系数没有匹配完全{idxo=},{coeff=}'
-        return data_
+        return params
     
-    def agto(self,pos:ndarray,atom:int,obt:int):
+    def agto(self,pos:ndarray,atm:int,obt:int):
+        """
+        计算原子的高斯型波函数数值
+        """
         assert pos.shape[1]==3,f'pos的形状应为[n,3]，当前为{pos.shape}'
-        pos*=1.889 #这一步很关键，将埃转为波尔
-        R=np.sum(pos**2,axis=1)
+        # pos*=1.889 #这一步很关键，将埃转为波尔 !取分子坐标时可转为波尔
+        R2=np.sum(pos**2,axis=1) # x^2+y^2+z^2
         values=np.zeros(len(pos),dtype=np.float32)
-        data_=self.bind(atom,obt)
-        for C,exp,coe,l,m,n in printer.track(data_,f'agto:atom={atom}'):
+        params=self.bind(atm,obt)
+        for C,exp,coe,l,m,n in params:
             if not (l+m+n in self.angs):continue #可以筛选角动量
             if abs(C)<1e-6:continue #系数很小的忽略
-            values+=C*self.gto(exp,coe,R,pos,l,m,n)
+            wfn=C*self.gto(exp,coe,R2,pos,l,m,n)
+            # assert np.max(np.abs(wfn))<1,'波函数值不合理'
+            values+=wfn
         return values
 
-    def gto(self,exp:float,coe:float,R:ndarray,pos:ndarray,l:int,m:int,n:int)->ndarray:
+    def gto(self,exp:float,coe:float,R2:ndarray,pos:ndarray,l:int,m:int,n:int)->ndarray:
         """
         计算指定点gto函数的值
-        c:收缩系数
-        a:高斯指数
-        pos:坐标
+        coe:收缩系数
+        exp:高斯指数
+        pos:坐标[n,3]
         R:坐标到原点距离平方
         lmn:角动量决定的x,y,z指数
         """
+
         x,y,z=pos.T
-        v:ndarray=coe*(2*exp/π)**(3/4)*2*sqrt(exp)* x**l * y**m * z**n * e**(-exp*R)
-        return v
+        # N=coe*(2*exp/π)**(3/4)*2*sqrt(exp) #归一化系数
+        ang=l+m+n # 角动量
+        fac=fac2(2*l-1)*fac2(2*m-1)*fac2(2*n-1) # 双阶乘
+        N=((4*exp)**ang/fac)**(1/2)*(2/π)**(3/4) # 归一化系数
+        wfn= x**l * y**m * z**n * e**(-exp*R2) *N *coe
+        return wfn

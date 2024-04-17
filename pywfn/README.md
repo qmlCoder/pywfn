@@ -68,3 +68,5 @@ atom=mol.atoms[1]
 H Be C N O F P S Cl 
 
 ## 方向的确定
+
+1埃=1.889726玻尔半径
