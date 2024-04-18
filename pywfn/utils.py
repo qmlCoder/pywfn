@@ -193,6 +193,23 @@ class Printer:
 
 printer=Printer()
 
+"""不需要多次实例化的类可以使用类方法"""
+import time
+class TimeCounter:
+    """统计每个函数执行的时间"""
+    counts={}
+    
+    def __init__(self) -> None:
+        pass
+    
+    @classmethod
+    def funcTime(cls,func):
+        t0=time.time()
+        ans=func()
+        t1=time.time()
+        
+        return ans
+
 def vectStr(vector:None|np.ndarray,f=4):
     if vector is None:
         return 'None'

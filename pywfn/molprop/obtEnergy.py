@@ -24,6 +24,7 @@ class Calculator:
         for a in range(row):
             for i in range(row):
                 for j in self.mol.O_obts:
+                    # 起始系数为0的可以直接跳过
                     NM[a,i,j]=CM[a,j]*CM[i,j]*SM[i,a]*oE
         # NM=NM.sum(axis=1)
         NM:np.ndarray=np.sum(NM,axis=1)[:,self.mol.O_obts] # 二维矩阵[n,occ]

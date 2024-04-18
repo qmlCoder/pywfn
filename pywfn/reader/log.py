@@ -97,8 +97,7 @@ class LogReader(Reader):
         return spin
     
     def get_energy(self)->float:
-        keys,nums=self.read_energy()
-        return nums[-1]
+        return self.read_energy()
     
     from pywfn.data import Basis
     def get_basis(self)->Basis:
@@ -432,8 +431,13 @@ class LogReader(Reader):
         res=re.search(r'Sum of Mulliken charges = +(-?\d.\d{5})',self.text).group(1)
         return float(res)
     
+    def read_energy(self)->float:
+        engs=re.findall('SCF Done: +E\(.*\) += +(-?\d+.\d+)',self.text)
+        if engs:return float(engs[-1])
+        return None
+
     @lru_cache
-    def read_energy(self)->tuple[list[str],list[float]]:
+    def read_energys(self)->tuple[list[str],list[float]]:
         engList = [
             'Zero-point correction', 
             'Thermal correction to Energy', 
@@ -447,7 +451,9 @@ class LogReader(Reader):
         searhNum=0
         engDict={e:None for e in engList}
         lineNum=self.titles['engs'].line
-        assert lineNum is not None,f"{self.path} 未读取到能量"
+        if lineNum is None:
+            return engList,None
+        # assert lineNum is not None,f"{self.path} 未读取到能量"
         for i in range(lineNum,len(self.lines)):
             line=self.lines[i]
             for each in engList:

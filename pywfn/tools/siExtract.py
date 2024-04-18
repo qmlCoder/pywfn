@@ -25,7 +25,7 @@ class Tool:
         self.sameFile:bool=True
     
     def write_energy(self):
-        engList,engNums=self.reader.read_energy()
+        engList,engNums=self.reader.read_energys()
         """匹配并保存各种校正能量"""
         ENERGY='\n'.join([f'{name:<45}{value:>15}' for name,value in zip(engList,engNums)])
         self.template=self.template.replace('<ENERGY>',ENERGY)

@@ -24,8 +24,6 @@ class Calculator(AtomCaler):
         # 计算密度矩阵
         self.logTip='Mulliken电荷分布'
         PM=self.mol.PM
-        # PS=PM*mol.SM
-        # PSS=PS.sum(axis=0)
         # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
         PS=PM@self.mol.SM
         EV=np.diagonal(PS)

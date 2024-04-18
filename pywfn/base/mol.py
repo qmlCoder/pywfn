@@ -69,6 +69,14 @@ class Mol:
         CM=self.reader.get_CM()
         w,h=CM.shape
         return w!=h
+    
+    @property
+    def energy(self)->float:
+        """获取分子能量"""
+        if 'eng' not in self.datas.keys():
+            self.datas['eng']=self.reader.get_energy()
+        return self.datas['eng']
+
 
     @cached_property
     def obtEcts(self):

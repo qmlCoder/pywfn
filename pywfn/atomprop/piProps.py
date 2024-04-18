@@ -12,8 +12,8 @@ class Calculator(AtomCaler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.caler=dirProps.Calculator(mol)
-        self.chrg:Literal['mulliken','lowdin']=None
-        self.prop:Literal['charge','spin']=None
+        self.chrg:Literal['mulliken','lowdin']='mulliken'
+        self.prop:Literal['charge','spin']='charge'
         self.atoms:list[int]=None
         self.logTip:str=''
 
