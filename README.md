@@ -61,4 +61,4 @@ python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windo
 - 能量 eng
 - 电子 ele elec
 - 原子 atm atom
-- 电荷 chrg
+- 电荷 chg chrg

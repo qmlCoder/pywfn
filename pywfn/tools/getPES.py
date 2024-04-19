@@ -3,10 +3,11 @@
 """
 from pathlib import Path
 
-from pywfn.base import mol
-from pywfn.reader import get_reader
+from pywfn.base import Mol
+from pywfn.reader import get_reader,LogReader
 from pywfn.data import temps
 from collections import namedtuple
+
 
 Node=namedtuple('Node','id x y')
 Bond=namedtuple('Bond','id B E Display')
@@ -29,7 +30,8 @@ class Tool:
         engs=[]
         for i,idx in enumerate(self.route):
             path=self.paths[idx]
-            eng=get_reader(path).get_energy()
+            names,engs=LogReader(str(path)).read_energys()
+            eng=engs[-1]
             print(f'{path.name}:{eng=}')
             engs.append(eng*627.51)
         eng0=engs[0]

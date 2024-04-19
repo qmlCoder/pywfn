@@ -7,6 +7,5 @@ venv
 *.zip
 *.cfg
 *.psd
-main.build
-logs
-out
+config.json
+log.txt

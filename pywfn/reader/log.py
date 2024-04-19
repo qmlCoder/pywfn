@@ -28,9 +28,12 @@ class Title:
 
 class LogReader(Reader):
     def __init__(self, path:str):
-        Reader.__init__(self,path)
+        super().__init__(path)
+        assert path[-4:]=='.log','文件类型不匹配，应为.log文件'
         if 'Normal termination of Gaussian' not in self.text:
             printer.wrong('文件未正常结束!')
+            self.normalEnd=False
+        self.normalEnd=True
         self.keyWords=re.search(r'^ # .+$',self.text,re.M).group()
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
@@ -62,27 +65,27 @@ class LogReader(Reader):
 
     @lru_cache
     def get_CM(self) -> np.ndarray:
-        atoms,layer,engs,type_,CM=self.read_CMs()
+        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
         return CM
     
     @lru_cache
-    def get_obtAtoms(self) -> list[int]:
-        atoms,layer,engs,type_,CM=self.read_CMs()
-        return atoms
+    def get_obtAtms(self) -> list[int]:
+        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        return ObtAtms
+    
+    @lru_cache
+    def get_obtAngs(self) -> list[str]:
+        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        return ObtAngs
     
     @lru_cache
     def get_obtEngs(self) -> list[float]:
-        atoms,layer,engs,type_,CM=self.read_CMs()
-        return engs
+        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        return ObtEngs
     
-    @lru_cache
-    def get_obtLayer(self) -> list[str]:
-        atoms,layer,engs,type_,CM=self.read_CMs()
-        return layer
-    
-    def get_obtTypes(self) -> list[str]:
-        atoms,layer,engs,type_,CM=self.read_CMs()
-        return type_
+    def get_obtOccs(self) -> list[str]:
+        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        return ObtOccs
 
     @lru_cache
     def get_SM(self)->np.ndarray:
@@ -113,7 +116,7 @@ class LogReader(Reader):
         搜索到需要用到的标题行就停止
         """
         # 所有标题所在的行
-        def sear_group(lines,start):
+        def sear_group(lines,start): #每一个搜索的线程
             for j,line in enumerate(lines):
                 for key_ in self.titles.keys():
                     pate=self.titles[key_].pate
@@ -328,73 +331,55 @@ class LogReader(Reader):
         titleNum=self.titles[title].line
         
         if titleNum is None:return None
-        blockLen=NBasis+3
+        blockLen=NBasis+3 #一块数据行数，在log文件的输出中，轨道系数是按照每一块五列来分块的
         # print(titleNum,NBlock,blockLen)
-        OrbitalAtom=[]
-        OrbitalEngs=[]
-        OrbitalType=[]
-        OrbitalLaye=[]
+        ObtAtms=[]
+        ObtAngs=[]
+        ObtEngs=[]
+        ObtOccs=[]
+        
         CM=np.zeros(shape=(NBasis,NBasis))
         for i,l in enumerate(range(titleNum+1,titleNum+NBlock*blockLen+1,blockLen)):
-            # print(i,l,self.lines[l])
-            types=self.lines[l+1][21:71]
-            # print(types)
-            types=[types[i:i+10].strip() for i in range(0,50,10)]
-            types=[e for e in types if e!='']
-            # print(types)
-            # types=[float(e) for e in types]
-            OrbitalType+=types
+            occs=self.lines[l+1][21:71]
+            occs=[occs[i:i+10].strip() for i in range(0,50,10)]
+            occs=[e for e in occs if e!='']
+            ObtOccs+=occs
             engs =re.split(' +',self.lines[l+2][21:].strip())
             engs=[float(e) for e in engs]
-            OrbitalEngs+=engs
+            ObtEngs+=engs
             
             coefs=[line[21:] for line in self.lines[l+3:l+3+NBasis]]
             for j,line in enumerate(coefs):
                 coef=re.findall('-?\d+.\d+',line)
                 coef=[float(e) for e in coef]
-                # print(i,j,coef)
-                a=i*5
-                b=i*5+len(coef)
                 CM[j,i*5:i*5+len(coef)]=coef
-            # print(coefs)
 
-            if i==0:
+            if i==0: #只在第一块记录行信息
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
                     line=self.lines[l2][:15]
-                    # print(l2,line)
-                    obtLaye=line[12:].strip()
-                    OrbitalLaye.append(obtLaye)
+                    angs=line[12:].strip()
+                    ObtAngs.append(angs)
                     obtAtom=line[5:9].strip()
-                    # print(obtAtom)
                     if obtAtom!='':
-                        atomID=int(obtAtom)
-                    OrbitalAtom.append(atomID)
-                    # print(line,obtAtom,atomID)
-        # print(NBasis)
-        
-        # print('OrbitalAtom',OrbitalAtom,len(OrbitalAtom))
-        # print('OrbitalLaye',OrbitalLaye,len(OrbitalLaye))
-        # print('OrbitalEngs',OrbitalEngs,len(OrbitalEngs))
-        # print('OrbitalType',OrbitalType,len(OrbitalType))
-        # print(CM.shape)
-        return OrbitalAtom,OrbitalLaye,OrbitalEngs,OrbitalType,CM
+                        atomID=int(obtAtom) # 更改当前行的原子
+                    ObtAtms.append(atomID)
+        return ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM
 
-    
     @lru_cache
     def read_CMs(self)->tuple[list,list,list,list,np.ndarray]:
         """系数矩阵"""
-        if res:=self.read_CM('coefs'):
-            atoms,layer,engs,type_,CM=res
+        if res:=self.read_CM('coefs'): # 海象运算符
+            atms,angs,engs,occs,CM=res
         elif res:=self.read_CM('acoefs'):
-            atomsA,layerA,engsA,type_A,CMA=res
-            atomsB,layerB,engsB,type_B,CMB=self.read_CM('bcoefs')
-            atoms=atomsA
-            layer=layerA
+            atmsA,angsA,engsA,occsA,CMA=res
+            atmsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
+            atms=atmsA
+            angs=angsA
             engs=engsA+engsB
-            type_=type_A+type_B
+            occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
-        return atoms,layer,engs,type_,CM
+        return atms,angs,engs,occs,CM
 
     @lru_cache
     def read_SM(self):

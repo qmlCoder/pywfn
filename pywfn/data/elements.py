@@ -23,6 +23,7 @@ class Element:
         self.symbol=symbol
         self.radius=0.8
 
+# 因为全局只需要一个Elements实例，因此可以使用类方法
 class Elements:
     def __init__(self) -> None:
         self.elements:list[Element]=[Element(each) for each in rawData] #原子列表，一定是按照顺序排列的

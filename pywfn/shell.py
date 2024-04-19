@@ -280,23 +280,19 @@ class Shell:
                     tool.route = self.input.Number(tip="路径索引：", type_="int")
                     tool.create()
                 case "5":
+                    from pywfn.chemProp import reaActEne
                     K = self.input.Number(tip="输入K(催化常数): ", length=1)
                     T = self.input.Number(tip="输入T(反应温度,K): ", length=1)
-                    R = 8.314
-                    c = 2 * 1e10 * T
-                    x = np.log(K / c)
-                    g0 = -x * R * T * 1e-3  # kJ/mol
+                    g0 = reaActEne(K,T)
                     g1 = g0 / 4.184
                     printer.res(
                         f"G(吉布斯自由能):\n{g0:>10.4f} kJ/mol\n{g1:>10.4f} Kcal/mol"
                     )
                 case "6":
+                    from pywfn.chemProp import steSelEE
                     deR, deS = self.input.Number(tip="分别输入ΔG(R),ΔG(S): ", length=2)
                     T = self.input.Number(tip="输入T(反应温度,K): ", length=1)
-                    R = 8.314
-                    RT = R * T
-                    RS = np.exp((deS - deR) * 4185.8518 / RT)
-                    ee = (RS - 1) / (RS + 1)
+                    ee = steSelEE(deR,deS,T)
                     printer.res(f"立体选择性ee值:\n{ee*100:.2f}%")
 
     def writePage(self):

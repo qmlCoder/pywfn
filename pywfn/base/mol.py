@@ -81,7 +81,7 @@ class Mol:
     @cached_property
     def obtEcts(self):
         """每个分子轨道内的电子数量"""
-        types=self.reader.get_obtTypes()
+        types=self.reader.get_obtOccs()
         oe=1 if self.isOpenShell else 2
         return [oe if o[-1]=='O' else 0 for o in types]
 
@@ -93,7 +93,7 @@ class Mol:
     def obtStr(self)->list[str]:
         """返回轨道符号"""
         strs=[]
-        for i,s in enumerate(self.reader.get_obtTypes()):
+        for i,s in enumerate(self.reader.get_obtOccs()):
             if self.isOpenShell:
                 if i<len(self.obtEcts)//2:
                     s=f'α {s}'
@@ -107,11 +107,11 @@ class Mol:
     
     @cached_property
     def obtAtoms(self)->list[int]:
-        return self.reader.get_obtAtoms()
+        return self.reader.get_obtAtms()
     
     @cached_property
     def obtLayer(self)->list[str]:
-        return self.reader.get_obtLayer()
+        return self.reader.get_obtAngs()
 
     
     @property
