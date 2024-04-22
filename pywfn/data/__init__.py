@@ -4,8 +4,6 @@ from itertools import product
 from pywfn.data.basis import Basis
 from pywfn.data.elements import Elements
 
-elements=Elements()
-
 
 start=\
 """

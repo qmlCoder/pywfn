@@ -16,7 +16,7 @@ from pywfn.data.basis import Basis
 from pywfn.maths.gto import Gto
 from pywfn.reader.lutils import Reader
 from pywfn.utils import printer
-from pywfn.data import elements
+from pywfn.data.elements import elements
 
 class Title:
     def __init__(self,line=None,pate='') -> None:
@@ -83,7 +83,7 @@ class LogReader(Reader):
         ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
         return ObtEngs
     
-    def get_obtOccs(self) -> list[str]:
+    def get_obtOccs(self) -> list[bool]:
         ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
         return ObtOccs
 
@@ -133,7 +133,7 @@ class LogReader(Reader):
             t.join()
 
     @lru_cache
-    def read_coords(self):
+    def read_coords(self)->tuple[list[str],np.ndarray]:
         '''读取原子坐标'''
         titleNum=self.titles['coords'].line
         if titleNum is None:
@@ -182,54 +182,64 @@ class LogReader(Reader):
         原子类型
             电子层
         """
+        from pywfn.data.basis import BasisData
         assert 'gfinput' in self.keyWords,'关键词应该包含：gfinput'
         titleNum=self.titles['basisData'].line
         symbols=self.get_symbols()
         if titleNum is None:return
-        basisData:dict[str:list[dict[str:list]]]={}
+        basisDatas:list[BasisData]=[]
         ifRead=True
         angDict={'S':0,'P':1,'D':2} #角动量对应的字典
         s1='^ +(\d+) +\d+$'
         s2=r' ([SPD]+) +(\d+) \d.\d{2} +\d.\d{12}'
         s3=r'^ +(( +-?\d.\d{10}D[+-]\d{2}){2,3})'
         s4=' ****'
+        atomics=[] # 已经获取过的元素
+        atomic=None
+        shell=0
+        angs=None
+        exp=None
+        coe=None
         for i in range(titleNum+1,len(self.lines)):
             line=self.lines[i]
             if re.search(s1,line) is not None:
-                idx=re.search(s1,line).groups()[0]
+                idx=re.search(s1,line).groups()[0] #第几个原子
                 idx=int(idx)-1
-                atomic=symbols[idx]
-                if atomic not in basisData.keys():
-                    basisData[atomic]=[] #shells
+                symbol=symbols[idx]
+                atomic=elements[symbol].idx
+
+                if atomic not in atomics:
+                    atomics.append(atomic) #shells
                     ifRead=True # 该元素是否已经读过
                 else:
                     ifRead=False
             elif re.search(s2,line) is not None:
                 if not ifRead:continue
                 shellName,lineNum=re.search(s2,line).groups()
-                ang=[angDict[s] for s in shellName] #角动量
-                exp=[]
-                # coe=[[]]*len(ang)
-                coe=[[] for i in range(len(ang))]
-                shell={'ang':ang,'exp':exp,'coe':coe}
-                atomic:str=atomic
-                basisData[atomic].append(shell)
+                angs=[angDict[s] for s in shellName] #角动量
+                shell+=1
             elif re.search(s3,line) is not None:
                 if not ifRead:continue
                 numsStr=re.search(s3,line).groups()[0]
-                nums=re.findall(r'-?\d.\d{10}D[+-]\d{2}',numsStr)
+                nums:list[str]=re.findall(r'-?\d.\d{10}D[+-]\d{2}',numsStr)
                 nums=[float(num.replace('D','E')) for num in nums]
-                basisData[atomic][-1]['exp'].append(nums[0])
-                basisData[atomic][-1]['coe'][0].append(nums[1])
-                if len(ang)==2:
-                    basisData[atomic][-1]['coe'][1].append(nums[2])
+                if len(angs)==1:
+                    exp,coe=nums
+                    data=BasisData(atomic,shell,angs[0],exp,coe)
+                    basisDatas.append(data)
+                if len(angs)==2:
+                    exp,coe1,coe2=nums
+                    data1=BasisData(atomic,shell,angs[0],exp,coe1)
+                    data2=BasisData(atomic,shell,angs[1],exp,coe2)
+                    basisDatas.append(data1)
+                    basisDatas.append(data2)
             elif line==s4 is not None:
+                shell=0
                 continue
             else:
-                # self.mol.basis.setData(basisData)
-                basisData=trans_basisData(basisData)
-                return basisData
-                break
+                # 排序一下
+                basisDatas.sort(key=lambda b:(b.atomic,b.shell,b.ang))
+                return basisDatas
         
     def read_summery(self):
         '''读取总结信息'''
@@ -336,13 +346,14 @@ class LogReader(Reader):
         ObtAtms=[]
         ObtAngs=[]
         ObtEngs=[]
-        ObtOccs=[]
+        ObtOccs=[] # 占据/非占据
         
         CM=np.zeros(shape=(NBasis,NBasis))
         for i,l in enumerate(range(titleNum+1,titleNum+NBlock*blockLen+1,blockLen)):
-            occs=self.lines[l+1][21:71]
+            occs=self.lines[l+1][21:71] # 占据类型的起止位置
             occs=[occs[i:i+10].strip() for i in range(0,50,10)]
             occs=[e for e in occs if e!='']
+            occs=[True if e[-1]=='O' else False for e in occs]
             ObtOccs+=occs
             engs =re.split(' +',self.lines[l+2][21:].strip())
             engs=[float(e) for e in engs]
@@ -357,8 +368,9 @@ class LogReader(Reader):
             if i==0: #只在第一块记录行信息
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
-                    line=self.lines[l2][:15]
+                    line=self.lines[l2][:15] # 行信息(角动量，对应原子)的起止位置
                     angs=line[12:].strip()
+                    # angs=trans_angs(angs)
                     ObtAngs.append(angs)
                     obtAtom=line[5:9].strip()
                     if obtAtom!='':
@@ -472,6 +484,22 @@ def trans_basisData(basisData:dict):
                     idx=elements[atom].idx
                     newBasis.append([idx,s,ang,exp,coe])
     return newBasis
+
+def trans_angs(angStr):
+    angMap={
+        'S':'000',
+        'PX':'100',
+        'PY':'010',
+        'PZ':'001',
+        'XX':'200',
+        'YY':'020',
+        'ZZ':'002',
+        'XY':'110',
+        'XZ':'101',
+        'YZ':'011'
+    }
+    key=angStr[1:]
+    return angStr[0]+angMap[key]
 
 def numlist(l):
     """将列表字符串转为数字"""

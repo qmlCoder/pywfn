@@ -32,21 +32,21 @@ class Calculator(Caler):
         piObts=[]
         for atom in [atom1,atom2]: # 修改每个原子对应的系数矩阵
             if atom.symbol=='H':continue
-            a_1,a_2=atom.obtRange
+            a_1,a_2=atom.obtBorder
             for orbital in obts:
                 judgeRes=lutils.judgeOrbital(atom1,atom2,orbital,normal)
                 if judgeRes==0:continue # 如果是π轨道
                 CM_[a_1:a_2,orbital]=self.mol.CM[a_1:a_2,orbital]
                 piObts.append(orbital)
-        oe=1 if self.mol.isOpenShell else 2
+        oe=self.mol.oE
         PM_=lutils.CM2PM(CM_,obts,oe)
         SM=self.mol.SM
         PS=PM_@SM
 
-        a1,a2=atom1.obtRange
-        b1,b2=atom2.obtRange
+        a1,a2=atom1.obtBorder
+        b1,b2=atom2.obtBorder
         order=np.sum(PS[a1:a2,b1:b2]*PS[b1:b2,a1:a2])
         piObts=set(piObts)
-        piObts=[self.mol.obtStr[o] for o in piObts]
+        piObts=[self.mol.obtStrs[o] for o in piObts]
         lutils.formPrint(contents=[piObts],eachLength=10)
         return order

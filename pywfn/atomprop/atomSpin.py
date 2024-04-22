@@ -21,13 +21,13 @@ class Calculator(AtomCaler):
 
     def calculate(self)->np.ndarray:
         """计算所有原子的自旋"""
-        assert not self.mol.isOpenShell,'非开壳层分子无法计算自旋'
+        assert not self.mol.open,'非开壳层分子无法计算自旋'
         obtNum=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
         CM_a=self.mol.CM[:,:obtNum]
         CM_b=self.mol.CM[:,obtNum:]
-        obtEcts=self.mol.obtEcts
-        a_obt=[i for i,e in enumerate(obtEcts) if (e!=0 and i< obtNum)]
-        b_obt=[i for i,e in enumerate(obtEcts) if (e!=0 and i>=obtNum)]
+        obtOccs=self.mol.obtOccs
+        a_obt=[i for i,e in enumerate(obtOccs) if (e and i< obtNum)]
+        b_obt=[i for i,e in enumerate(obtOccs) if (e and i>=obtNum)]
         # 记录原本的分子属性
         CM_r=self.mol.CM.copy()
         obt_r=self.mol.O_obts

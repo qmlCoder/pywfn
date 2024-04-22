@@ -494,18 +494,18 @@ class Input:
             else:
                 printer.warn("无效的输入!")
 
-    def Files(self, path):
+    def Files(self, path:str):
         types = [".log", ".out", ".fch", ".gjf"]  # 支持的文件类型
-        path = Path(path)
-        if path.is_file():  # 如果是文件
-            if path.suffix in types:
+        pathObj = Path(path)
+        if pathObj.is_file():  # 如果是文件
+            if pathObj.suffix in types:
                 printer.info(f"共1个文件")
                 self.shell.paths += [path]
             else:
                 printer.warn("不支持的文件类型")
-        elif path.is_dir():  # 如果是文件夹
+        elif pathObj.is_dir():  # 如果是文件夹
             paths = []
-            for each in path.iterdir():  # 对文件夹中的每个文件进行循环
+            for each in pathObj.iterdir():  # 对文件夹中的每个文件进行循环
                 if each.suffix in types:  # 如果文件类型是支持的文件类型
                     paths.append(each)
             printer.info(f"输入{len(paths)}个文件")

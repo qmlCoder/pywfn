@@ -25,7 +25,7 @@ import numpy as np
 from pathlib import Path
 
 class Reader:
-    def __init__(self,path) -> None:
+    def __init__(self,path:str) -> None:
         self.path:str=path
         self.text=Path(self.path).read_text(encoding='utf-8')
         self.lines=self.text.splitlines(keepends=False)
@@ -58,11 +58,11 @@ class Reader:
         """获取重叠矩阵[m,m]"""
         raise
 
-    def get_obtEngs(self)->np.ndarray:
+    def get_obtEngs(self)->list[float]:
         """获取分子轨道能量[m]"""
         raise
 
-    def get_obtOccs(self)->list[str]:
+    def get_obtOccs(self)->list[bool]:
         """获取轨道类型，占据|非占据[m]"""
         raise
 

@@ -79,7 +79,7 @@ class Calculator(Caler):
         vects=[norm]*len(atoms)
         CM_=self.mol.projCM(atoms,obts,vects,zero=True,keep=False,abs=False,ins=False)
 
-        oe=1 if self.mol.isOpenShell else 2
+        oe=self.mol.oE
         SM=self.mol.SM
         
         PM_=maths.CM2PM(CM_,obts,oe)

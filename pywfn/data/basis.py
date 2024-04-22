@@ -8,10 +8,23 @@
 所有可能的m+n+l=角动量决定了基函数的数量
 
 """
+from dataclasses import dataclass
 from pywfn import utils
 printer=utils.Printer()
 
 from functools import lru_cache
+
+@dataclass
+class BasisData:
+    atomic:int # 元素
+    shell:int # 壳层
+    ang:int # 角动量
+    exp:float # 指数
+    coe:float # 系数
+
+    def __iter__(self):
+        data=self.atomic,self.shell,self.ang,self.exp,self.coe
+        return iter(data)
 
 class Basis:
     """
@@ -20,9 +33,9 @@ class Basis:
     def __init__(self,name:str) -> None:
         """根据基组名实例化基组信息"""
         self.name=name
-        self.data=None
+        self.data:list[BasisData]=None
         
-    def setData(self,data):
+    def setData(self,data:list[BasisData]):
         """设置数据
         元素,层数,角动量,指数,系数
         idx,shl,ang,exp,coe
@@ -30,12 +43,9 @@ class Basis:
         self.data=data
     
     @lru_cache
-    def get(self,atomic:int)->list:
+    def get(self,atomic:int)->list[BasisData]:
         """根据原子序号获得基组"""
-        data=[]
-        for idx,shl,ang,exp,coe in self.data:
-            if idx!=atomic:continue
-            data.append([shl,ang,exp,coe])
+        data=[b for b in self.data if b.atomic==atomic]
         return data
     
     @lru_cache

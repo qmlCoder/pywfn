@@ -18,7 +18,7 @@ OCI为某一列的原子轨道系数,P:bool参数用来确定是否只要P轨道
 原子轨道系数OC:np.ndarray
 读取器直接设置这些属性
 """
-from pywfn.data import elements
+from pywfn.data.elements import elements
 class Atom:
     def __init__(self,symbol:str,coord:np.ndarray,idx:int,mol:"base.Mol"): # 每个原子应该知道自己属于哪个分子
         self.symbol=symbol
@@ -46,7 +46,7 @@ class Atom:
 
     @cached_property
     def obtBorder(self): # 获取元素上下界
-        idxs=[i for i,idx in enumerate(self.mol.obtAtoms) if idx==self.idx]
+        idxs=[i for i,idx in enumerate(self.mol.obtAtms) if idx==self.idx]
         # print(idxs)
         return idxs[0],idxs[-1]+1 #因为最后一个元素不包含
     
@@ -90,8 +90,9 @@ class Atom:
         """
         atmDens=np.zeros(shape=(len(coords)))
         for obt in obts:
+            obte=self.mol.obtOccs[obt]*self.mol.oE # 轨道占据数0/1/2
+            if obte==0:continue
             wfnv=self.get_wfnv(coords,obt)
-            obte=self.mol.obtEcts[obt] # 轨道占据数0/1/2
             dens=obte*wfnv**2*weight # 波函数的平方乘轨道占据数
             atmDens+=dens
         return atmDens
@@ -100,7 +101,7 @@ class Atom:
     def pLayersCs(self,obt:int):
         '''获取原子某一轨道的p层数据'''
         a,b=self.obtBorder
-        layers=self.mol.obtLayer[a:b]
+        layers=self.mol.obtAngs[a:b]
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
@@ -133,7 +134,7 @@ class Atom:
         assert np.linalg.norm(direct)!=0,"方向向量长度不能为0"
         direct/=np.linalg.norm(direct) # 投影向量归一化
         a,b=self.obtBorder
-        layers=self.mol.obtLayer[a:b]
+        layers=self.mol.obtAngs[a:b]
         sIndex=[i for i,l in enumerate(layers) if 'S' in l]
         return self.obtCoeffs[sIndex,obt]
     

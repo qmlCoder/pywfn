@@ -29,8 +29,8 @@ from pywfn.data.elements import elements
 from pywfn import config
 from pywfn import utils
 from pywfn import reader
+from pywfn.utils import printer
 
-printer=utils.Printer()
 import numpy as np
 from functools import cached_property, lru_cache
 from tqdm import tqdm
@@ -54,17 +54,16 @@ class Mol:
     def gto(self)->Gto:
         return Gto(self)
 
-
     @cached_property
-    def charge(self):
+    def charge(self)->int:
         return self.reader.get_charge()
     
     @cached_property
-    def spin(self):
+    def spin(self)->int:
         return self.reader.get_spin()
 
     @property
-    def isOpenShell(self)->bool:
+    def open(self)->bool:
         """是否为开壳层"""
         CM=self.reader.get_CM()
         w,h=CM.shape
@@ -77,43 +76,43 @@ class Mol:
             self.datas['eng']=self.reader.get_energy()
         return self.datas['eng']
 
+    @cached_property
+    def obtOccs(self)->list[bool]:
+        """获取每个分子轨道是否占据"""
+        occs=self.reader.get_obtOccs()
+        return occs
 
     @cached_property
-    def obtEcts(self):
-        """每个分子轨道内的电子数量"""
-        types=self.reader.get_obtOccs()
-        oe=1 if self.isOpenShell else 2
-        return [oe if o[-1]=='O' else 0 for o in types]
-
-    @cached_property
-    def obtEngs(self):
+    def obtEngs(self)->list[float]:
         return self.reader.get_obtEngs()
 
     @cached_property
-    def obtStr(self)->list[str]:
+    def obtStrs(self)->list[str]:
         """返回轨道符号"""
         strs=[]
-        for i,s in enumerate(self.reader.get_obtOccs()):
-            if self.isOpenShell:
-                if i<len(self.obtEcts)//2:
+        occs=self.obtOccs
+        nobt=len(occs)
+        for i,s in enumerate(occs):
+            if self.open:
+                if i<len(nobt)//2:
                     s=f'α {s}'
                 else:
                     s=f'β {s}'
             idx=i
-            if self.isOpenShell and i>=len(self.obtEcts)//2:
-                idx=i-len(self.obtEcts)//2
+            if self.open and i>=nobt//2:
+                idx=i-nobt//2
             strs.append(f'{idx+1} {s}')
         return strs
     
     @cached_property
-    def obtAtoms(self)->list[int]:
+    def obtAtms(self)->list[int]:
         return self.reader.get_obtAtms()
     
     @cached_property
-    def obtLayer(self)->list[str]:
+    def obtAngs(self)->list[str]:
+        """获取分子不同角动量及分量的符号,S,PX,PY,PZ..."""
         return self.reader.get_obtAngs()
 
-    
     @property
     def atoms(self)->Atoms:
         """获取所有原子"""
@@ -155,12 +154,12 @@ class Mol:
     @property
     def O_obts(self)->list[int]:
         if 'O_obts' not in self.datas.keys():
-            self.datas['O_obts']=[i for i,e in enumerate(self.obtEcts) if e!=0]
+            self.datas['O_obts']=[i for i,occ in enumerate(self.obtOccs) if occ]
         return self.datas['O_obts']
     
     @cached_property
     def V_obts(self)->list[int]:
-        return [i for i,e in enumerate(self.obtEcts) if e==0]
+        return [i for i,occ in enumerate(self.obtOccs) if not occ]
     
     @cached_property
     def heavyAtoms(self)->list[Atom]:
@@ -188,9 +187,7 @@ class Mol:
     @property
     def oE(self):
         """轨道电子数"""
-        return 1 if self.isOpenShell else 2
-    
-    
+        return 1 if self.open else 2
     
     def projCM(self,atoms:list[int],obts:list[int],vects:list[np.ndarray]
                ,zero:bool,keep:bool,abs:bool,ins:bool):
@@ -216,7 +213,7 @@ class Mol:
             atom=self.atom(atom)
             nebNum=len(atom.neighbors)
             a_1,a_2=atom.obtBorder
-            layers=self.obtLayer[a_1:a_2]
+            layers=self.obtAngs[a_1:a_2]
             
             
             pIdx=[i for i,l in enumerate(layers) if 'P' in l]

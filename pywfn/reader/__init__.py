@@ -21,12 +21,9 @@ from pathlib import Path
 
 
 
-def get_reader(path:str|Path):
+def get_reader(path:str):
     """根据输入文件的类型自动判断应该使用哪个读取器"""
-    if isinstance(path,str):path=Path(path)
-    elif isinstance(path,Path):pass
-    else:raise
-    suffix=path.suffix
+    suffix=Path(path).suffix
     readers={
         '.out':LogReader,
         '.log':LogReader,

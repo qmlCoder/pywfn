@@ -95,52 +95,46 @@
  BoundingBox="0 0 10 20"
  Z="6"
 >
-<n id="4" p="50 300.0" Z="1" AS="N"/>
-<n id="5" p="80 300.0" Z="1" AS="N"/>
-<n id="6" p="110 299.96905" Z="1" AS="N"/>
-<n id="7" p="140 299.96905" Z="1" AS="N"/>
-<n id="8" p="170 299.95961" Z="1" AS="N"/>
-<n id="9" p="200 299.95961" Z="1" AS="N"/>
-<n id="10" p="230 300.18207" Z="1" AS="N"/>
-<n id="11" p="260 300.18207" Z="1" AS="N"/>
-<n id="12" p="290 703.24057" Z="1" AS="N"/>
-<n id="13" p="320 703.24057" Z="1" AS="N"/>
-<n id="14" p="350 703.2096200000001" Z="1" AS="N"/>
-<n id="15" p="380 703.2096200000001" Z="1" AS="N"/>
-<n id="16" p="410 703.20018" Z="1" AS="N"/>
-<n id="17" p="440 703.20018" Z="1" AS="N"/>
-<n id="18" p="470 703.42265" Z="1" AS="N"/>
-<n id="19" p="500 703.42265" Z="1" AS="N"/>
-<n id="20" p="530 253261.68276280002" Z="1" AS="N"/>
-<n id="21" p="560 253261.68276280002" Z="1" AS="N"/>
-<b id="22" B="4" E="5" Z="2" Display="Bold" BS="N"/>
-<b id="24" B="6" E="7" Z="2" Display="Bold" BS="N"/>
-<b id="26" B="8" E="9" Z="2" Display="Bold" BS="N"/>
-<b id="28" B="10" E="11" Z="2" Display="Bold" BS="N"/>
-<b id="30" B="12" E="13" Z="2" Display="Bold" BS="N"/>
-<b id="32" B="14" E="15" Z="2" Display="Bold" BS="N"/>
-<b id="34" B="16" E="17" Z="2" Display="Bold" BS="N"/>
-<b id="36" B="18" E="19" Z="2" Display="Bold" BS="N"/>
+<n id="5" p="50 288.0" Z="1" AS="N"/>
+<n id="6" p="80 288.0" Z="1" AS="N"/>
+<n id="8" p="95.0 303.0" Z="1" AS="N"/>
+<n id="9" p="125.0 303.0" Z="1" AS="N"/>
+<n id="11" p="95.0 300" Z="1" AS="N"/>
+<n id="12" p="125.0 300" Z="1" AS="N"/>
+<n id="14" p="140 297.0" Z="1" AS="N"/>
+<n id="15" p="170 297.0" Z="1" AS="N"/>
+<n id="17" p="185.0 309.0" Z="1" AS="N"/>
+<n id="18" p="215.0 309.0" Z="1" AS="N"/>
+<n id="20" p="185.0 300" Z="1" AS="N"/>
+<n id="21" p="215.0 300" Z="1" AS="N"/>
+<n id="23" p="230 285.0" Z="1" AS="N"/>
+<n id="24" p="260 285.0" Z="1" AS="N"/>
+<n id="26" p="275.0 297.0" Z="1" AS="N"/>
+<n id="27" p="305.0 297.0" Z="1" AS="N"/>
+<b id="29" B="18" E="5" Z="2" Display="Dash" BS="N"/>
+<b id="30" B="5" E="6" Z="2" Display="Bold" BS="N"/>
+<b id="31" B="6" E="8" Z="2" Display="Dash" BS="N"/>
+<b id="32" B="8" E="9" Z="2" Display="Bold" BS="N"/>
+<b id="33" B="11" E="12" Z="2" Display="Bold" BS="N"/>
+<b id="34" B="12" E="14" Z="2" Display="Dash" BS="N"/>
+<b id="35" B="14" E="15" Z="2" Display="Bold" BS="N"/>
+<b id="36" B="15" E="17" Z="2" Display="Dash" BS="N"/>
+<b id="37" B="17" E="18" Z="2" Display="Bold" BS="N"/>
 <b id="38" B="20" E="21" Z="2" Display="Bold" BS="N"/>
-<b id="40" B="5" E="6" Z="2" Display="Dash" BS="N"/>
-<b id="41" B="7" E="8" Z="2" Display="Dash" BS="N"/>
-<b id="42" B="9" E="10" Z="2" Display="Dash" BS="N"/>
-<b id="43" B="11" E="12" Z="2" Display="Dash" BS="N"/>
-<b id="44" B="13" E="14" Z="2" Display="Dash" BS="N"/>
-<b id="45" B="15" E="16" Z="2" Display="Dash" BS="N"/>
-<b id="46" B="17" E="18" Z="2" Display="Dash" BS="N"/>
-<b id="47" B="19" E="20" Z="2" Display="Dash" BS="N"/>
+<b id="39" B="21" E="23" Z="2" Display="Dash" BS="N"/>
+<b id="40" B="23" E="24" Z="2" Display="Bold" BS="N"/>
+<b id="41" B="24" E="26" Z="2" Display="Dash" BS="N"/>
+<b id="42" B="26" E="27" Z="2" Display="Bold" BS="N"/>
 
 </fragment>
-<t id="23" p="60.0 295.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">0.0</s></t>
-<t id="25" p="120.0 294.96905" Z="3" LineHeight="auto"><s font="5" size="10" color="0">0.0</s></t>
-<t id="27" p="180.0 294.95961" Z="3" LineHeight="auto"><s font="5" size="10" color="0">0.0</s></t>
-<t id="29" p="240.0 295.18207" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-0.0</s></t>
-<t id="31" p="300.0 698.24057" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-40.3</s></t>
-<t id="33" p="360.0 698.2096200000001" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-40.3</s></t>
-<t id="35" p="420.0 698.20018" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-40.3</s></t>
-<t id="37" p="480.0 698.42265" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-40.3</s></t>
-<t id="39" p="540.0 253256.68276280002" Z="3" LineHeight="auto"><s font="5" size="10" color="0">-25296.2</s></t>
+<t id="7" p="65.0 278.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">0T</s></t>
+<t id="10" p="110.0 293.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">0C</s></t>
+<t id="13" p="110.0 290" Z="3" LineHeight="auto"><s font="5" size="10" color="0">1C;A</s></t>
+<t id="16" p="155.0 287.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">1T</s></t>
+<t id="19" p="200.0 299.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">1A</s></t>
+<t id="22" p="200.0 290" Z="3" LineHeight="auto"><s font="5" size="10" color="0">2C</s></t>
+<t id="25" p="245.0 275.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">2T</s></t>
+<t id="28" p="290.0 287.0" Z="3" LineHeight="auto"><s font="5" size="10" color="0">2A</s></t>
 
 </page>
 </CDXML>

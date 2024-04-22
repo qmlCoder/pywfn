@@ -66,7 +66,7 @@ class cubWriter:
             x,y,z=atom.coord*config.BOHR_RADIUS
             self.file.write(f'{atom.atomic:>5}{atom.atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
     
-    def render(self):
+    def write_value(self):
         obts=self.obts
         gridPos=self.get_gridPos()
         self.mol.bohr=True
@@ -94,13 +94,10 @@ class cubWriter:
                 if index%6==0:self.file.write('\n')
     
     def save(self,name):
-        
         if self.direct is not None:
             self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,abs=False,ins=False)
-            config.IF_CM_P=True
             print('开启投影')
         self.init_file(name)
-        self.render()
+        self.write_value()
         printer.res(f'导出文件至{self.filePath}')
         self.file.close()
-        config.IF_CM_P=False
