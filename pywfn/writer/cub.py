@@ -95,7 +95,7 @@ class cubWriter:
     
     def save(self,name):
         if self.direct is not None:
-            self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,abs=False,ins=False)
+            self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,ins=False)
             print('开启投影')
         self.init_file(name)
         self.write_value()

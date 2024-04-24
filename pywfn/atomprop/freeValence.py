@@ -17,18 +17,25 @@ class Calculator(AtomCaler):
         self.caler=piDM.Calculator(self.mol)
         self.vect:np.ndarray=None
         self.atom:int=None
+        self.zero:bool=True
+        self.keep:bool=True
+        self.ins:bool=True
     
-    def valence(self,idx:int):
+    def calculate(self):
         """计算一个原子的自由价，从1开始"""
-        printer.info(f'计算原子 {idx} 自由价')
         assert self.vect is not None,'未指定方向'
-        centAtom=self.mol.atom(idx)
+        atm=self.atom
+        printer.info(f'计算原子 {atm} 自由价')
+        centAtom=self.mol.atom(atm)
         valence1=STAND
         valence2=STAND
-        self.caler.direct=self.vect.copy()
+        self.caler.vect=self.vect.copy()
+        self.caler.zero=self.zero
+        self.caler.keep=self.keep
+        self.caler.ins=self.ins
 
         for arouAtom in centAtom.neighbors:
-            self.caler.bond=[idx,arouAtom.idx]
+            self.caler.bond=[atm,arouAtom.idx]
             orders=self.caler.calculate()
             order1,order2=orders
             bond=f'{centAtom.idx}-{arouAtom.idx}'
@@ -38,9 +45,6 @@ class Calculator(AtomCaler):
         if valence2==STAND:valence2=0.0
         return valence1,valence2
     
-    def calculate(self,idxs:list[int]):
-        valences=[self.valence(idx) for idx in idxs]
-        return valences
     
     def print(self,resStr:str):
         printer.info('原子自由价及其相关键级: ')

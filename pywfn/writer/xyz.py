@@ -3,7 +3,7 @@
 """
 from pywfn import base
 from pathlib import Path
-from pywfn.data import elements
+from pywfn.data.elements import elements
 from pywfn.utils import printer
 
 class xyzWriter:
@@ -24,5 +24,7 @@ class xyzWriter:
         self.write()
         path=self.mol.reader.path
         path=Path(path)
-        (path.parent/f'{path.stem}.xyz').write_text(self.resStr)
-        printer.res('导出成功!😄')
+        filePath=(path.parent/f'{path.stem}.xyz')
+        filePath.write_text(self.resStr)
+        print(filePath)
+        printer.res(f'{filePath} 导出成功!😄')

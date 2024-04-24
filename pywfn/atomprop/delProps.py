@@ -49,7 +49,7 @@ class Calculator(AtomCaler):
             if stype:
                 CMo=mol.CM
                 self.hists[f'CM_{m}']=CMo # 将老的存储下来
-                CMn=mol.projCM(self.atoms,mol.O_obts,self.vects,True,False,False,False)
+                CMn=mol.projCM(self.atoms,mol.O_obts,self.vects,True,False,False)
                 mol.datas['CM']=CMn
             else:
                 CMo=self.hists[f'CM_{m}'] # 恢复成老的

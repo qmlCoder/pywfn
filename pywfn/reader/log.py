@@ -434,7 +434,7 @@ class LogReader(Reader):
         return None
 
     @lru_cache
-    def read_energys(self)->tuple[list[str],list[float]]:
+    def read_energys(self)->dict[str,float]:
         engList = [
             'Zero-point correction', 
             'Thermal correction to Energy', 
@@ -461,7 +461,7 @@ class LogReader(Reader):
                     searhNum+=1
             if searhNum==len(engList):break
         engNums=[float(e) for e in engDict.values()]
-        return engList,engNums
+        return engDict
 
 def trans_basisData(basisData:dict):
     """

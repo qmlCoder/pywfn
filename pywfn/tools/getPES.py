@@ -13,6 +13,7 @@ from typing import Union
 @dataclass
 class Mole:
     energy:float # 分子能量
+    name:str='' # 分子名
 
 @dataclass
 class Moles:
@@ -24,15 +25,31 @@ class Moles:
     @property
     def energy(self):
         return sum([mol.energy for mol in self.mols])
+    
 
 @dataclass
 class Block:
+    blocks:"Blocks"
     idx:int
     Rms:Moles # 反应物
     Tms:Moles # 过渡态
     Pms:Moles # 产物
-    b0:Union[None,"Block"]=None # 开始的块
-    b1:Union[None,"Block"]=None # 结束的块
+    bi0:Union[int,"Block"]=None
+    bi1:Union[int,"Block"]=None
+
+    @property
+    def b0(self)->"Block":
+        if self.bi0 is None:
+            return None
+        else:
+            return self.blocks[self.bi0]
+
+    @property
+    def b1(self)->"Block":
+        if self.bi1 is None:
+            return None
+        else:
+            return self.blocks[self.bi1]
 
     @property
     def engs(self)->list[float]:
@@ -43,10 +60,27 @@ class Block:
             es=[e+self.b0.Pms.energy for e in es] # 接着上一块的能量
         return es
     
+    @property
+    def pos(self):
+        if self.b0:
+            return self.b0.pos+Sizes.block
+        else:
+            return 0
+    
     def __repr__(self):
-        node0=f'{self.b0.idx}' if self.b0 else 'None'
-        node1=f'{self.b1.idx}' if self.b1 else 'None'
-        return f'{self.idx}:{node0}->{node1}'
+        return f'{self.bi0}<==({self.idx})==>{self.bi1}'
+
+@classmethod
+class Blocks:
+    blocks:list[Block]=[]
+
+    def __getitem__(self,idx)->Block:
+        for block in self.blocks:
+            if idx==block.idx:
+                return block
+    
+    def append(self,block:Block):
+        self.blocks.append(block)
 
 @dataclass
 class Node: # chemdraw中的一个节点
@@ -92,15 +126,15 @@ class Tool:
         return self.idx
     
     def getPos(self,x:float,y:float):
-        return x+Sizes.startx,400-(y+Sizes.starty)
+        return x+Sizes.startx+Sizes.block/2+10,400-(y+Sizes.starty)
 
     def create(self):
         for b,block in enumerate(self.blocks):
-            self.add_block(block,b)
+            self.add_block(block)
         self.build_bonds()
         self.write()
 
-    def add_block(self,block:Block,bidx:int):
+    def add_block(self,block:Block):
         """
         添加一个Block块
         bid:第多少个块
@@ -112,13 +146,18 @@ class Tool:
         eng1=eng0+(Tms.energy-Rms.energy)
         eng2=eng0+(Pms.energy-Rms.energy)
         Rms.posY,Tms.posY,Pms.posY=eng0,eng1,eng2
-        x0=(bidx-1/2)*Sizes.block
-        x1=(bidx)*Sizes.block
-        x2=(bidx+1/2)*Sizes.block
+        
+        
+        x1=block.pos
+        x2=x1+Sizes.block/2
+        
         if block.b0 is None:
+            x0=block.pos-Sizes.block/2
             Rms.n0,Rms.n1=self.add_moles(eng0,x0,Rms.text)
+            
         Tms.n0,Tms.n1=self.add_moles(eng1,x1,Tms.text)
         Pms.n0,Pms.n1=self.add_moles(eng2,x2,Pms.text)
+        print(block.idx,x1)
         
 
     def add_moles(self,eng:float,x:float,text:str): # 一个moles是一个横线
@@ -126,8 +165,7 @@ class Tool:
         x1=x+Sizes.moles
         n0=self.add_node(x0,eng)
         n1=self.add_node(x1,eng)
-        print((x0+x1)/2,eng)
-        self.add_text(text,(x0+x1)/2,eng+10)
+        self.add_text(text,(x0+x1)/2-len(text)*4,eng+2)
         return n0,n1
             
     def add_node(self,x,y)->Node:
@@ -135,7 +173,6 @@ class Tool:
         x,y=self.getPos(x,y)
         node=Node(id=self.getIdx(),x=x,y=y)
         self.nodes.append(node)
-        print(node)
         return node
 
     def build_bonds(self):

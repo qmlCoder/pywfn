@@ -29,6 +29,10 @@ class Reader:
         self.path:str=path
         self.text=Path(self.path).read_text(encoding='utf-8')
         self.lines=self.text.splitlines(keepends=False)
+    
+    @property
+    def fileName(self)->str:
+        return Path(self.path).name
 
     def get_coords(self)->np.ndarray:
         """原子坐标[n,3]"""

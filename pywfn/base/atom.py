@@ -105,7 +105,7 @@ class Atom:
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
-    def get_pProj(self,direct:np.ndarray,obt:int,abs:bool)->list[np.ndarray]:
+    def get_pProj(self,direct:np.ndarray,obt:int)->list[np.ndarray]:
         """计算原子p系数在某个方向上的投影,返回n个三维向量"""
         assert isinstance(direct,np.ndarray),"方向需要为np.ndarray"
         # printer.console.log(f'direct={direct}')
@@ -120,10 +120,7 @@ class Atom:
         # print('ps=',ps)
         lens=np.dot(ps,direct)
 
-        if abs:
-            ps_=[np.abs(l)*direct for l in lens]
-        else:
-            ps_=[l*direct for l in lens] # 轨道向量在法向量方向上的投影
+        ps_=[l*direct for l in lens] # 轨道向量在法向量方向上的投影
         # printer.log('获取投影后的系数')
         # print(ps,direct,ps_)
         return ps_

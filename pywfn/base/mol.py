@@ -37,13 +37,26 @@ from tqdm import tqdm
 import multiprocessing as mp
 from multiprocessing.pool import AsyncResult
 import threading
+from typing import Callable
+
+class Props(dict):
+    def __init__(self) -> None:
+        super().__init__({})
+
+    def get(self,key:str,fun:Callable):
+        if key not in self.keys():
+            self[key]=fun()
+        return self[key]
+
+    def set(self,key:str,value):
+        self[key]=value
 
 class Mol:
     def __init__(self,reader:"reader.Reader"=None) -> None:
         self._atoms:Atoms=Atoms(self)
         self._bonds:Bonds=Bonds(self)
         self.reader:"reader.Reader"=reader
-        self.datas={}
+        self.props=Props()
         self.bohr:bool=False # 是否使用波尔坐标
     
     @cached_property
@@ -65,16 +78,13 @@ class Mol:
     @property
     def open(self)->bool:
         """是否为开壳层"""
-        CM=self.reader.get_CM()
-        w,h=CM.shape
+        w,h=self.CM.shape
         return w!=h
     
     @property
     def energy(self)->float:
         """获取分子能量"""
-        if 'eng' not in self.datas.keys():
-            self.datas['eng']=self.reader.get_energy()
-        return self.datas['eng']
+        return self.props.get('energy',self.reader.get_energy)
 
     @cached_property
     def obtOccs(self)->list[bool]:
@@ -153,9 +163,7 @@ class Mol:
 
     @property
     def O_obts(self)->list[int]:
-        if 'O_obts' not in self.datas.keys():
-            self.datas['O_obts']=[i for i,occ in enumerate(self.obtOccs) if occ]
-        return self.datas['O_obts']
+        return [i for i,occ in enumerate(self.obtOccs) if occ]
     
     @cached_property
     def V_obts(self)->list[int]:
@@ -168,11 +176,7 @@ class Mol:
     @property
     def CM(self)->np.ndarray:
         """分子轨道系数矩阵"""
-        if 'CM' not in self.datas.keys():
-            CM=self.reader.get_CM()
-            CM.setflags(write=False)
-            self.datas['CM']=CM
-        return self.datas['CM']
+        return self.props.get('CM',self.reader.get_CM)
     
     @property
     def SM(self):
@@ -190,16 +194,14 @@ class Mol:
         return 1 if self.open else 2
     
     def projCM(self,atoms:list[int],obts:list[int],vects:list[np.ndarray]
-               ,zero:bool,keep:bool,abs:bool,ins:bool):
+               ,zero:bool,keep:bool,ins:bool):
         """
         获取投影后的系数矩阵
         atoms:需要投影的原子
         obts:需要投影的轨道
-        vects:投影到的方向
+        vects:投影到的方向 atoms和vects的长度必须相同
         zero:其它原子系数是否置零
         keep:其它价层系数是否保留
-            atoms和vects的长度必须相同
-        abs:是否取绝对值
         ins:是否包含价层s轨道
         """
         assert isinstance(vects,list),"方向想两需要为列表"
@@ -215,24 +217,20 @@ class Mol:
             a_1,a_2=atom.obtBorder
             layers=self.obtAngs[a_1:a_2]
             
-            
             pIdx=[i for i,l in enumerate(layers) if 'P' in l]
-            
             if len(pIdx)==0:continue # 没有p轨道则跳过
-            sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
             for o,obt in enumerate(obts):
                 if keep:
                     Co=self.CM.copy()[a_1:a_2,obt]
                 else:
                     Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
                 if ins:
+                    sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
                     Cos=atom.obtCoeffs.copy()[sIdx,obt]
                     Co[sIdx]=Cos*(3-nebNum)/3
-                Cop=atom.get_pProj(vect,obt,abs)
+                Cop=atom.get_pProj(vect,obt)
                 Co[pIdx]=np.concatenate(Cop)
                 CM_[a_1:a_2,obt]=Co.copy()
-                # print(CM_[:,obt])
-        self.datas['CMp']=CM_ # 将投影的分子轨道记录下来
         return CM_
 
     def __repr__(self):

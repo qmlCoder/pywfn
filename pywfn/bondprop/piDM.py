@@ -17,12 +17,15 @@ class Calculator(Caler):
         self.values={}
         self.vect:Union[None,np.ndarray]=None
         self.bond:list[int,int]=None
+        self.zero:bool=True
+        self.keep:bool=True
+        self.ins:bool=True
 
     def calculate(self)->np.ndarray:
         """
         计算pi键级，当指定方向时计算方向键级
         """
-        assert self.bond is None,'没有指定键级'
+        assert self.bond is not None,'没有指定键级'
         idx1,idx2=self.bond
         printer.info(f'计算{idx1} → {idx2}的键级')
         
@@ -77,7 +80,7 @@ class Calculator(Caler):
         b_1,b_2=atom2.obtBorder
         atoms=[idx1,idx2]
         vects=[norm]*len(atoms)
-        CM_=self.mol.projCM(atoms,obts,vects,zero=True,keep=False,abs=False,ins=False)
+        CM_=self.mol.projCM(atoms,obts,vects,zero=self.zero,keep=self.keep,ins=self.ins)
 
         oe=self.mol.oE
         SM=self.mol.SM
