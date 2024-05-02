@@ -16,14 +16,14 @@ from functools import lru_cache
 
 @dataclass
 class BasisData:
-    atomic:int # 元素
-    shell:int # 壳层
+    atm:int # 元素
+    shl:int # 壳层
     ang:int # 角动量
     exp:float # 指数
     coe:float # 系数
 
     def __iter__(self):
-        data=self.atomic,self.shell,self.ang,self.exp,self.coe
+        data=self.atm,self.shl,self.ang,self.exp,self.coe
         return iter(data)
 
 class Basis:
@@ -43,10 +43,12 @@ class Basis:
         self.data=data
     
     @lru_cache
-    def get(self,atomic:int)->list[BasisData]:
+    def get(self,atm:int,shl:int=None,ang:int=None)->list[BasisData]:
         """根据原子序号获得基组"""
-        data=[b for b in self.data if b.atomic==atomic]
-        return data
+        if shl is None:
+            return [b for b in self.data if b.atm==atm]
+        else:
+            return [b for b in self.data if (b.atm==atm and b.shl==shl and b.ang==ang)]
     
     @lru_cache
     def lmn(self,ang:int)->list[list[int]]:
@@ -82,3 +84,7 @@ class Basis:
             '011':'YZ',
         }
         return names[key]
+    
+    def numAng(self,strs):
+        """将角动量符号转为数值"""
+        return [[int(i) for i in s] for s in strs]

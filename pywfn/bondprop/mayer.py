@@ -27,9 +27,6 @@ class Calculator(Caler):
         OM=PS*PS.T
         a1,b1=atom1.obtBorder
         a2,b2=atom2.obtBorder
-        # PS1=PS[a1:b1,a2:b2]
-        # PS2=PS[a2:b2,a1:b1]
-        # order=np.sum((PS1*PS2.T))**0.5
         order=np.sum(OM[a1:b1,a2:b2])
         return order
     

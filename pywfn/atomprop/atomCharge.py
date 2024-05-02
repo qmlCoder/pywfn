@@ -59,7 +59,7 @@ class Calculator(AtomCaler):
     
     def hirshfeld(self):
         """
-        计算原子的Hirshfeld电荷
+        计算原子的Hirshfeld电荷，目前还未成功（分子的电子密度计算不正确）
         """
         self.mol.bohr=True
         from pywfn.data import sphGrid,radDens
@@ -79,7 +79,7 @@ class Calculator(AtomCaler):
                 # print(a1==a2,a2+1,np.sum(dens))
                 proDens+=dens1
                 if a2==a1:atmDens=dens1
-                dens2=atom2.get_dens(obts,coord-atom2.coord,weight)
+                dens2=atom2.get_dens(obts,coord-atom2.coord)*weight
                 molDens+=dens2
                 print(f'{dens1.sum():.4f},{dens2.sum():.4f}')
             ratio=np.divide(atmDens,proDens,out=np.zeros_like(atmDens),where=proDens!=0)

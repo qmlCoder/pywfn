@@ -57,7 +57,7 @@ class Atom:
         return self.mol.CM[u:l,:]
 
     @cached_property
-    def neighbors(self)->list["Atom"]:
+    def neighbors(self)->list[int]:
         """每个原子相邻的原子有哪些，根据分子的键来判断"""
         idxs=[]
         bonds=self.mol.bonds
@@ -65,7 +65,7 @@ class Atom:
             idx1,idx2=bond.ats
             if idx1==self.idx:idxs.append(idx2) # 添加不是该原子的键上的原子
             if idx2==self.idx:idxs.append(idx1)
-        return [self.mol.atom(idx) for idx in set(idxs)]
+        return [idx for idx in set(idxs)]
     
     def get_wfnv(self,coords:np.ndarray,obt:int,range_:float=config.RENDER_ATOM_RANGE)->np.ndarray:
         """
@@ -81,19 +81,17 @@ class Atom:
         wfnv[idx]=wfni
         return wfnv
 
-    def get_dens(self,obts:list[int],coords:np.ndarray,weight:np.ndarray):
+    def get_dens(self,obts:list[int],coords:np.ndarray):
         """
         计算电子密度
         obts:要计算的分子轨道
         coords:空间笛卡尔坐标[n,3]，原子中心为原点
-        weights:每一个坐标的权重[n]
         """
         atmDens=np.zeros(shape=(len(coords)))
         for obt in obts:
-            obte=self.mol.obtOccs[obt]*self.mol.oE # 轨道占据数0/1/2
-            if obte==0:continue
+            oE=self.mol.oE # 轨道占据数0/1/2
             wfnv=self.get_wfnv(coords,obt)
-            dens=obte*wfnv**2*weight # 波函数的平方乘轨道占据数
+            dens=oE*wfnv**2 # 波函数的平方乘轨道占据数
             atmDens+=dens
         return atmDens
 

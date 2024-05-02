@@ -65,26 +65,31 @@ class LogReader(Reader):
 
     @lru_cache
     def get_CM(self) -> np.ndarray:
-        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        CM=self.read_CMs()[-1]
         return CM
     
     @lru_cache
     def get_obtAtms(self) -> list[int]:
-        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        ObtAtms=self.read_CMs()[0]
         return ObtAtms
     
     @lru_cache
+    def get_obtShls(self) -> list[int]:
+        ObtShls=self.read_CMs()[1]
+        return ObtShls
+
+    @lru_cache
     def get_obtAngs(self) -> list[str]:
-        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        ObtAngs=self.read_CMs()[2]
         return ObtAngs
     
     @lru_cache
     def get_obtEngs(self) -> list[float]:
-        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        ObtEngs=self.read_CMs()[3]
         return ObtEngs
     
     def get_obtOccs(self) -> list[bool]:
-        ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM=self.read_CMs()
+        ObtOccs=self.read_CMs()[4]
         return ObtOccs
 
     @lru_cache
@@ -238,7 +243,7 @@ class LogReader(Reader):
                 continue
             else:
                 # 排序一下
-                basisDatas.sort(key=lambda b:(b.atomic,b.shell,b.ang))
+                basisDatas.sort(key=lambda b:(b.atm,b.shl,b.ang))
                 return basisDatas
         
     def read_summery(self):
@@ -344,6 +349,7 @@ class LogReader(Reader):
         blockLen=NBasis+3 #一块数据行数，在log文件的输出中，轨道系数是按照每一块五列来分块的
         # print(titleNum,NBlock,blockLen)
         ObtAtms=[]
+        ObtShls=[] # 占据原子的第多少层轨道
         ObtAngs=[]
         ObtEngs=[]
         ObtOccs=[] # 占据/非占据
@@ -369,29 +375,34 @@ class LogReader(Reader):
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
                     line=self.lines[l2][:15] # 行信息(角动量，对应原子)的起止位置
-                    angs=line[12:].strip()
-                    # angs=trans_angs(angs)
-                    ObtAngs.append(angs)
+                    match=line[12:].strip()
+                    shl,ang=trans_angs(match)
+                    ObtShls.append(shl)
+                    ObtAngs.append(ang)
                     obtAtom=line[5:9].strip()
                     if obtAtom!='':
                         atomID=int(obtAtom) # 更改当前行的原子
                     ObtAtms.append(atomID)
-        return ObtAtms,ObtAngs,ObtEngs,ObtOccs,CM
+        return ObtAtms,ObtShls,ObtAngs,ObtEngs,ObtOccs,CM
 
     @lru_cache
-    def read_CMs(self)->tuple[list,list,list,list,np.ndarray]:
-        """系数矩阵"""
+    def read_CMs(self)->tuple[list,list,list,list,list,np.ndarray]:
+        """
+        获取轨道系数及相关信息
+        atms,shls,angs,engs,occs,CM
+        """
         if res:=self.read_CM('coefs'): # 海象运算符
-            atms,angs,engs,occs,CM=res
+            atms,shls,angs,engs,occs,CM=res
         elif res:=self.read_CM('acoefs'):
-            atmsA,angsA,engsA,occsA,CMA=res
-            atmsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
+            atmsA,shlsA,angsA,engsA,occsA,CMA=res
+            atmsB,shlsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
             atms=atmsA
             angs=angsA
+            shls=shlsA
             engs=engsA+engsB
             occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
-        return atms,angs,engs,occs,CM
+        return atms,shls,angs,engs,occs,CM
 
     @lru_cache
     def read_SM(self):
@@ -434,7 +445,7 @@ class LogReader(Reader):
         return None
 
     @lru_cache
-    def read_energys(self)->dict[str,float]:
+    def read_energys(self)->tuple[list[str],list[float]]:
         engList = [
             'Zero-point correction', 
             'Thermal correction to Energy', 
@@ -461,7 +472,7 @@ class LogReader(Reader):
                     searhNum+=1
             if searhNum==len(engList):break
         engNums=[float(e) for e in engDict.values()]
-        return engDict
+        return engList,engNums
 
 def trans_basisData(basisData:dict):
     """
@@ -499,7 +510,7 @@ def trans_angs(angStr):
         'YZ':'011'
     }
     key=angStr[1:]
-    return angStr[0]+angMap[key]
+    return int(angStr[0]),angMap[key]
 
 def numlist(l):
     """将列表字符串转为数字"""

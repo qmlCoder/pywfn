@@ -74,6 +74,10 @@ class Reader:
         """获取轨道系数每一行对应的原子[m]"""
         raise
 
+    def get_obtShls(self)->list[int]:
+        """获取轨道系数每一行对应的原子层[m]"""
+        raise
+
     def get_obtAngs(self)->list[str]:
         """获取原子轨道层类型l,m,n，[m]"""
         raise

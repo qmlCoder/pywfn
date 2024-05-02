@@ -34,11 +34,11 @@ class Calculator(AtomCaler):
         self.caler.keep=self.keep
         self.caler.ins=self.ins
 
-        for arouAtom in centAtom.neighbors:
-            self.caler.bond=[atm,arouAtom.idx]
+        for arouAtm in centAtom.neighbors:
+            self.caler.bond=[atm,arouAtm]
             orders=self.caler.calculate()
             order1,order2=orders
-            bond=f'{centAtom.idx}-{arouAtom.idx}'
+            bond=f'{centAtom.idx}-{arouAtm}'
             printer.log(f'{bond} {order1:.6f} {order2:.6f}')
             valence1-=order1
             valence2-=order2

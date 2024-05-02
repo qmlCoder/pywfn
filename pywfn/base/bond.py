@@ -7,13 +7,22 @@ import numpy as np
 # Mol应该有bonds属性，是一个字典，索引是'a1-a2'和'a2-a1'都指向该键
 from functools import cached_property
 class Bond:
-    def __init__(self,a1:Atom,a2:Atom) -> None:
-        self.a1=a1
-        self.a2=a2
+    def __init__(self,mol:"base.Mol",atm1:int,atm2:int) -> None:
+        self.mol=mol
+        self.atm1=atm1
+        self.atm2=atm2
         self._length:float=None
-        self.idx:str=f'{a1.idx}-{a2.idx}'
-        self.ats:list[int]=[a1.idx,a2.idx]
+        self.idx:str=f'{atm1}-{atm2}'
+        self.ats:list[int]=[atm1,atm2]
     
+    @property
+    def a1(self):
+        return self.mol.atom(self.atm1)
+    
+    @property
+    def a2(self):
+        return self.mol.atom(self.atm2)
+
     @cached_property
     def length(self):
         """获取键长"""
@@ -37,11 +46,12 @@ class Bonds:
         self.mol=mol
         self.bonds:list[Bond]=[]
     
-    def add(self,a1:Atom,a2:Atom):
+    def add(self,idx1:int,idx2:int):
         """添加一个键"""
-        if a1.idx>=a2.idx:a1,a2=a2,a1
-        bond=Bond(a1,a2)
+        if idx1>=idx2:idx1,idx2=idx2,idx1
+        bond=Bond(self.mol,idx1,idx2)
         self.bonds.append(bond)
+        return bond
     
     def get(self,idx1:int,idx2:int):
         """获取一个键"""

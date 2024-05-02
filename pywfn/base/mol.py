@@ -19,7 +19,6 @@
 """
 
 from typing import Any
-from pywfn.maths import vector_angle,Gto
 from pywfn import maths
 from pywfn.base.atom import Atom,Atoms
 from pywfn.base.bond import Bond,Bonds
@@ -64,8 +63,8 @@ class Mol:
         return self.reader.get_basis()
     
     @cached_property
-    def gto(self)->Gto:
-        return Gto(self)
+    def gto(self)->"maths.Gto":
+        return maths.Gto(self)
 
     @cached_property
     def charge(self)->int:
@@ -119,6 +118,10 @@ class Mol:
         return self.reader.get_obtAtms()
     
     @cached_property
+    def obtShls(self)->list[int]:
+        return self.reader.get_obtShls()
+
+    @cached_property
     def obtAngs(self)->list[str]:
         """获取分子不同角动量及分量的符号,S,PX,PY,PZ..."""
         return self.reader.get_obtAngs()
@@ -142,7 +145,7 @@ class Mol:
                 r=np.linalg.norm(atom2.coord-atom1.coord)
                 r_=elements[atom1.symbol].radius+elements[atom2.symbol].radius
                 if r>r_*1.1:continue
-                self._bonds.add(atom1,atom2)
+                self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
     
     def atom(self,idx:int)->Atom:
