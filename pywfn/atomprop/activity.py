@@ -78,7 +78,8 @@ class Calculator:
         from pywfn.bondprop import bondOrder
         mol=self.mols[0]
         caler=bondOrder.Calculator(mol)
-        STAND=1.6494
+        # STAND=1.6494
+        STAND=4.0
         result=[]
         for atm1 in atms:
             dirs=None
