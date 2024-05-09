@@ -12,7 +12,7 @@ class Bond:
         self.atm1=atm1
         self.atm2=atm2
         self._length:float=None
-        self.idx:str=f'{atm1}-{atm2}'
+        self.key:str=f'{atm1}-{atm2}'
         self.ats:list[int]=[atm1,atm2]
     
     @property
@@ -60,6 +60,10 @@ class Bonds:
             if bond.a1.idx==idx1 and bond.a2.idx==idx2:
                 return bond
         raise f'没有指定的键{idx1}-{idx2}'
+    
+    @property
+    def keys(self):
+        return [bond.key for bond in self.bonds]
 
     def __iter__(self) -> Iterator[Bond]:
         for bond in self.bonds:yield bond

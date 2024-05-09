@@ -9,7 +9,7 @@ from pywfn.utils import printer
 from pywfn.atomprop import AtomCaler
 import numpy as np
 
-STAND=1.6494416218465484
+STAND=1.6494
 
 class Calculator(AtomCaler):
     def __init__(self,mol:Mol) -> None:

@@ -23,16 +23,36 @@ from pywfn import base
 from pywfn import data
 import numpy as np
 from pathlib import Path
+from functools import cached_property
+import linecache
 
 class Reader:
     def __init__(self,path:str) -> None:
         self.path:str=path
         self.text=Path(self.path).read_text(encoding='utf-8')
-        self.lines=self.text.splitlines(keepends=False)
     
     @property
     def fileName(self)->str:
         return Path(self.path).name
+    
+    @cached_property
+    def lineNum(self)->int:
+        """获取文件行数"""
+        lineNum=0
+        with open(self.path,'r') as file:
+            for _ in file:
+                lineNum+=1
+        return lineNum
+    
+    def getline(self,idx:int)->str:
+        return linecache.getline(self.path,idx+1)
+    
+    def getlines(self,idx1:int,idx2:int)->list[str]:
+        lines=[]
+        for i in range(idx1,idx2):
+            lines.append(self.getline(i))
+        return lines
+
 
     def get_coords(self)->np.ndarray:
         """原子坐标[n,3]"""
@@ -77,10 +97,9 @@ class Reader:
     def get_obtShls(self)->list[int]:
         """获取轨道系数每一行对应的原子层[m]"""
         raise
-
-    def get_obtAngs(self)->list[str]:
-        """获取原子轨道层类型l,m,n，[m]"""
-        raise
+    
+    def get_obtSyms(self)->list[float]:
+        """获取轨道系数每一行对应的轨道符号(S,PX,PY...)"""
     
     def get_basis(self)->"data.Basis":
         """获取基组数据[m,4]

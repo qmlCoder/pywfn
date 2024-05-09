@@ -34,7 +34,7 @@ class FchReader(Reader):
             'Contraction coefficients',
             'Alpha Orbital Energies',
             'Alpha MO coefficients',
-            'Mulliken Charges'
+            'Mulliken Chrgs'
         ]
         self.titles:dict[str,int]={}
         self.marks=[
@@ -52,7 +52,6 @@ class FchReader(Reader):
             if line[0]==' ':continue
             title=line[0:40].strip()
             if title not in self.needs:continue
-            print(line)
             self.titles[title]=l
             
     def parse_title(self,title:str):

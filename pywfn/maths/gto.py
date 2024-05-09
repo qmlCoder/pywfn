@@ -24,6 +24,10 @@
 代码的可读性和速度如何取舍？ 我还是选择了后者
 
 可以将gto的计算放到多个进程中进行
+
+分子轨道波函数
+原子轨道波函数
+原子波函数->原子电子密度
 """
 
 import numpy as np
@@ -35,7 +39,6 @@ from pywfn.utils import printer
 π = np.pi
 e = np.e
 
-
 def fac2(num):  # 该例中一定是奇数
     """计算双阶乘"""
     if num <= 1:
@@ -44,36 +47,16 @@ def fac2(num):  # 该例中一定是奇数
         fac = np.prod(np.arange(1, num + 1, 2))
     return fac
 
-
 class Gto:
     def __init__(self, mol: "base.Mol"):
         self.mol = mol
         self.basis = mol.basis
         self.angs = [0, 1, 2, 3, 4]  # 默认全部绘制
 
-    def bind(self, atm: int, obt: int):  # 将基组信息与轨道系数绑定在一起
-        atom = self.mol.atom(atm)
-        basis = self.basis.get(atom.atomic)
-        coeff = atom.obtCoeffs[:, obt]
-        params = []
-        idxo = 0
-        coes = {}
-        for atm, shl, ang, exp, coe in basis:
-            for l, m, n in self.basis.lmn(ang):  # 角动量转为l,m,n
-                key = f"{shl}{self.basis.lName(l,m,n)}"
-                if key not in coes.keys():  # 保证唯一性
-                    coes[key] = coeff[idxo]
-                    idxo += 1
-                params.append(
-                    [coes[key], exp, coe, l, m, n]
-                )  # 一个角动量可以对应多个轨道系数
-        assert idxo == len(coeff), f"系数没有匹配完全{idxo=},{coeff=}"
-        return params
-
-    def agto(self, pos: ndarray, atm: int, obt: int):
+    def ato(self, pos: ndarray, atm: int, obts: list[int]):
         """
         计算原子的高斯型波函数数值
-        pos:坐标
+        pos:坐标，以原子为中心
         atm:原子
         obt:轨道
         """
@@ -81,39 +64,69 @@ class Gto:
         assert pos.shape[1] == 3, f"pos的形状应为[n,3]，当前为{pos.shape}"
         # pos*=1.889 #这一步很关键，将埃转为波尔 !取分子坐标时可转为波尔
         R2 = np.sum(pos**2, axis=1)  # x^2+y^2+z^2
-        values = np.zeros(len(pos), dtype=np.float32)
-        params = self.bind(atm, obt)
-        for C, exp, coe, l, m, n in params:
-            if l + m + n not in self.angs:
-                continue  # 可以筛选角动量
-            if abs(C) < 1e-6:
-                continue  # 系数很小的忽略
-            wfn = C * self.gto(exp, coe, R2, pos, l, m, n)
-            # assert np.max(np.abs(wfn))<1,'波函数值不合理'
-            values += wfn
-        return values
 
-    def cgf(self, exps, coes, lmns, R2, pos):
-        """收缩高斯函数"""
-        vals = np.zeros(len(pos))
+        atom=self.mol.atom(atm)
+        u,l=atom.obtBorder
+
+        atms=self.mol.obtAtms[u:l]
+        shls=self.mol.obtShls[u:l]
+        angs=self.mol.obtAngs[u:l]
+        lmns=self.mol.basis.numAng(angs)
+        coef=self.mol.CM[u:l,obts] # 二维矩阵
+        expl=[]
+        coel=[]
+        ncsl=[] # 记录每个收缩轨道的大小
+        for i in range(len(atms)): # 该原子的行索引
+            lmn=lmns[i]
+            atm=atms[i]
+            shl=shls[i]
+            ang=sum(lmn)
+            basis=self.mol.basis.get(atom.atomic,shl,ang)
+            exps=[b.exp for b in basis]
+            coes=[b.coe for b in basis]
+            expl+=exps
+            coel+=coes
+            ncsl.append(len(exps))
+        wfns=Gto.agf(expl,coel,ncsl,lmns,R2,pos,coef,obts)
+        return wfns
+
+    @staticmethod
+    def agf(expl:list[float],coel:list[float],ncsl:list[int],lmns:list[int],R2:np.ndarray,pos:np.ndarray,coef:np.ndarray,obts:list[int])->np.ndarray:
+        nexp=len(expl)
+        j=0
+        lmn=lmns[i]
+        wfns = np.zeros(len(pos), dtype=np.float32)
+        for i in range(nexp):
+            nc=ncsl[i] # 收缩大小
+            coes=coel[j:j+nc]
+            exps=expl[j:j+nc]
+            j+=nc
+            wfn=Gto.cgf(exps,coes,lmn,R2,pos)
+            for obt in obts:
+                wfns+=coef[i,obt]*wfn
+        return wfns
+
+    @staticmethod
+    def cgf(exps:list[float], coes:list[float], lmn:list[int], R2:np.ndarray, pos:np.ndarray)->np.ndarray:
+        """收缩高斯函数，线性组合之前的波函数"""
+        wfns = np.zeros(len(pos))
         for exp, coe in zip(exps, coes):
-            vals += self.gto(exp, R2, pos, lmns) * coe
-        return vals
+            wfns += coe * Gto.gtf(exp, R2, pos, lmn)
+        return wfns
 
-    def gto(self, exp: float, R2: ndarray, pos: ndarray, lmns: list[int]) -> ndarray:
+    @staticmethod
+    def gtf(exp: float, R2: ndarray, pos: ndarray, lmn: list[int]) -> ndarray:
         """
         计算指定点gto函数的值
         exp:高斯指数
-        pos:坐标[n,3]
+        pos:坐标[n,3]，以原子为中心
         R:坐标到原点距离平方
         lmn:角动量决定的x,y,z指数
         """
-        l, m, n = lmns
+        l, m, n = lmn
         x, y, z = pos.T
-        ang = sum(lmns)  # 角动量
-        N = (2 * exp / π) ** (3 / 4) * 2 * sqrt(exp)  # 归一化系数
-
+        ang = sum(lmn)  # 角动量
         fac = fac2(2 * l - 1) * fac2(2 * m - 1) * fac2(2 * n - 1)  # 双阶乘
-        N = ((4 * exp) ** ang / fac) ** (1 / 2) * (2 / π) ** (3 / 4)  # 归一化系数
+        N=(2*exp/π)**(3/4)*np.sqrt((4*exp)**ang/fac)
         wfn = x**l * y**m * z**n * e ** (-exp * R2) * N
         return wfn

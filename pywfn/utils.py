@@ -126,7 +126,6 @@ class Printer:
     def __init__(self) -> None:
         self.ifDebug=config.IF_DEBUG
         self.ifShell=config.IF_SHELL
-        print(self.ifDebug)
         self.console=Console()
         self.tables:dict[str,Table]={}
 

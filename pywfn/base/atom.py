@@ -47,7 +47,6 @@ class Atom:
     @cached_property
     def obtBorder(self): # 获取元素上下界
         idxs=[i for i,idx in enumerate(self.mol.obtAtms) if idx==self.idx]
-        # print(idxs)
         return idxs[0],idxs[-1]+1 #因为最后一个元素不包含
     
     @property
@@ -99,15 +98,13 @@ class Atom:
     def pLayersCs(self,obt:int):
         '''获取原子某一轨道的p层数据'''
         a,b=self.obtBorder
-        layers=self.mol.obtAngs[a:b]
+        layers=self.mol.obtSyms[a:b]
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
     def get_pProj(self,direct:np.ndarray,obt:int)->list[np.ndarray]:
         """计算原子p系数在某个方向上的投影,返回n个三维向量"""
         assert isinstance(direct,np.ndarray),"方向需要为np.ndarray"
-        # printer.console.log(f'direct={direct}')
-        # print('direct=',direct)
         assert direct.shape==(3,),'方向向量长度应该为3'
         length=np.linalg.norm(direct)
         assert np.abs(length-1)<1e-4,'方向范数应该为1'
@@ -115,12 +112,8 @@ class Atom:
         cs=self.pLayersCs(obt) # p轨道的系数
         assert len(cs)%3==0,"p轨道系数的长度应为3n"
         ps=[np.array(cs[i:i+3]) for i in range(0,len(cs),3)] #每一项都是长度为3的数组
-        # print('ps=',ps)
         lens=np.dot(ps,direct)
-
         ps_=[l*direct for l in lens] # 轨道向量在法向量方向上的投影
-        # printer.log('获取投影后的系数')
-        # print(ps,direct,ps_)
         return ps_
     
     def get_sProj(self,direct:np.ndarray,obt:int):

@@ -25,7 +25,7 @@ class Calculator:
         """计算周围一圈的球形范围"""
         pass
 
-    def reaAro(self,atm:int)->np.ndarray:
+    def reaction(self,atm:int)->np.ndarray:
         """ reaction around
         计算原子可能的反应方向 以原子为中心的向量
 
@@ -40,11 +40,13 @@ class Calculator:
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
             vb=self.mol.atom(ib).coord-atom.coord
+            va/=np.linalg.norm(va)
+            vb/=np.linalg.norm(vb)
 
             angle=vector_angle(va,vb) # 两向量之间的夹角
             linear=abs(1-angle)<1e-1 # 是否为线性
             cent=atom.coord
-            axis=self.mol.atom(ib).coord-self.mol.atom(ia).coord
+            axis=vb-va
             if linear:
                 anyv=np.random.rand(3) # 定义一个任意的向量
                 anyv/=np.linalg.norm(anyv)
@@ -55,7 +57,6 @@ class Calculator:
                 cros=np.cross(va,vb) # 垂直于va和vb的向量
                 cros/=np.linalg.norm(cros)
                 angs=np.linspace(0,np.pi,18,endpoint=True)
-            print(np.linalg.norm(cros))
             points=(cent+cros).reshape(-1,3)
             dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
             dirs=np.concatenate(dirs,axis=0)
@@ -74,3 +75,5 @@ class Calculator:
                 angle=vector_angle(normal,pa-atom.coord)
                 if angle>0.5:normal*=-1
                 return normal.reshape(1,3)
+        
+        raise ValueError("找不到可能的反应方向")

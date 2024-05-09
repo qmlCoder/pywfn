@@ -18,37 +18,51 @@ from pywfn.reader.lutils import Reader
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 
+from typing import Callable
+import linecache
+
 class Title:
-    def __init__(self,line=None,pate='') -> None:
-        self.line:int=line
-        self.pate:str=pate
+    def __init__(self,mark:str,jtype:int=0) -> None:
+        self.line:int=-1
+        self.mark:str=mark
+        self.jtype=0
+    
+    def judge(self,line:str):
+        """判断所给行是否满足条件"""
+        if self.jtype==0:
+            return re.search(self.mark,line) is not None
+        elif self.jtype==1:
+            return self.mark in line
+
     
     def __repr__(self) -> str:
-        return f'{self.line}: {self.pate}'
+        return f'{self.line}: {self.mark}'
 
 class LogReader(Reader):
     def __init__(self, path:str):
         super().__init__(path)
-        assert path[-4:]=='.log','文件类型不匹配，应为.log文件'
-        if 'Normal termination of Gaussian' not in self.text:
-            printer.wrong('文件未正常结束!')
-            self.normalEnd=False
-        self.normalEnd=True
-        self.keyWords=re.search(r'^ # .+$',self.text,re.M).group()
+        assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
-            'coords':Title(pate=r'(Input orientation|Standard orientation)'),
-            'basis':Title(pate=r'Standard basis:'),
-            'coefs':Title(pate=r'  Molecular Orbital Coefficients'),
-            'acoefs':Title(pate=r'Alpha Molecular Orbital Coefficients'),
-            'bcoefs':Title(pate=r'Beta Molecular Orbital Coefficients'),
-            'overlap':Title(pate='\*\*\* Overlap \*\*\*'),
-            'density':Title(pate=r'Density Matrix:'),
-            'basisData':Title(pate=r'Overlap normalization'),
-            'engs':Title(pate=r'Zero-point correction')
+            'coords':Title(r'(Input orientation|Standard orientation)',0),
+            'basis':Title('Standard basis:',1),
+            'coefs':Title(r'  Molecular Orbital Coefficients',0),
+            'acoefs':Title(r'Alpha Molecular Orbital Coefficients',1),
+            'bcoefs':Title(r'Beta Molecular Orbital Coefficients',1),
+            'overlap':Title('\*\*\* Overlap \*\*\*',1),
+            'kinetic':Title('\*\*\* Kinetic Energy \*\*\*',1),
+            'potential':Title('\*\*\* Potential Energy \*\*\*',1),
+            'density':Title(r'Density Matrix:',1),
+            'basisData':Title(r'Overlap normalization',1),
+            'engs':Title(r'Zero-point correction',1),
+            'keyWards':Title(r'# .+',0),
         }
         self.search_title()
-        # self.read_basisData()
+    
+    @property
+    def normalEnd(self)->bool:
+        lastLine=self.getline(self.lineNum)
+        return 'Normal termination of Gaussian' in lastLine
     
     @lru_cache
     def get_coords(self)->np.ndarray:
@@ -78,11 +92,12 @@ class LogReader(Reader):
         ObtShls=self.read_CMs()[1]
         return ObtShls
 
+
     @lru_cache
-    def get_obtAngs(self) -> list[str]:
-        ObtAngs=self.read_CMs()[2]
-        return ObtAngs
-    
+    def get_obtSyms(self)-> list[list[int]]:
+        obtSyms=self.read_CMs()[2]
+        return obtSyms
+
     @lru_cache
     def get_obtEngs(self) -> list[float]:
         ObtEngs=self.read_CMs()[3]
@@ -121,21 +136,33 @@ class LogReader(Reader):
         搜索到需要用到的标题行就停止
         """
         # 所有标题所在的行
-        def sear_group(lines,start): #每一个搜索的线程
-            for j,line in enumerate(lines):
-                for key_ in self.titles.keys():
-                    pate=self.titles[key_].pate
-                    if re.search(pate,line) is None:continue #如果不匹配则跳过
-                    self.titles[key_].line=start+j
-                    printer.log(self.titles[key_])
+        def sear_group(start:int): #每一个搜索的线程
+            for j in range(start,start+100_000):
+                line=self.getline(j)
+                if line=='':break
+                for key in self.titles.keys():
+                    title:Title=self.titles[key]
+                    if title.line!=-1:continue
+                    if title.judge(line):
+                        self.titles[key].line=j
         threads:list[threading.Thread]=[]
-        for i in range(0,len(self.lines),100_000):
-            lines=self.lines[i:i+100_000]
-            t=threading.Thread(target=sear_group,args=(lines,i,))
+        for i in range(0,self.lineNum,100_000):
+            t=threading.Thread(target=sear_group,args=(i,))
             t.start()
             threads.append(t)
         for t in threads:
             t.join()
+
+    def read_keyWrds(self):
+        """读取关键字"""
+        titleNum=self.titles['keyWards'].line
+        keyWards=''
+        for i in range(titleNum,titleNum+3):
+            line=self.getline(i)
+            if line=='-'*70:break
+            keyWards+=line
+        return keyWards
+
 
     @lru_cache
     def read_coords(self)->tuple[list[str],np.ndarray]:
@@ -147,8 +174,8 @@ class LogReader(Reader):
         s1=r' +\d+ +(\d+) +\d +(-?\d+.\d{6}) +(-?\d+.\d{6}) +(-?\d+.\d{6})'
         coords=[]
         symbols=[]
-        for i in range(titleNum+5,len(self.lines)):
-            line=self.lines[i]
+        for i in range(titleNum+5,self.lineNum):
+            line=self.getline(i)
             if re.search(s1, line) is not None:
                 res=list(re.search(s1, line).groups())
                 atomID=int(res[0])
@@ -177,7 +204,7 @@ class LogReader(Reader):
             printer.warn('未读取到基组名')
             name='unll'
         else:
-            name=re.match(' Standard basis: (\S+) ',self.lines[titleNum]).group(1)
+            name=re.match(' Standard basis: (\S+) ',self.getline(titleNum)).group(1)
         return name
     
     @lru_cache
@@ -188,7 +215,7 @@ class LogReader(Reader):
             电子层
         """
         from pywfn.data.basis import BasisData
-        assert 'gfinput' in self.keyWords,'关键词应该包含：gfinput'
+        assert 'gfinput' in self.read_keyWrds(),'关键词应该包含：gfinput'
         titleNum=self.titles['basisData'].line
         symbols=self.get_symbols()
         if titleNum is None:return
@@ -205,8 +232,8 @@ class LogReader(Reader):
         angs=None
         exp=None
         coe=None
-        for i in range(titleNum+1,len(self.lines)):
-            line=self.lines[i]
+        for i in range(titleNum+1,self.lineNum):
+            line=self.getline(i)
             if re.search(s1,line) is not None:
                 idx=re.search(s1,line).groups()[0] #第几个原子
                 idx=int(idx)-1
@@ -243,7 +270,7 @@ class LogReader(Reader):
                 continue
             else:
                 # 排序一下
-                basisDatas.sort(key=lambda b:(b.atm,b.shl,b.ang))
+                basisDatas.sort(key=lambda b:(b.atmic,b.shl,b.ang))
                 return basisDatas
         
     def read_summery(self):
@@ -274,10 +301,7 @@ class LogReader(Reader):
         s4='^ +\d+ +(\d+) +([A-Za-z]+) +(\d[A-Z]+)(( *-?\d+.\d+){1,5})$'
         # s5='^ +\d+ +(\d+[A-Za-z ]+)(( *-?\d+.\d+){1,5})$'
         s5='^ +\d+ +(\d+[A-Za-z]+ ?\+?-?\d?)(( *-?\d+.\d+){1,5})$'
-        # titleNum=None
-        # for i,line in enumerate(self.logLines):
-        #     if title in line:
-        #         titleNum=i
+
         titleNum=self.titles[title].line
         if titleNum is None:return None
 
@@ -289,9 +313,8 @@ class LogReader(Reader):
         firstShow=True
         if titleNum is None:
             return
-        for i in range(titleNum+1,len(self.lines)):
-            line=self.lines[i]
-            # print(line)
+        for i in range(titleNum+1,self.lineNum):
+            line=self.getline(i)
             if re.search(s1, line) is not None: #情况1
                 pass
             elif re.search(s2, line) is not None: # 情况2，获得column
@@ -324,7 +347,6 @@ class LogReader(Reader):
                 if firstShow:OrbitalAtom.append(atomIDX)
                 # self.OCdict[atomIDX].set(layer,nums)
             else: # 若不满足以上任意一种情况，说明已经查找完毕，则对收集到的数据进行处理
-                # print(dataDict)
                 printer.console.log(f'读取完成,i={i},line={line}')
                 for atomic,matrics in dataDict.items():
                     for i,matrix in enumerate(matrics):
@@ -339,7 +361,8 @@ class LogReader(Reader):
     
     @lru_cache
     def read_CM(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
-        assert 'pop=full' in self.keyWords,'关键词应包含：pop=full'
+        keyWards=self.read_keyWrds()
+        assert 'pop=full' in keyWards,'关键词应包含：pop=full'
         find=re.search('NBasis *= *(\d+)',self.text).groups()[0]
         NBasis=int(find)
         NBlock=NBasis//5+(0 if NBasis%5==0 else 1)
@@ -348,24 +371,25 @@ class LogReader(Reader):
         if titleNum is None:return None
         blockLen=NBasis+3 #一块数据行数，在log文件的输出中，轨道系数是按照每一块五列来分块的
         # print(titleNum,NBlock,blockLen)
-        ObtAtms=[]
+        ObtAtms=[] # 原子轨道对应的原子
         ObtShls=[] # 占据原子的第多少层轨道
-        ObtAngs=[]
-        ObtEngs=[]
+        ObtSyms=[] # 原子轨道对应的角动量
+        ObtEngs=[] # 分子轨道能量
         ObtOccs=[] # 占据/非占据
         
         CM=np.zeros(shape=(NBasis,NBasis))
         for i,l in enumerate(range(titleNum+1,titleNum+NBlock*blockLen+1,blockLen)):
-            occs=self.lines[l+1][21:71] # 占据类型的起止位置
+            occs=self.getline(l+1)[21:71] # 占据类型的起止位置
             occs=[occs[i:i+10].strip() for i in range(0,50,10)]
             occs=[e for e in occs if e!='']
             occs=[True if e[-1]=='O' else False for e in occs]
             ObtOccs+=occs
-            engs =re.split(' +',self.lines[l+2][21:].strip())
+            engs =re.split(' +',self.getline(l+2)[21:].strip())
+            line=self.getline(l+2)
             engs=[float(e) for e in engs]
             ObtEngs+=engs
             
-            coefs=[line[21:] for line in self.lines[l+3:l+3+NBasis]]
+            coefs=[line[21:] for line in self.getlines(l+3,l+3+NBasis)]
             for j,line in enumerate(coefs):
                 coef=re.findall('-?\d+.\d+',line)
                 coef=[float(e) for e in coef]
@@ -374,16 +398,16 @@ class LogReader(Reader):
             if i==0: #只在第一块记录行信息
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
-                    line=self.lines[l2][:15] # 行信息(角动量，对应原子)的起止位置
+                    line=self.getline(l2)[:15] # 行信息(角动量，对应原子)的起止位置
                     match=line[12:].strip()
-                    shl,ang=trans_angs(match)
+                    shl,sym=match[0],match[1:]
                     ObtShls.append(shl)
-                    ObtAngs.append(ang)
+                    ObtSyms.append(sym)
                     obtAtom=line[5:9].strip()
                     if obtAtom!='':
                         atomID=int(obtAtom) # 更改当前行的原子
                     ObtAtms.append(atomID)
-        return ObtAtms,ObtShls,ObtAngs,ObtEngs,ObtOccs,CM
+        return ObtAtms,ObtShls,ObtSyms,ObtEngs,ObtOccs,CM
 
     @lru_cache
     def read_CMs(self)->tuple[list,list,list,list,list,np.ndarray]:
@@ -391,10 +415,10 @@ class LogReader(Reader):
         获取轨道系数及相关信息
         atms,shls,angs,engs,occs,CM
         """
-        if res:=self.read_CM('coefs'): # 海象运算符
-            atms,shls,angs,engs,occs,CM=res
-        elif res:=self.read_CM('acoefs'):
-            atmsA,shlsA,angsA,engsA,occsA,CMA=res
+        if self.titles['coefs'].line!=-1:
+            atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
+        elif self.titles['acoefs'].line!=-1:
+            atmsA,shlsA,angsA,engsA,occsA,CMA=self.read_CM('acoefs')
             atmsB,shlsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
             atms=atmsA
             angs=angsA
@@ -407,14 +431,18 @@ class LogReader(Reader):
     @lru_cache
     def read_SM(self):
         """读取重叠矩阵"""
+        return self.read_Mat('overlap')
+
+    def read_Mat(self,title:str):
+        """读取矩阵"""
         s1='^( +\d+){1,5} *$'
         s2=' +\d+( +-?\d.\d{6}D[+-]\d{2}){1,5} *'
         lineDatas:dict[str:str]={}
-        titleNum=self.titles['overlap'].line
+        titleNum=self.titles[title].line
         if titleNum is None:
             return None
-        for i in range(titleNum+1,len(self.lines)):
-            line=self.lines[i]
+        for i in range(titleNum+1,self.lineNum):
+            line=self.getline(i)
             if re.match(s1, line) is not None:
                 pass
             elif re.match(s2, line) is not None:
@@ -445,7 +473,8 @@ class LogReader(Reader):
         return None
 
     @lru_cache
-    def read_energys(self)->tuple[list[str],list[float]]:
+    def read_energys(self)->list[float]:
+        """返回表格中对应的这8个能量，只返回数值"""
         engList = [
             'Zero-point correction', 
             'Thermal correction to Energy', 
@@ -462,8 +491,8 @@ class LogReader(Reader):
         if lineNum is None:
             return engList,None
         # assert lineNum is not None,f"{self.path} 未读取到能量"
-        for i in range(lineNum,len(self.lines)):
-            line=self.lines[i]
+        for i in range(lineNum,self.lineNum):
+            line=self.getline(i)
             for each in engList:
                 res=re.search(f'{each}=\s+(-?\d+\.\d+)',line)
                 if res is not None:
@@ -472,46 +501,4 @@ class LogReader(Reader):
                     searhNum+=1
             if searhNum==len(engList):break
         engNums=[float(e) for e in engDict.values()]
-        return engList,engNums
-
-def trans_basisData(basisData:dict):
-    """
-    翻译基组数据
-    原始的基组数据不好理解，将其转换为好理解的方式
-    三重循环：原子、壳层、角动量
-    每一个角动量对应二维数组[数所数量,2]
-    2分别为收缩系数和高斯指数
-    """
-    newBasis=[]
-    for atom,shells in basisData.items():
-        for s,shell in enumerate(shells):
-            angs:list[int]=shell['ang']
-            exps:list[int]=shell['exp']
-            coes:list[list[int]]=shell['coe']
-            coes=np.array(coes)
-            for a,ang in enumerate(angs):
-                for e,exp in enumerate(exps):
-                    coe=coes[a,e]
-                    idx=elements[atom].idx
-                    newBasis.append([idx,s,ang,exp,coe])
-    return newBasis
-
-def trans_angs(angStr):
-    angMap={
-        'S':'000',
-        'PX':'100',
-        'PY':'010',
-        'PZ':'001',
-        'XX':'200',
-        'YY':'020',
-        'ZZ':'002',
-        'XY':'110',
-        'XZ':'101',
-        'YZ':'011'
-    }
-    key=angStr[1:]
-    return int(angStr[0]),angMap[key]
-
-def numlist(l):
-    """将列表字符串转为数字"""
-    return [float(e) for e in l]
+        return engNums

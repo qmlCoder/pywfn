@@ -51,7 +51,12 @@ class Props(dict):
         self[key]=value
 
 class Mol:
+    """基础的分子对象"""
     def __init__(self,reader:"reader.Reader"=None) -> None:
+        """
+        分子实例化
+        `reader:Reader`，分子读取器
+        """
         self._atoms:Atoms=Atoms(self)
         self._bonds:Bonds=Bonds(self)
         self.reader:"reader.Reader"=reader
@@ -85,10 +90,10 @@ class Mol:
         """获取分子能量"""
         return self.props.get('energy',self.reader.get_energy)
 
-    @cached_property
+    @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        occs=self.reader.get_obtOccs()
+        occs=self.props.get('obtOccs',self.reader.get_obtOccs)
         return occs
 
     @cached_property
@@ -122,9 +127,8 @@ class Mol:
         return self.reader.get_obtShls()
 
     @cached_property
-    def obtAngs(self)->list[str]:
-        """获取分子不同角动量及分量的符号,S,PX,PY,PZ..."""
-        return self.reader.get_obtAngs()
+    def obtSyms(self)->list[str]:
+        return self.reader.get_obtSyms()
 
     @property
     def atoms(self)->Atoms:
@@ -152,6 +156,7 @@ class Mol:
         """根据原子编号获取一个原子，从1开始"""
         assert isinstance(idx,int),f"索引应该为整数"
         assert idx>0,"索引从1开始"
+        assert idx<=len(self.atoms),"原子索引超过原子数量"
         return self.atoms[idx-1]
     
     @lru_cache
@@ -196,45 +201,45 @@ class Mol:
         """轨道电子数"""
         return 1 if self.open else 2
     
-    def projCM(self,atoms:list[int],obts:list[int],vects:list[np.ndarray]
-               ,zero:bool,keep:bool,ins:bool):
+    def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
+               ,akeep:bool,lkeep:bool,ins:bool)->np.ndarray:
         """
         获取投影后的系数矩阵
-        atoms:需要投影的原子
+        atms:需要投影的原子
         obts:需要投影的轨道
-        vects:投影到的方向 atoms和vects的长度必须相同
-        zero:其它原子系数是否置零
-        keep:其它价层系数是否保留
+        dirs:投影到的方向 atms和dirs的长度必须相同
+        akeep:其它原子系数是否保留 keep other atoms
+        lkeep:其它价层系数是否保留 keep other layer
         ins:是否包含价层s轨道
         """
-        assert isinstance(vects,list),"方向想两需要为列表"
-        assert len(atoms)==len(vects),"原子和方向数量不同"
-        if zero:
-            CM_=np.zeros_like(self.CM,dtype=np.float32) #新的系数矩阵
+        assert isinstance(dirs,list),"方向想两需要为列表"
+        assert len(atms)==len(dirs),"原子和方向数量不同"
+        if akeep:
+            CMp=np.copy(self.CM)
         else:
-            CM_=np.copy(self.CM)
+            CMp=np.zeros_like(self.CM,dtype=np.float32) #新的系数矩阵
             
-        for a,(atom,vect) in enumerate(zip(atoms,vects)):
+        for a,(atom,vect) in enumerate(zip(atms,dirs)):
             atom=self.atom(atom)
             nebNum=len(atom.neighbors)
-            a_1,a_2=atom.obtBorder
-            layers=self.obtAngs[a_1:a_2]
+            u,l=atom.obtBorder
+            syms=self.obtSyms[u:l]
             
-            pIdx=[i for i,l in enumerate(layers) if 'P' in l]
+            pIdx=[i for i,s in enumerate(syms) if 'P' in s]
             if len(pIdx)==0:continue # 没有p轨道则跳过
             for o,obt in enumerate(obts):
-                if keep:
-                    Co=self.CM.copy()[a_1:a_2,obt]
+                if lkeep:
+                    Co=self.CM.copy()[u:l,obt]
                 else:
-                    Co=np.zeros(len(layers)) #根据是否P轨道之外的保留还是0由不同的选择
+                    Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
                 if ins:
-                    sIdx=[i for i,l in enumerate(layers) if 'S' in l][1:]
+                    sIdx=[i for i,s in enumerate(syms) if 'S' in s][1:]
                     Cos=atom.obtCoeffs.copy()[sIdx,obt]
                     Co[sIdx]=Cos*(3-nebNum)/3
                 Cop=atom.get_pProj(vect,obt)
                 Co[pIdx]=np.concatenate(Cop)
-                CM_[a_1:a_2,obt]=Co.copy()
-        return CM_
+                CMp[u:l,obt]=Co.copy()
+        return CMp
 
     def __repr__(self):
         return f'atom number: {len(self.atoms)}'

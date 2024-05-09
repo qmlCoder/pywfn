@@ -8,19 +8,27 @@ from pywfn.atomprop import lutils,AtomCaler
 from pywfn import maths
 from typing import Literal
 
+Chrgs=Literal['mulliken','lowdin','hirshfeld']
+
 class Calculator(AtomCaler):
     def __init__(self,mol:"Mol"):
         self.logTip:str=''
         self.mol=mol
-        self.chrg:Literal['mulliken','lowdin']='mulliken'
+        self.chrg:Chrgs='mulliken'
     
-    def calculate(self)->np.ndarray:
-        if self.chrg=='mulliken':
+    def calculate(self,chrg:Chrgs)->np.ndarray:
+        if chrg=='mulliken':
             return self.mulliken()
-        if self.chrg=='lowdin':
+        if chrg=='lowdin':
             return self.lowdin()
+        if chrg=='hirshfeld':
+            return self.hirshfeld()
     
-    def mulliken(self):
+    def mulliken(self,num:bool=False):
+        """
+        计算目录mulliken电荷
+        num：是否只保留电子数
+        """
         # 计算密度矩阵
         self.logTip='Mulliken电荷分布'
         PM=self.mol.PM
@@ -32,10 +40,13 @@ class Calculator(AtomCaler):
         for a,atom in enumerate(atoms):
             a1,a2=atom.obtBorder
             elect=EV[a1:a2].sum()
-            charges[a]=atom.atomic-elect
+            if num:
+                charges[a]=elect
+            else:
+                charges[a]=atom.atomic-elect
         return charges
-
-    def lowdin(self):
+    
+    def lowdin(self,num:bool=False):
         """
         计算每个原子的lowdin电荷
         """
@@ -54,7 +65,10 @@ class Calculator(AtomCaler):
         for a,atom in enumerate(self.mol.atoms):
             u,l=atom.obtBorder
             eleNum=eleNums[u:l].sum()
-            charges[a]=atom.atomic-eleNum
+            if num:
+                charges[a]=eleNum
+            else:
+                charges[a]=atom.atomic-eleNum
         return charges
     
     def hirshfeld(self):
@@ -76,7 +90,6 @@ class Calculator(AtomCaler):
             for a2,atom2 in enumerate(self.mol.atoms): #计算前置分子密度
                 radius=np.linalg.norm(coord-atom2.coord,axis=1) #所有坐标对应的半径
                 dens1=radDens.get_radDens(atom2.atomic,radius)*weight # 插值法计算提前存储好的密度
-                # print(a1==a2,a2+1,np.sum(dens))
                 proDens+=dens1
                 if a2==a1:atmDens=dens1
                 dens2=atom2.get_dens(obts,coord-atom2.coord)*weight
@@ -88,8 +101,47 @@ class Calculator(AtomCaler):
             print(f'{atmQ=:.4f},{proQ=:.4f},{molQ=:.4f}')
         return chargs
     
+    def dirCharge(self,chrg:Chrgs,obts:list[int],atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
+        """计算不同方向的电荷[n,5](atm,x,y,z,val)"""
+        CMo=self.mol.CM
+        atms_,dirs_=fit_dirs(self.mol,atms,dirs)
+        assert len(atms_)==len(dirs_),"长度需要一致"
+        dirVal=np.zeros(shape=(len(dirs_),5))
+        for d in range(len(dirs_)):
+            atm=atms_[d]
+            dir_=dirs_[d]
+            CMp=self.mol.projCM(obts,[atm],[dir_],False,False,False) # 获取投影后的轨道系数
+            self.mol.props['CM']=CMp # 改变默认的系数
+            if chrg=='mulliken':
+                val=self.mulliken(num=True)[atm-1]
+            elif chrg=='lowdin':
+                val=self.lowdin(num=True)[atm-1]
+            x,y,z=dir_
+            dirVal[d]=[atm,x,y,z,val]
+        self.mol.props['CM']=CMo # 恢复原本的系数
+        return dirVal
+
     def resStr(self)->str:
         """获取结果的打印内容"""
         satoms=lutils.atomIdxs(self.mol.atoms)
         charges=self.calculate()
         return lutils.atomValueStr(self.mol,satoms,charges)
+    
+def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]):
+    """
+    矫正方向，如果没有指定方向的话，计算每个原子可能的反应方向
+    """
+    if dirs is None:
+        from pywfn.atomprop import atomDirect
+        dirCaler=atomDirect.Calculator(mol)
+        atms_=[]
+        dirs_=[]
+        for atm in atms:
+            resDirs=dirCaler.reaction(atm)
+            dirs_.append(resDirs)
+            atms_+=[atm]*len(resDirs)
+        dirs_=np.vstack(dirs_)
+    else:
+        atms_=atms
+        dirs_=dirs
+    return atms_,dirs_

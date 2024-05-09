@@ -1,57 +1,45 @@
 """
 此脚本用来计算mulliken自旋
+自旋是α电子-β电子
+可以通过改变轨道的占据情况来分别计算α和β电子数
 """
-import numpy as np
-from pywfn.base import Mol,Atom
 
+from pywfn.base import Mol,Atom
 from pywfn.utils import printer
 from pywfn.atomprop import atomCharge, lutils,AtomCaler
-from typing import Literal
+from pywfn.atomprop.atomCharge import Chrgs
+from pywfn.maths import CM2PM
 
+from typing import Literal
+import numpy as np
 
 class Calculator(AtomCaler):
     def __init__(self,mol:"Mol") -> None:
         self.mol=mol
         self.logTip='mulliken 电子自旋分布:'
-        self.chrg:Literal['mulliken','lowdin']='mulliken'
-    
-    def get_Es(self,obts:list[int])->list[float]:
-        elects=lutils.get_ects(self.mol,obts,self.mol.CM)
-        return elects
 
-    def calculate(self)->np.ndarray:
+    def calculate(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的自旋"""
-        assert not self.mol.open,'非开壳层分子无法计算自旋'
+        assert self.mol.open,'非开壳层分子无法计算自旋'
         obtNum=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
-        CM_a=self.mol.CM[:,:obtNum]
-        CM_b=self.mol.CM[:,obtNum:]
-        obtOccs=self.mol.obtOccs
-        a_obt=[i for i,e in enumerate(obtOccs) if (e and i< obtNum)]
-        b_obt=[i for i,e in enumerate(obtOccs) if (e and i>=obtNum)]
-        # 记录原本的分子属性
-        CM_r=self.mol.CM.copy()
-        obt_r=self.mol.O_obts
-        # 通过临时修改分子属性，计算想要结果
-        if self.chrg=='mulliken':
-            caler=atomCharge.Calculator(self.mol)
-            caler.chrg='mulliken'
-        if self.chrg=='lowdin':
-            caler=atomCharge.Calculator(self.mol)
-            caler.chrg='lowdin'
-        # 将长方形的系数矩阵分为两个正方形分别计算
-        self.mol.datas['CM']=CM_a.copy()
-        self.mol.datas['O_obts']=a_obt
-        a_Ects=caler.calculate()
-        self.mol.datas['CM']=CM_b.copy()
-        self.mol.datas['O_obts']=b_obt
-        b_Ects=caler.calculate()
-        # 恢复分子属性
-        self.mol.datas['CM']=CM_r
-        self.mol.datas['O_obts']=obt_r
+        occs_old=self.mol.obtOccs # 记录原本的占据情况
+        a_occs=occs_old.copy() # 当你需要修改一个变量的时候，
+        b_occs=occs_old.copy()
+        a_occs[obtNum:]=[False]*obtNum
+        b_occs[:obtNum]=[False]*obtNum
 
-        # a_Ects=np.array(self.get_Es(a_obt))
-        # b_Ects=np.array(self.get_Es(b_obt))
-        return a_Ects-b_Ects
+        caler=atomCharge.Calculator(self.mol)
+
+        # 将长方形的系数矩阵分为两个正方形分别计算
+
+        self.mol.props['obtOccs']=a_occs
+        a_Ects=caler.calculate(chrg=chrg)
+
+        self.mol.props['obtOccs']=b_occs
+        b_Ects=caler.calculate(chrg=chrg)
+        # 恢复分子属性
+        self.mol.props['obtOccs']=occs_old
+        return -(a_Ects-b_Ects)
         
     def resStr(self):
         elects=self.calculate()

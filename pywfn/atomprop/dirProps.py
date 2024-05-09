@@ -14,11 +14,12 @@ class Calculator:
     """
     带有方向的各种原子属性的计算
     需要指定：电荷(chrg),prop(性质),atoms(原子),vects(方向)
+    返回每一个方向对应的数值
     """
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.chrg:Literal['mulliken','lowdin']=None
-        self.prop:Literal['charge','spin']=None
+        self.chrg:Literal['mulliken','lowdin']='mulliken'
+        self.prop:Literal['charge','spin']='charge'
         self.vects:list[np.ndarray]=None
         self.atoms:list[int]=None
         self.zero:bool=True
@@ -35,14 +36,14 @@ class Calculator:
         # 获取投影后的系数轨道
         CM=self.mol.projCM(self.atoms,self.mol.O_obts,self.vects,self.zero,self.keep,self.ins)
         CM_c=np.copy(self.mol.CM) # 先把原来的系数矩阵保留下来
-        self.mol.datas['CM']=CM # 替换为投影后的系数矩阵
+        self.mol.props['CM']=CM # 替换为投影后的系数矩阵
         # 计算各种性质
         if self.prop=='charge':
             values=self.atomCharge(self.chrg)
         if self.prop=='spin':
             values=self.atomSpin(self.chrg)
         # 替换为原本的系数矩阵
-        self.mol.datas['CM']=CM_c 
+        self.mol.props['CM']=CM_c 
         return values
     
     def atomCharge(self,chrg:str)->np.ndarray:
