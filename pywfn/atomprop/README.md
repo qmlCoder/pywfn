@@ -8,6 +8,7 @@
 - `自由价`是根据与原子相邻的pi键级计算出的，与原子电荷没关系`freeValence.py`
 
 ## 原子轨道能
+⚠以下公式都是我自己推导的
 > 将每个分子轨道的电子分布到基函数上，每个基函数在不同轨道电子数比例×分子轨道能量=基函数轨道能，原子对应基函数的电子轨道能加和即为原子轨道能
 
 密度矩阵`P`与重叠矩阵`S`的乘积的对角线元素为每个基函数的电子数量，以`b`代表基函数指标
@@ -62,3 +63,40 @@ $$
 $$
 E_a=\sum_{b∈a}E_b
 $$
+
+## hirshfeld电荷
+⚠该方法尚未实现
+
+在r点处的`promolecule density`为：
+$$
+\rho ^{pro}(r)=\sum_{i}\rho _i^{at}(r)
+$$
+其中$\rho _i^{at}$为基态原子密度。对于每一个原子，定义`sharing function`
+$$
+w_i(r)=\rho _i^{at}(r)/\rho ^{pro}(r)
+$$
+定义`bonded atom` i 的`charge density`：
+$$
+\rho _i^{b.a.}(r)=w_i(r)\rho ^{mol}(r)
+$$
+其中$\rho ^{mol}(r)$为`actual molecular density`
+
+接下来有两种处理方式：
+- 方式1：`atomic deformation density`：
+$$
+\delta \rho _i(r) =\rho _i^{b.a.}(r)-\rho _i^{at}(r)
+$$
+- 方式2：`molecule deformation density`
+$$
+\Delta  \rho (r) =\rho ^{mol}(r)-\rho ^{pro}(r)
+$$
+其中：
+$$
+\delta \rho_i (r) =w_i(r)\Delta \rho (r)
+$$
+可以计算原子电荷：
+$$Q_i=-\int \rho _i^{b.i.}(r)dv$$
+
+$$q_i=Q_i+Z_i$$
+
+$$q_i=-\int \delta \rho _i(r)dv$$

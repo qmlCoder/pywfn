@@ -22,8 +22,8 @@ from pywfn.data.elements import elements
 class Atom:
     def __init__(self,symbol:str,coord:np.ndarray,idx:int,mol:"base.Mol"): # 每个原子应该知道自己属于哪个分子
         self.symbol=symbol
-        self.coord_=coord
-        self.coord_.flags.writeable=False
+        self.coord=coord
+        self.coord.flags.writeable=False
         self.idx=idx
         self.mol:"base.Mol"=mol
 
@@ -33,12 +33,6 @@ class Atom:
         self._sContribution:dict={}
         self.OC:np.ndarray=None
     
-    @property
-    def coord(self):
-        if self.mol.bohr:
-            return self.coord_.copy()*1.889
-        else:
-            return self.coord_.copy()
 
     @cached_property
     def atomic(self)->int:

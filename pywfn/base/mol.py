@@ -194,7 +194,7 @@ class Mol:
     @property
     def PM(self):
         """密度矩阵"""
-        return maths.CM2PM(self.CM,self.O_obts,self.oE)
+        return maths.CM2PM(self.CM.copy(),self.O_obts,self.oE)
     
     @property
     def oE(self):

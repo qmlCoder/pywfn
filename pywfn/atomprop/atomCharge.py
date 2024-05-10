@@ -75,31 +75,71 @@ class Calculator(AtomCaler):
         """
         计算原子的Hirshfeld电荷，目前还未成功（分子的电子密度计算不正确）
         """
+        from pywfn.spaceProp import wfn
+        wfnCaler=wfn.Calculator(self.mol)
         self.mol.bohr=True
         from pywfn.data import sphGrid,radDens
         coords=sphGrid.gridData[:,:3]# 原点为0的坐标
         weight=sphGrid.gridData[:,3]
-        obts=self.mol.O_obts
+        npos=len(coords)
         atoms:list[int]=self.mol.atoms.indexs
         chargs=np.zeros(shape=(len(atoms)))
         for a1,atom1 in enumerate(self.mol.atoms): # 计算每一个原子的电荷
-            coord=atom1.coord+coords # 该原子周围点的空间坐标
+            pos=coords+atom1.coord # 该原子周围点的空间坐标
             # molDens=self.mol.get_dens(atoms,obts,coord)*weight # 计算分子的电子密度
-            molDens=np.zeros(shape=(len(coords))) # 计算分子的电子密度
-            proDens=np.zeros(shape=(len(coords)))
+            molDens=np.zeros(npos) # 计算分子的电子密度
+            proDens=np.zeros(npos)
             for a2,atom2 in enumerate(self.mol.atoms): #计算前置分子密度
-                radius=np.linalg.norm(coord-atom2.coord,axis=1) #所有坐标对应的半径
+                radius=np.linalg.norm(pos-atom2.coord,axis=1) #所有坐标对应的半径
                 dens1=radDens.get_radDens(atom2.atomic,radius)*weight # 插值法计算提前存储好的密度
                 proDens+=dens1
                 if a2==a1:atmDens=dens1
-                dens2=atom2.get_dens(obts,coord-atom2.coord)*weight
+                dens2=wfnCaler.atmDens(atom2.idx,pos-atom2.coord)*weight
                 molDens+=dens2
                 print(f'{dens1.sum():.4f},{dens2.sum():.4f}')
             ratio=np.divide(atmDens,proDens,out=np.zeros_like(atmDens),where=proDens!=0)
-            chargs[a1]=np.sum(ratio*molDens)
+            chargs[a1]=np.sum(ratio*(molDens-proDens))
             atmQ,proQ,molQ=np.sum(atmDens),np.sum(proDens),np.sum(molDens)
             print(f'{atmQ=:.4f},{proQ=:.4f},{molQ=:.4f}')
+        chargs=[atom.atomic-val for atom,val in zip(self.mol.atoms,chargs)]
         return chargs
+    
+    def hirshfeld2(self):
+        """第二种计算hirshfeld电荷的方法"""
+        from pywfn.data import sphGrid,radDens
+        from pywfn.spaceProp import wfn
+        coords=sphGrid.gridData[:,:3]# 原点为0的坐标
+        weight=sphGrid.gridData[:,3]
+        pos=[]
+        wei=[]
+        for atom in self.mol.atoms:
+            pos.append(coords+atom.coord)
+            wei.append(weight)
+        pos=np.vstack(pos)
+        natm=len(self.mol.atoms)
+        wei=np.hstack(wei)/natm
+        
+        wfnCaler=wfn.Calculator(self.mol)
+        chars=[]
+        molDens=wfnCaler.molDens(pos)
+        print(np.min(molDens),np.max(molDens)),print(np.sum(molDens*wei))
+        proDens=np.zeros_like(molDens)
+        for _,atom in enumerate(self.mol.atoms):
+            radius=np.linalg.norm(pos-atom.coord,axis=1)
+            proDens+=radDens.get_radDens(atom.atomic,radius)
+        print(np.min(proDens),np.max(proDens)),print(np.sum(proDens*wei))
+        pass
+        for _,atom in enumerate(self.mol.atoms):
+            atmDens=wfnCaler.atmDens(atom.idx,pos)
+            ratio=np.divide(atmDens,proDens,out=np.zeros_like(atmDens),where=proDens!=0)
+            dens=ratio*molDens
+            char=sum(dens*wei)
+            chars.append(char)
+        chars=np.array(chars)
+        k=sum(self.mol.atoms.atomics)/sum(chars)
+        chars*=k
+        chars=[atom.atomic-char for atom,char in zip(self.mol.atoms,chars)]
+        return np.array(chars)/20
     
     def dirCharge(self,chrg:Chrgs,obts:list[int],atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
         """计算不同方向的电荷[n,5](atm,x,y,z,val)"""

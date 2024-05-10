@@ -22,10 +22,11 @@ from typing import Callable
 import linecache
 
 class Title:
-    def __init__(self,mark:str,jtype:int=0) -> None:
+    def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
         self.line:int=-1
         self.mark:str=mark
-        self.jtype=0
+        self.jtype=0 # 0：正则表达式匹配，1：包含式匹配，2：全等匹配
+        self.multi=multi # 是否持续查找（多个中查找最后一个）
     
     def judge(self,line:str):
         """判断所给行是否满足条件"""
@@ -44,7 +45,7 @@ class LogReader(Reader):
         assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
-            'coords':Title(r'(Input orientation|Standard orientation)',0),
+            'coords':Title(r'(Input orientation|Standard orientation)',0,True),
             'basis':Title('Standard basis:',1),
             'coefs':Title(r'  Molecular Orbital Coefficients',0),
             'acoefs':Title(r'Alpha Molecular Orbital Coefficients',1),
@@ -142,9 +143,10 @@ class LogReader(Reader):
                 if line=='':break
                 for key in self.titles.keys():
                     title:Title=self.titles[key]
-                    if title.line!=-1:continue
+                    if title.line!=-1 and title.multi==False:continue
                     if title.judge(line):
                         self.titles[key].line=j
+                        # print(j,line)
         threads:list[threading.Thread]=[]
         for i in range(0,self.lineNum,100_000):
             t=threading.Thread(target=sear_group,args=(i,))
@@ -167,7 +169,9 @@ class LogReader(Reader):
     @lru_cache
     def read_coords(self)->tuple[list[str],np.ndarray]:
         '''读取原子坐标'''
+        
         titleNum=self.titles['coords'].line
+        assert titleNum!=-1,"没有坐标对应的行"
         if titleNum is None:
             printer.warn('没有读取到原子坐标')
             return
@@ -184,7 +188,7 @@ class LogReader(Reader):
                 symbols.append(symbol)
                 coords.append(coord)
             else:
-                return symbols,np.array(coords)
+                return symbols,np.array(coords)*1.889
 
     @lru_cache
     def read_multiy(self):
@@ -225,7 +229,7 @@ class LogReader(Reader):
         s1='^ +(\d+) +\d+$'
         s2=r' ([SPD]+) +(\d+) \d.\d{2} +\d.\d{12}'
         s3=r'^ +(( +-?\d.\d{10}D[+-]\d{2}){2,3})'
-        s4=' ****'
+        s4=' ****\n'
         atomics=[] # 已经获取过的元素
         atomic=None
         shell=0
@@ -401,7 +405,7 @@ class LogReader(Reader):
                     line=self.getline(l2)[:15] # 行信息(角动量，对应原子)的起止位置
                     match=line[12:].strip()
                     shl,sym=match[0],match[1:]
-                    ObtShls.append(shl)
+                    ObtShls.append(int(shl))
                     ObtSyms.append(sym)
                     obtAtom=line[5:9].strip()
                     if obtAtom!='':
