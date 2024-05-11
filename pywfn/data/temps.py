@@ -128,3 +128,12 @@ pes=\
 [TXS]
 </page>
 </CDXML>"""
+
+mol="""[TITLE]
+
+Created by pywfn
+[NATOM][NBOND]  0  0  0  0  0  0  0  0  0    0
+[ATOMBLOCK]
+[BONDBLOCK]
+M  END
+"""

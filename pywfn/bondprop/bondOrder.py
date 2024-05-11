@@ -12,7 +12,7 @@ class Calculator:
         self.mol=mol
 
     def mayer(self,*,PM=None,bonds=None)->np.ndarray:
-        """计算mayer键级"""
+        """计算指定键的mayer键级，可以有多个"""
         # 获取密度矩阵 P
         if PM is None:
             PM=self.mol.PM
@@ -28,7 +28,9 @@ class Calculator:
             u2,l2=self.mol.atom(a2).obtBorder
             order=np.sum(OM[u1:l1,u2:l2])
             orders.append([a1,a2,order])
-        return np.array(orders)
+        order = np.array(orders)
+        print(order)
+        return order
     
     def dirMayer(self,bonds:list[list[int]]):
         """带有方向的Mayer键级[d,6](a1,a2,x,y,z,v)"""

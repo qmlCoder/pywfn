@@ -73,7 +73,7 @@ class Calculator:
         return result
 
     def freeValence(self,atms:list[int]):
-        """计算指定原子的自由价"""
+        """计算指定原子的自由价[d,5](atm,x,y,z,val)"""
         assert len(self.mols)==1,"只能算一个分子"
         from pywfn.bondprop import bondOrder
         mol=self.mols[0]

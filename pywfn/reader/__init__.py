@@ -12,6 +12,7 @@ from pywfn.reader.lutils import Reader
 from pywfn.reader.fch import FchReader
 from pywfn.reader.log import LogReader
 from pywfn.reader.gjf import GjfReader
+from pywfn.reader.mol import MolReader
 
 from pathlib import Path
 

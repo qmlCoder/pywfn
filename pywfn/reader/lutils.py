@@ -25,6 +25,7 @@ import numpy as np
 from pathlib import Path
 from functools import cached_property
 import linecache
+from pywfn.utils import printer
 
 class Reader:
     def __init__(self,path:str) -> None:
@@ -68,11 +69,13 @@ class Reader:
 
     def get_charge(self)->int:
         """获取分子电荷"""
-        raise
+        printer.warn("无法读取电荷")
+        return None
 
     def get_spin(self)->int:
         """获取分子自旋"""
-        raise
+        printer.warn("无法读取自旋")
+        return None
 
     def get_CM(self)->np.ndarray:
         """获取系数矩阵[m,m]/[m,2m]"""

@@ -37,6 +37,7 @@ import multiprocessing as mp
 from multiprocessing.pool import AsyncResult
 import threading
 from typing import Callable
+import collections
 
 class Props(dict):
     def __init__(self) -> None:
@@ -148,7 +149,7 @@ class Mol:
                 if atom1.idx>=atom2.idx:continue
                 r=np.linalg.norm(atom2.coord-atom1.coord)
                 r_=elements[atom1.symbol].radius+elements[atom2.symbol].radius
-                if r>r_*1.1:continue
+                if r>r_*2:continue
                 self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
     
@@ -167,7 +168,7 @@ class Mol:
     @cached_property
     def coords(self)->np.ndarray:
         """返回原子坐标矩阵[n,3]"""
-        return np.array([atom.coord for atom in self.atoms])
+        return np.array([atom.coord for atom in self.atoms])*1.889
 
     @property
     def O_obts(self)->list[int]:
@@ -201,8 +202,17 @@ class Mol:
         """轨道电子数"""
         return 1 if self.open else 2
     
+    @property
+    def formula(self)->str:
+        """获取分子式"""
+        symbols=self.atoms.symbols
+        # 统计列表中每个元素出现的次数
+        counts = collections.Counter(symbols)
+        names=[f'{k}{v}' for k,v in counts.items()]
+        return ''.join(names)
+    
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
-               ,akeep:bool,lkeep:bool,ins:bool)->np.ndarray:
+               ,akeep:bool,lkeep:bool,skeep:bool)->np.ndarray:
         """
         获取投影后的系数矩阵
         atms:需要投影的原子
@@ -210,7 +220,7 @@ class Mol:
         dirs:投影到的方向 atms和dirs的长度必须相同
         akeep:其它原子系数是否保留 keep other atoms
         lkeep:其它价层系数是否保留 keep other layer
-        ins:是否包含价层s轨道
+        skeep:是否包含价层s轨道 keep s layer
         """
         assert isinstance(dirs,list),"方向想两需要为列表"
         assert len(atms)==len(dirs),"原子和方向数量不同"
@@ -232,7 +242,7 @@ class Mol:
                     Co=self.CM.copy()[u:l,obt]
                 else:
                     Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
-                if ins:
+                if skeep:
                     sIdx=[i for i,s in enumerate(syms) if 'S' in s][1:]
                     Cos=atom.obtCoeffs.copy()[sIdx,obt]
                     Co[sIdx]=Cos*(3-nebNum)/3

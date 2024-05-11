@@ -38,6 +38,20 @@ class Bond:
         """获取键中心坐标"""
         return (self.a1.coord+self.a2.coord)/2
     
+    @property
+    def btype(self):
+        """获取键类型
+        1:单键
+        2:双键
+        3:三键
+        4:芳香
+        """
+        blen=self.length
+        if blen<1.38*1.889:
+            return 1
+        else:
+            return 2
+    
     def __repr__(self) -> str:
         return f'{self.a1.idx}-{self.a2.idx},{self.length:.4f}'
     
@@ -61,9 +75,14 @@ class Bonds:
                 return bond
         raise f'没有指定的键{idx1}-{idx2}'
     
+    
     @property
     def keys(self):
         return [bond.key for bond in self.bonds]
+    
+    @property
+    def num(self):
+        return len(self.bonds)
 
     def __iter__(self) -> Iterator[Bond]:
         for bond in self.bonds:yield bond

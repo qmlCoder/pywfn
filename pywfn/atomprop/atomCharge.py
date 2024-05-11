@@ -7,6 +7,7 @@ from pywfn.utils import printer
 from pywfn.atomprop import lutils,AtomCaler
 from pywfn import maths
 from typing import Literal
+from pywfn.maths import CM2PM
 
 Chrgs=Literal['mulliken','lowdin','hirshfeld']
 
@@ -24,14 +25,14 @@ class Calculator(AtomCaler):
         if chrg=='hirshfeld':
             return self.hirshfeld()
     
-    def mulliken(self,num:bool=False):
+    def mulliken(self,num:bool=False,PM:np.ndarray=None):
         """
         计算目录mulliken电荷
         num：是否只保留电子数
         """
         # 计算密度矩阵
         self.logTip='Mulliken电荷分布'
-        PM=self.mol.PM
+        if PM is None:PM=self.mol.PM
         # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
         PS=PM@self.mol.SM
         EV=np.diagonal(PS)
@@ -46,12 +47,12 @@ class Calculator(AtomCaler):
                 charges[a]=atom.atomic-elect
         return charges
     
-    def lowdin(self,num:bool=False):
+    def lowdin(self,num:bool=False,PM:np.ndarray=None):
         """
         计算每个原子的lowdin电荷
         """
         self.logTip='Lowdin电荷分布'
-        PM=self.mol.PM
+        if PM is None:PM=self.mol.PM
         SM=self.mol.SM
         # 计算矩阵的1/2次方
         v, Q=np.linalg.eig(SM)
@@ -143,7 +144,6 @@ class Calculator(AtomCaler):
     
     def dirCharge(self,chrg:Chrgs,obts:list[int],atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
         """计算不同方向的电荷[n,5](atm,x,y,z,val)"""
-        CMo=self.mol.CM
         atms_,dirs_=fit_dirs(self.mol,atms,dirs)
         assert len(atms_)==len(dirs_),"长度需要一致"
         dirVal=np.zeros(shape=(len(dirs_),5))
@@ -151,14 +151,14 @@ class Calculator(AtomCaler):
             atm=atms_[d]
             dir_=dirs_[d]
             CMp=self.mol.projCM(obts,[atm],[dir_],False,False,False) # 获取投影后的轨道系数
-            self.mol.props['CM']=CMp # 改变默认的系数
+            PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
             if chrg=='mulliken':
-                val=self.mulliken(num=True)[atm-1]
+                val=self.mulliken(num=True,PM=PMp)[atm-1]
             elif chrg=='lowdin':
-                val=self.lowdin(num=True)[atm-1]
+                val=self.lowdin(num=True,PM=PMp)[atm-1]
             x,y,z=dir_
             dirVal[d]=[atm,x,y,z,val]
-        self.mol.props['CM']=CMo # 恢复原本的系数
+
         return dirVal
 
     def resStr(self)->str:

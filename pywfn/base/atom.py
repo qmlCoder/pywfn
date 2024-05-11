@@ -246,8 +246,17 @@ class Atoms:
         return [a.atomic for a in self.atoms]
     
     @property
+    def symbols(self)->list[str]:
+        return [a.symbol for a in self.atoms]
+    
+    
+    @property
     def indexs(self)->list[int]:
         return [a.idx for a in self.atoms]
+    
+    @property
+    def num(self)->int:
+        return len(self.atoms)
 
     def __getitem__(self,item)->Atom:
         return self.atoms[item]
