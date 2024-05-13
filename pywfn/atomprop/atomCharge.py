@@ -142,16 +142,17 @@ class Calculator(AtomCaler):
         chars=[atom.atomic-char for atom,char in zip(self.mol.atoms,chars)]
         return np.array(chars)/20
     
-    def dirCharge(self,chrg:Chrgs,obts:list[int],atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
+    def dirCharge(self,chrg:Chrgs,atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
         """计算不同方向的电荷[n,5](atm,x,y,z,val)"""
         atms_,dirs_=fit_dirs(self.mol,atms,dirs)
         assert len(atms_)==len(dirs_),"长度需要一致"
         dirVal=np.zeros(shape=(len(dirs_),5))
+        obts=self.mol.O_obts
         for d in range(len(dirs_)):
             atm=atms_[d]
             dir_=dirs_[d]
-            CMp=self.mol.projCM(obts,[atm],[dir_],False,False,False) # 获取投影后的轨道系数
-            PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
+            CMp=self.mol.projCM(obts,[atm],[dir_],False,False) # 获取投影后的轨道系数
+            PMp=CM2PM(CMp,obts,self.mol.oE)
             if chrg=='mulliken':
                 val=self.mulliken(num=True,PM=PMp)[atm-1]
             elif chrg=='lowdin':

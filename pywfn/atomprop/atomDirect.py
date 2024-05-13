@@ -77,3 +77,31 @@ class Calculator:
                 return normal.reshape(1,3)
         
         raise ValueError("找不到可能的反应方向")
+    
+    def normal(self,atm:int)->np.ndarray|None:
+        """计算原子的法向量"""
+        atom=self.mol.atom(atm)
+        nebs=atom.neighbors
+        if len(nebs)==2:
+            ia,ib=nebs
+            va=self.mol.atom(ia).coord-atom.coord
+            vb=self.mol.atom(ib).coord-atom.coord
+            angle=vector_angle(va,vb)
+            linear=abs(1-angle)<1e-1
+            if linear:
+                return None
+            else:
+                va/=np.linalg.norm(va)
+                vb/=np.linalg.norm(vb)
+                normal=np.cross(va,vb)
+                return normal/np.linalg.norm(normal)
+        if len(nebs)==3:
+            pa,pb,pc=[self.mol.atom(n).coord.copy() for n in nebs]
+            pa/=np.linalg.norm(pa)
+            pb/=np.linalg.norm(pb)
+            pc/=np.linalg.norm(pc)
+            vab=pb-pa
+            vac=pc-pa
+            normal=np.cross(vab,vac)
+            return normal/np.linalg.norm(normal)
+        return None

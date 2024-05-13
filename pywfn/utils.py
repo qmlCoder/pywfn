@@ -5,7 +5,8 @@ import numpy as np
 from pywfn import config
 
 
-def get_nums(string):
+def get_nums(string)->list[int]:
+    """将字符串解析为数字列表"""
     res = []
     for each in re.split(r',|，', string):
         content = each.split('-')

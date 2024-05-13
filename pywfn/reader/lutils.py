@@ -30,8 +30,11 @@ from pywfn.utils import printer
 class Reader:
     def __init__(self,path:str) -> None:
         self.path:str=path
-        self.text=Path(self.path).read_text(encoding='utf-8')
     
+    @cached_property
+    def text(self)->str:
+        return Path(self.path).read_text()
+
     @property
     def fileName(self)->str:
         return Path(self.path).name

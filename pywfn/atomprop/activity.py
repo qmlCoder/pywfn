@@ -108,8 +108,7 @@ class Calculator:
         dirs=None
         idxs=None
         for cal in cals:
-            obts=cal.mol.O_obts
-            res=cal.dirCharge('mulliken',obts,atms)
+            res=cal.dirCharge('mulliken',atms)
             if dirs is None:dirs=res[:,1:4]
             if idxs is None:idxs=res[:,0]
             vals.append(res[:,4])

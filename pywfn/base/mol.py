@@ -38,6 +38,7 @@ from multiprocessing.pool import AsyncResult
 import threading
 from typing import Callable
 import collections
+import re
 
 class Props(dict):
     def __init__(self) -> None:
@@ -212,7 +213,7 @@ class Mol:
         return ''.join(names)
     
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
-               ,akeep:bool,lkeep:bool,skeep:bool)->np.ndarray:
+               ,akeep:bool,lkeep:bool,keeps:str=None)->np.ndarray:
         """
         获取投影后的系数矩阵
         atms:需要投影的原子
@@ -220,7 +221,7 @@ class Mol:
         dirs:投影到的方向 atms和dirs的长度必须相同
         akeep:其它原子系数是否保留 keep other atoms
         lkeep:其它价层系数是否保留 keep other layer
-        skeep:是否包含价层s轨道 keep s layer
+        keeps:额外保留的轨道，可以使用正则表达式匹配
         """
         assert isinstance(dirs,list),"方向想两需要为列表"
         assert len(atms)==len(dirs),"原子和方向数量不同"
@@ -242,10 +243,10 @@ class Mol:
                     Co=self.CM.copy()[u:l,obt]
                 else:
                     Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
-                if skeep:
-                    sIdx=[i for i,s in enumerate(syms) if 'S' in s][1:]
-                    Cos=atom.obtCoeffs.copy()[sIdx,obt]
-                    Co[sIdx]=Cos*(3-nebNum)/3
+                if keeps is not None: # 其它保留的层
+                    idxs=[i for i,s in enumerate(syms) if re.match(s)]
+                    Cos=atom.obtCoeffs.copy()[idxs,obt]
+                    Co[idxs]=Cos
                 Cop=atom.get_pProj(vect,obt)
                 Co[pIdx]=np.concatenate(Cop)
                 CMp[u:l,obt]=Co.copy()

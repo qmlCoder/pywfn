@@ -69,8 +69,6 @@ class cubWriter:
     def write_value(self):
         obts=self.obts
         gridPos=self.get_gridPos()
-        self.mol.bohr=True
-        gridPos*=1.889*1.889
         Nx,Ny,Nz=self.gridSize
         obtInfo=[len(obts)]+[o+1 for o in obts]
 
@@ -95,8 +93,7 @@ class cubWriter:
     
     def save(self,name):
         if self.direct is not None:
-            self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),zero=True,keep=False,ins=False)
-            print('开启投影')
+            self.mol.projCM(self.atoms,self.obts,[self.direct.copy()]*len(self.atoms),True,False)
         self.init_file(name)
         self.write_value()
         printer.res(f'导出文件至{self.filePath}')

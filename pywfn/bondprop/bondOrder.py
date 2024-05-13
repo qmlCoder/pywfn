@@ -29,10 +29,10 @@ class Calculator:
             order=np.sum(OM[u1:l1,u2:l2])
             orders.append([a1,a2,order])
         order = np.array(orders)
-        print(order)
+        # print(order)
         return order
     
-    def dirMayer(self,bonds:list[list[int]]):
+    def dirMayer(self,bonds:list[list[int,int]])->np.ndarray:
         """带有方向的Mayer键级[d,6](a1,a2,x,y,z,v)"""
         dirCaler=atomDirect.Calculator(self.mol)
         obts=self.mol.O_obts
@@ -42,7 +42,7 @@ class Calculator:
             atms=[a1]*len(dirs)
             if a1>a2:a1,a2=a2,a1
             for d,(atm,dir_) in enumerate(zip(atms,dirs)):
-                CMp=self.mol.projCM(obts,[atm],[dir_],True,True,False)
+                CMp=self.mol.projCM(obts,[atm],[dir_],True,True)
                 PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
                 a1_,a2_,order=self.mayer(PM=PMp,bonds=[[a1,a2]]).flatten()
                 assert a1==a1_ and a2==a2_,"原子不对应"
@@ -51,8 +51,22 @@ class Calculator:
         return np.array(result)
     
     def piOrder(self):
-        """计算pi键级"""
-        pass
+        """
+        计算pi键级，每一个可能的π键计算出一个π键级
+        """
+        dirCaler=atomDirect.Calculator(self.mol)
+        atms=[]
+        dirs=[]
+        for atom in self.mol.atoms:
+            normal=dirCaler.normal(atom.idx) # 原子的法向量
+            if normal is None:continue
+            atms.append(atom.idx)
+            dirs.append(normal)
+        PMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
+        PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
+        result=self.mayer(PM=PMp)
+        result[:,-1]=np.sqrt(result[:,-1])
+        return result
 
     
     def multiCenter(self,atms:list[int]):

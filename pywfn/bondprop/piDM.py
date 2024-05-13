@@ -80,7 +80,7 @@ class Calculator(Caler):
         b_1,b_2=atom2.obtBorder
         atoms=[idx1,idx2]
         vects=[norm]*len(atoms)
-        CM_=self.mol.projCM(atoms,obts,vects,zero=self.zero,keep=self.keep,ins=self.ins)
+        CM_=self.mol.projCM(atoms,obts,vects,zero=self.zero,keep=self.keep)
 
         oe=self.mol.oE
         SM=self.mol.SM

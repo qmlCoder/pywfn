@@ -25,7 +25,6 @@ class Calculator:
         self.zero:bool=True
         self.keep:bool=False
         self.abs:bool=False
-        self.ins:bool=False
 
     def calculate(self):
         assert self.chrg is not None,'没有指定方法'
@@ -34,7 +33,7 @@ class Calculator:
         assert self.atoms is not None,'没有指定原子'
         assert len(self.atoms)==len(self.vects),'方向与原子数量应该一致'
         # 获取投影后的系数轨道
-        CM=self.mol.projCM(self.atoms,self.mol.O_obts,self.vects,self.zero,self.keep,self.ins)
+        CM=self.mol.projCM(self.atoms,self.mol.O_obts,self.vects,self.zero,self.keep)
         CM_c=np.copy(self.mol.CM) # 先把原来的系数矩阵保留下来
         self.mol.props['CM']=CM # 替换为投影后的系数矩阵
         # 计算各种性质
