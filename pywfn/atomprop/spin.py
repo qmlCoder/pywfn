@@ -6,8 +6,8 @@
 
 from pywfn.base import Mol,Atom
 from pywfn.utils import printer
-from pywfn.atomprop import atomCharge, lutils,AtomCaler
-from pywfn.atomprop.atomCharge import Chrgs
+from pywfn.atomprop import charge, lutils,AtomCaler
+from pywfn.atomprop.charge import Chrgs
 from pywfn.maths import CM2PM
 
 from typing import Literal
@@ -28,7 +28,7 @@ class Calculator(AtomCaler):
         a_occs[obtNum:]=[False]*obtNum
         b_occs[:obtNum]=[False]*obtNum
 
-        caler=atomCharge.Calculator(self.mol)
+        caler=charge.Calculator(self.mol)
 
         # 将长方形的系数矩阵分为两个正方形分别计算
 
@@ -45,3 +45,9 @@ class Calculator(AtomCaler):
         elects=self.calculate()
         atoms=lutils.atomIdxs(self.mol.atoms)
         return lutils.atomValueStr(self.mol,atoms,elects)
+    
+    def onShell(self):
+        spins=self.calculate()
+        for i,spin in enumerate(spins):
+            printer.res(f'{i+1}: {spin}')
+        return

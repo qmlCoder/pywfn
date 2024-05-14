@@ -4,7 +4,7 @@ sys.path.append("D:\code\pywfn")
 import pyvista as pv
 
 from pywfn.base import Mol
-from pywfn.atomprop import atomDirect
+from pywfn.atomprop import direction
 from pywfn.reader import GjfReader
 
 import numpy as np
@@ -26,6 +26,6 @@ path="D:\BaiduSyncdisk\Articles\HFV\gfile\M4\M4_wfn.gjf"
 
 mol=Mol(reader=GjfReader(path))
 
-cal=atomDirect.Calculator(mol)
+cal=direction.Calculator(mol)
 
 dir2arrow(26,cal.reaAro(26))

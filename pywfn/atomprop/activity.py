@@ -2,9 +2,10 @@
 计算原子的反应活性，福井函数、parr函数等，一般需要多个分子才行
 """
 from pywfn.base import Mol
-from pywfn.atomprop import atomCharge,atomSpin,atomDirect
-from pywfn.atomprop.atomCharge import Chrgs
+from pywfn.atomprop import charge, direction, spin
+from pywfn.atomprop.charge import Chrgs
 import numpy as np
+from pywfn.shell import Shell
 
 class Calculator:
     def __init__(self) -> None:
@@ -13,7 +14,7 @@ class Calculator:
     def fukui(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的福井函数[n,2]"""
         assert len(self.mols)==3,"应该有三个分子"
-        cals=[atomCharge.Calculator(mol) for mol in self.mols]
+        cals=[charge.Calculator(mol) for mol in self.mols]
         natm=len(self.mols[0].atoms)
         chgs=np.zeros(shape=(natm,3)) # 记录所有原子的电荷
         dchg=np.zeros(shape=(natm,2)) # 记录电荷差值
@@ -27,7 +28,7 @@ class Calculator:
     def parr(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的parr函数[n,2]"""
         assert len(self.mols)==2,"应该有两个分子"
-        cals=[atomSpin.Calculator(mol) for mol in self.mols]
+        cals=[spin.Calculator(mol) for mol in self.mols]
         natm=len(self.mols[0].atoms)
         spins=np.zeros(shape=(natm,3))
         for c,cal in enumerate(cals):
@@ -38,8 +39,8 @@ class Calculator:
         return spins
     
     def delEng(self):
-        from pywfn.atomprop import atomEnergy
-        cals=[atomEnergy.Calculator(mol) for mol in self.mols]
+        from pywfn.atomprop import energy
+        cals=[energy.Calculator(mol) for mol in self.mols]
         natm=len(cals[0].mol.atoms)
         engs=np.zeros(shape=(natm,3))
         for c,cal in enumerate(cals):
@@ -102,7 +103,7 @@ class Calculator:
         assert len(self.mols)==3,"需要三个分子"
         crgs=[mol.charge for mol in self.mols]
         assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
-        cals=[atomCharge.Calculator(mol) for mol in self.mols]
+        cals=[charge.Calculator(mol) for mol in self.mols]
         
         vals:list[np.ndarray]=[]
         dirs=None
@@ -119,4 +120,24 @@ class Calculator:
         result[:,4]=vals[0]-vals[1]
         result[:,5]=vals[1]-vals[2]
         return result
-            
+    
+    
+    def onShell(self,shell:Shell):
+        from pywfn.utils import printer
+        opts=[
+            'fukui函数',
+            'parr函数',
+            '电荷差值',
+            '化合价',
+            '自由价',
+            '方向fukui函数'
+        ]
+        for i,each in enumerate(opts):
+            printer.info(f'{i+1}.{each}')
+        opt=input('请选择要计算的活性:')
+        if opt=='1':
+            self.mols=shell.input.Moles()
+            printer.info('请输入电荷类型：')
+            printer.info('1.mulliken; 2.lowdin')
+            chrg=input()
+            result=self.fukui()

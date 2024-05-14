@@ -2,7 +2,7 @@ import sys
 sys.path.append("D:\code\pywfn")
 from pywfn.base import Mol
 from pywfn.reader import LogReader
-from pywfn.atomprop import atomCharge,atomSpin
+from pywfn.atomprop import charge, spin
 import numpy as np
 pathn=r"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn-.log"
 path0=r"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn0.log"
@@ -13,15 +13,15 @@ mol0=Mol(reader=LogReader(path0))
 molp=Mol(reader=LogReader(pathp))
 
 
-calern=atomCharge.Calculator(moln)
-caler0=atomCharge.Calculator(mol0)
-calerp=atomCharge.Calculator(molp)
+calern=charge.Calculator(moln)
+caler0=charge.Calculator(mol0)
+calerp=charge.Calculator(molp)
 
 result=calern.mulliken()
 print(result)
 
-calern=atomSpin.Calculator(moln)
-caler0=atomSpin.Calculator(mol0)
-calerp=atomSpin.Calculator(molp)
+calern=spin.Calculator(moln)
+caler0=spin.Calculator(mol0)
+calerp=spin.Calculator(molp)
 
 result=calern.calculate()

@@ -2,10 +2,11 @@
 键级也不止一种，都在这里实现吧
 """
 from pywfn.base import Mol
-from pywfn.atomprop import atomDirect
+from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
-
+from pywfn.utils import printer
 import numpy as np
+from itertools import product
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
@@ -34,7 +35,7 @@ class Calculator:
     
     def dirMayer(self,bonds:list[list[int,int]])->np.ndarray:
         """带有方向的Mayer键级[d,6](a1,a2,x,y,z,v)"""
-        dirCaler=atomDirect.Calculator(self.mol)
+        dirCaler=direction.Calculator(self.mol)
         obts=self.mol.O_obts
         result=[]
         for a1,a2 in bonds:
@@ -54,7 +55,7 @@ class Calculator:
         """
         计算pi键级，每一个可能的π键计算出一个π键级
         """
-        dirCaler=atomDirect.Calculator(self.mol)
+        dirCaler=direction.Calculator(self.mol)
         atms=[]
         dirs=[]
         for atom in self.mol.atoms:
@@ -68,7 +69,43 @@ class Calculator:
         result[:,-1]=np.sqrt(result[:,-1])
         return result
 
-    
+    def hmo(self):
+        self.bond:list[int]=None
+        # 1.建立系数矩阵
+        atms=self.mol.heavyAtoms
+        natm=len(atms)
+        BM=np.zeros(shape=(natm,natm)) # 键连矩阵
+        DM=np.zeros_like(BM) # 键长矩阵
+        for i,j in product(range(natm),range(natm)):
+            a1,a2=atms[i],atms[j]
+            if a1==a2:continue
+            bond=self.mol.atom(a1).coord-self.mol.atom(a2).coord
+            dist=np.linalg.norm(bond)
+            DM[i,j]=dist
+            DM[j,i]=dist
+            if dist>1.7*1.889:continue
+            BM[i,j]=1.0
+            BM[j,i]=1.0
+        # 2.求解
+        e,C=np.linalg.eigh(BM) # 矩阵对角化
+        nele=int(len(atms)-self.mol.charge) #电子数量
+        idxs=np.argsort(e)[:nele//2] # 占据轨道
+        CM=C[:,idxs] # 每一列对应一个特征向量
+        # 3.构建键级矩阵
+        result=[]
+        OM=np.zeros_like(BM)
+        for i,j in product(range(natm),range(natm)):
+            order=np.sum(CM[i,:]*CM[j,:])*2
+            OM[i,j]=order
+            if i>=j:continue
+            if DM[i,j]>1.7*1.889:continue
+            result.append([atms[i],atms[j],order])
+        result=np.array(result)
+        vals=result[:,-1]
+        vals=np.sqrt(vals**2)
+        result[:,-1]=vals
+        return result
+
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
         pass

@@ -70,7 +70,7 @@ def vector_angle(a: np.ndarray, b: np.ndarray) -> float:  # 计算两向量之�
         value = 1
     if value < -1:
         value = -1
-    angle = np.arccos(value) / math.pi
+    angle = np.arccos(value) / np.pi
     return angle
 
 
@@ -219,10 +219,6 @@ def points_rotate(
     points += center
     length1 = np.linalg.norm(points, axis=1)
     return points
-
-
-def unitConvert(self):
-    pass
 
 
 def get_plane_by_3points(

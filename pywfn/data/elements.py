@@ -21,7 +21,7 @@ class Element:
         self.idx=int(idx)
         self.charge=self.idx
         self.symbol=symbol
-        self.radius=0.8
+        self.radius=1.889*0.8
 
 # 因为全局只需要一个Elements实例，因此可以使用类方法
 class Elements:

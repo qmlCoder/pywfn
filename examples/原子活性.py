@@ -5,15 +5,17 @@ from pywfn.base import Mol
 from pywfn.reader import LogReader
 from pywfn.atomprop import activity
 
-root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\M4\M4_wfn"
+# root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\M4\M4_wfn"
 
-pathn=rf"{root}-.log"
-path0=rf"{root}0.log"
-pathp=rf"{root}+.log"
+# pathn=rf"{root}-.log"
+# path0=rf"{root}0.log"
+# pathp=rf"{root}+.log"
 
-mol0=Mol(reader=LogReader(path0))
+# mol0=Mol(reader=LogReader(path0))
 # moln=Mol(reader=LogReader(pathn))
 # molp=Mol(reader=LogReader(pathp))
+
+mol=Mol(LogReader("D:\gfile\gs\int1-spin.log"))
 
 caler=activity.Calculator()
 
@@ -36,17 +38,17 @@ caler=activity.Calculator()
 #     print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{e:>6.2f}],')
 # # 计算化合价
 print('自由价')
-caler.mols=[mol0]
-result=caler.freeValence([3,25,26,27])
-print(result)
+caler.mols=[mol]
+result=caler.freeValence([15,18])
 for a,x,y,z,v in result:
     print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{v:>6.2f}],')
 
-# # 计算自由价
-# print('自由价')
-# caler.mols=[mol0]
-# result=caler.freeValence([37,39])
-# print(result)
+# # 计算化合价
+print('自由价')
+caler.mols=[mol]
+result=caler.valence()
+print(result[14])
+print(result[17])
 
 # print('原子能差')
 # caler.mols=[moln,mol0,molp]

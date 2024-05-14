@@ -6,7 +6,7 @@ from functools import cached_property,lru_cache
 import numpy as np
 
 from pywfn import base
-from pywfn.atomprop import atomCharge
+from pywfn.atomprop import charge
 from pywfn.molprop import MolProp
 from pywfn.utils import printer
 
@@ -25,9 +25,9 @@ class Fukui:
         
         if len(set([len(molN.atoms),len(molM.atoms),len(molP.atoms)]))!=1:
             printer.warn('三个分子的原子数量不相等')
-        calerN=atomCharge.Calculator(molN)
-        calerM=atomCharge.Calculator(molM)
-        calerP=atomCharge.Calculator(molP)
+        calerN=charge.Calculator(molN)
+        calerM=charge.Calculator(molM)
+        calerP=charge.Calculator(molP)
         chargesN=calerN.calculate(atoms=None)
         chargesM=calerM.calculate(atoms=None)
         chargesP=calerP.calculate(atoms=None)

@@ -160,7 +160,7 @@ class LogReader(Reader):
         titleNum=self.titles['keyWards'].line
         keyWards=''
         for i in range(titleNum,titleNum+3):
-            line=self.getline(i)
+            line=self.getline(i,False).strip()
             if line=='-'*70:break
             keyWards+=line
         return keyWards

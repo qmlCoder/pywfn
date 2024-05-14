@@ -12,8 +12,8 @@ class Calculator(Caler):
         # 1.建立系数矩阵
         atoms=self.mol.heavyAtoms
         self.atomMap={atom.idx:i for i,atom in enumerate(atoms)} #根据真实的原子序数，索引矩阵元素
-        atomNum=len(atoms)
-        self.M=np.zeros(shape=(atomNum,atomNum))
+        namt=len(atoms)
+        self.M=np.zeros(shape=(namt,namt))
         for i,a in enumerate(atoms):
             for j,b in enumerate(atoms):
                 dist=np.linalg.norm(a.coord-b.coord)

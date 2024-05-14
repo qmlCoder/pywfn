@@ -5,7 +5,7 @@ sys.path.append("D:\code\pywfn")
 from pywfn.data import sphGrid
 from pywfn.base import Mol
 from pywfn.reader import LogReader
-from pywfn.atomprop import atomCharge
+from pywfn.atomprop import charge
 
 import matplotlib.pyplot as plt
 import pyvista as pv

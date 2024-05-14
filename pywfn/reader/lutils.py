@@ -48,8 +48,11 @@ class Reader:
                 lineNum+=1
         return lineNum
     
-    def getline(self,idx:int)->str:
-        return linecache.getline(self.path,idx+1)
+    def getline(self,idx:int,keepEnd:bool=True)->str:
+        if keepEnd:
+            return linecache.getline(self.path,idx+1)
+        else:
+            return linecache.getline(self.path,idx+1).replace('\n','')
     
     def getlines(self,idx1:int,idx2:int)->list[str]:
         lines=[]

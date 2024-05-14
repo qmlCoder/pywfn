@@ -29,7 +29,7 @@ class Shell:
 
     def homePage(self):
         opts = {
-            "1": "键属性",
+            "1": "键の属性",
             "2": "原子属性",
             "3": "实用工具",
             "4": "导出文件",
@@ -53,6 +53,8 @@ class Shell:
 
     def atomProp(self):
         """计算原子属性"""
+        from pywfn.atomprop import shell
+        shell()
         opts = {
             "1": "电荷分布",
             "2": "电子自旋",
@@ -70,10 +72,10 @@ class Shell:
                 case None:
                     break
                 case "1":  # 电荷分布
-                    from pywfn.atomprop import atomCharge
+                    from pywfn.atomprop import charge
                     chrg = self.input.Option(title="输入电荷类型", opts=chrgs, must=True)
                     mol = self.input.Moles()[0]
-                    caler = atomCharge.Calculator(mol)
+                    caler = charge.Calculator(mol)
                     if chrg == "1":
                         caler.chrg = "mulliken"
                     if chrg == "2":
@@ -83,10 +85,10 @@ class Shell:
                 case "2":  # 电子自旋
                     chrgs = [["1", "mulliken"], ["2", "lowdin"]]
                     chrg = self.input.Option(title="输入自旋类型", opts=chrgs, must=True)
-                    from pywfn.atomprop import atomSpin
+                    from pywfn.atomprop import spin
 
                     mol = self.input.Moles()[0]
-                    caler = atomSpin.Calculator(mol)
+                    caler = spin.Calculator(mol)
                     if chrg == "1":
                         caler.chrg = "mulliken"
                     if chrg == "2":

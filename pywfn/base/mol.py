@@ -149,8 +149,9 @@ class Mol:
             for atom2 in self.atoms:
                 if atom1.idx>=atom2.idx:continue
                 r=np.linalg.norm(atom2.coord-atom1.coord)
-                r_=elements[atom1.symbol].radius+elements[atom2.symbol].radius
-                if r>r_*2:continue
+                # r_=elements[atom1.symbol].radius+elements[atom2.symbol].radius
+                r_=1.7*1.889
+                if r>r_:continue
                 self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
     
@@ -180,8 +181,8 @@ class Mol:
         return [i for i,occ in enumerate(self.obtOccs) if not occ]
     
     @cached_property
-    def heavyAtoms(self)->list[Atom]:
-        return [atom for atom in self.atoms if atom.symbol!='H']
+    def heavyAtoms(self)->list[int]:
+        return [atom.idx for atom in self.atoms if atom.symbol!='H']
 
     @property
     def CM(self)->np.ndarray:
@@ -211,6 +212,38 @@ class Mol:
         counts = collections.Counter(symbols)
         names=[f'{k}{v}' for k,v in counts.items()]
         return ''.join(names)
+    
+
+    def params(self,atms:list[int])->float:
+        """
+        获取键长、键角、二面角
+        """
+        if len(atms)==2:
+            a1,a2=atms
+            return self.bond(a1,a2).length
+        elif len(atms)==3:
+            a1,a2,a3=atms
+            v21=self.atom(a1).coord-self.atom(a2).coord
+            v23=self.atom(a3).coord-self.atom(a2).coord
+            angle=maths.vector_angle(v21,v23)
+            return angle
+        elif len(atms)==4:
+            a1,a2,a3,a4=atms
+            v21=self.atom(a1).coord-self.atom(a2).coord
+            v23=self.atom(a3).coord-self.atom(a2).coord
+            v32=self.atom(a2).coord-self.atom(a3).coord
+            v34=self.atom(a3).coord-self.atom(a4).coord
+            n2=np.cross(v21,v23)
+            n3=np.cross(v34,v32)
+            n2/=np.linalg.norm(n2)
+            n3/=np.linalg.norm(n3)
+            angle=maths.vector_angle(n2,n3)
+            nm=np.dot(v21,n3) # 为了实现二面角的正负而引入
+            nm/=np.linalg.norm(nm)
+            return angle/nm*np.pi
+        else:
+            raise ValueError("参数数量错误")
+
     
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
                ,akeep:bool,lkeep:bool,keeps:str=None)->np.ndarray:

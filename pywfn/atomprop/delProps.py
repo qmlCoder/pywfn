@@ -4,7 +4,7 @@
 - parr函数
 """
 from pywfn.base import Mol
-from pywfn.atomprop import atomCharge,atomSpin,dirProps,AtomCaler,atomEnergy
+from pywfn.atomprop import charge,dirProps,AtomCaler,energy, spin
 import numpy as np
 from typing import Literal
 
@@ -34,9 +34,9 @@ class Calculator(AtomCaler):
             return funcs[self.func]
         else:
             if self.func=='fukui':
-                self.calers=[atomCharge.Calculator(mol) for mol in self.mols]
+                self.calers=[charge.Calculator(mol) for mol in self.mols]
             if self.func=='parr':
-                self.calers=[atomSpin.Calculator(mol) for mol in self.mols]
+                self.calers=[spin.Calculator(mol) for mol in self.mols]
             return funcs[self.func]
 
     def setProject(self,stype:bool):
@@ -81,7 +81,7 @@ class Calculator(AtomCaler):
     def atomEngs(self)->np.ndarray:
         """计算原子轨道能"""
         self.setProject(True)
-        self.calers=[atomEnergy.Calculator(mol) for mol in self.mols]
+        self.calers=[energy.Calculator(mol) for mol in self.mols]
         atmNum=len(self.mols[0].atoms)
         allEngs=np.zeros(shape=(atmNum,3))
         for c,caler in enumerate(self.calers):

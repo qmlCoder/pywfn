@@ -2,8 +2,8 @@
 各种带方向的原子属性放到一块吧
 """
 from pywfn.base import Mol
-from pywfn.atomprop import atomCharge, atomSpin,freeValence
-from pywfn.atomprop import atomEnergy
+from pywfn.atomprop import charge,freeValence, spin
+from pywfn.atomprop import energy
 from pywfn.atomprop import lutils
 from pywfn.utils import printer
 import numpy as np
@@ -47,7 +47,7 @@ class Calculator:
     
     def atomCharge(self,chrg:str)->np.ndarray:
         """计算mulliken电子数"""
-        caler=atomCharge.Calculator(self.mol)
+        caler=charge.Calculator(self.mol)
         caler.chrg=chrg
         charges=caler.calculate()
         atomics=np.array(self.mol.atoms.atomics)
@@ -57,7 +57,7 @@ class Calculator:
 
     def atomSpin(self,chrg:str)->np.ndarray:
         """计算mulliken自旋"""
-        caler=atomSpin.Calculator(self.mol)
+        caler=spin.Calculator(self.mol)
         caler.chrg=chrg
         spins=caler.calculate()
         idxs=[a-1 for a in self.atoms]
@@ -65,7 +65,7 @@ class Calculator:
     
     def atomEngs(self):
         """原子能量"""
-        caler=atomEnergy.Calculator(self.mol)
+        caler=energy.Calculator(self.mol)
         engs=caler.calculate()
         idxs=[a-1 for a in self.atoms]
         return engs[idxs]

@@ -31,3 +31,9 @@ class Calculator:
         engs=self.calculate()
         atoms=[a.idx for a in self.mol.atoms]
         return lutils.atomValueStr(self.mol,atoms,engs)
+    
+    def onShell(self):
+        engs=self.calculate()
+        for i,eng in enumerate(engs):
+            printer.res(f'{i}: {eng}')
+        return

@@ -168,13 +168,41 @@ class Calculator(AtomCaler):
         charges=self.calculate()
         return lutils.atomValueStr(self.mol,satoms,charges)
     
+    def onShell(self):
+        from pywfn.utils import parse_atmList
+        printer.info('1. mulliken电荷')
+        printer.info('2. lowdin电荷')
+        printer.info('3. 方向性电荷')
+        while True:
+            opt=input('请选择电荷类型:')
+            if opt=='':break
+            if opt=='1':
+                charges=self.mulliken()
+                for i,v in enumerate(charges):
+                    print(f'{i+1}: {v}')
+            if opt=='2':
+                charges=self.lowdin()
+                for i,v in enumerate(charges):
+                    print(f'{i+1}: {v}')
+            if opt=='3':
+                printer.info('1. Mulliken[*]; 2. lowdin')
+                opt=input('请选择方向性电荷类型:')
+                if opt not in ['1','2']:return
+                if opt=='1':charg='mulliken'
+                if opt=='2':charg='lowdin'
+                numStr=input('请输入要计算的原子索引：')
+                atms=parse_atmList(numStr)
+                charges=self.dirCharge(charg,atms)
+                for a,x,y,z,v in charges:
+                    print(f'{a}: {x},{y},{z}  {v}')
+    
 def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]):
     """
     矫正方向，如果没有指定方向的话，计算每个原子可能的反应方向
     """
     if dirs is None:
-        from pywfn.atomprop import atomDirect
-        dirCaler=atomDirect.Calculator(mol)
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(mol)
         atms_=[]
         dirs_=[]
         for atm in atms:
