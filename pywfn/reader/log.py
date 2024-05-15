@@ -421,6 +421,7 @@ class LogReader(Reader):
         """
         if self.titles['coefs'].line!=-1:
             atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
+            return atms,shls,angs,engs,occs,CM
         elif self.titles['acoefs'].line!=-1:
             atmsA,shlsA,angsA,engsA,occsA,CMA=self.read_CM('acoefs')
             atmsB,shlsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
@@ -430,7 +431,9 @@ class LogReader(Reader):
             engs=engsA+engsB
             occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
-        return atms,shls,angs,engs,occs,CM
+            return atms,shls,angs,engs,occs,CM
+        else:
+            raise ValueError('没有找到轨道系数')
 
     @lru_cache
     def read_SM(self):

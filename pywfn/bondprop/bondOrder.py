@@ -66,8 +66,10 @@ class Calculator:
         PMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         result=self.mayer(PM=PMp)
-        result[:,-1]=np.sqrt(result[:,-1])
-        return result
+        values=np.sqrt(result[:,-1])
+        indexs=values>0
+        result[:,-1]=values
+        return result[indexs,:]
 
     def hmo(self):
         self.bond:list[int]=None
@@ -78,7 +80,7 @@ class Calculator:
         DM=np.zeros_like(BM) # 键长矩阵
         for i,j in product(range(natm),range(natm)):
             a1,a2=atms[i],atms[j]
-            if a1==a2:continue
+            if a1>=a2:continue
             bond=self.mol.atom(a1).coord-self.mol.atom(a2).coord
             dist=np.linalg.norm(bond)
             DM[i,j]=dist
@@ -101,10 +103,10 @@ class Calculator:
             if DM[i,j]>1.7*1.889:continue
             result.append([atms[i],atms[j],order])
         result=np.array(result)
-        vals=result[:,-1]
-        vals=np.sqrt(vals**2)
-        result[:,-1]=vals
-        return result
+        # vals=result[:,-1]
+        # vals=np.sqrt(vals**2)
+        # result[:,-1]=vals
+        return np.abs(result)
 
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
