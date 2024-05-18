@@ -36,12 +36,15 @@ class Shell:
             "5": "程序设置",
         }
         while True:
-            opt = self.input.Option("首页", opts, must=True)
+            printer.options('首页', opts)
+            opt = self.input("输入选项/文件[夹]: ")
             match opt:
                 case "1":
-                    self.bondProp()
+                    from pywfn import bondprop
+                    bondprop.onShell(self)
                 case "2":
-                    self.atomProp()
+                    from pywfn import atomprop
+                    atomprop.onShell(self)
                 case "3":
                     self.toolsPage()
                 case "4":
@@ -477,7 +480,7 @@ class Input:
         printer.options(title, opts)
         idxs = opts.keys()
         while True:
-            opt = self.input("请输入对应选项: ")
+            opt = self.input("输入选项/文件[夹]: ")
             if opt == "":
                 if must:
                     continue

@@ -7,6 +7,7 @@ from pywfn.maths import CM2PM
 from pywfn.utils import printer
 import numpy as np
 from itertools import product
+from pywfn import config
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
@@ -66,10 +67,11 @@ class Calculator:
         PMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         result=self.mayer(PM=PMp)
-        values=np.sqrt(result[:,-1])
-        indexs=values>0
-        result[:,-1]=values
-        return result[indexs,:]
+        orders=result[:,-1]
+        orders[orders<0]=0
+        orders=np.sqrt(orders)
+        result[:,-1]=orders
+        return result
 
     def hmo(self):
         # 1.建立键连矩阵
@@ -109,3 +111,28 @@ class Calculator:
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
         pass
+
+    def onShell(self):
+        printer.info('1. 计算mayer键级')
+        printer.info('2. 计算方向mayer键级')
+        printer.info('3. 计算pi键级')
+        printer.info('4. 计算HMO键级')
+        opt=input('请输入序号选择要计算的键级：')
+        if opt=='1':
+            orders=self.mayer()
+            for a1,a2,val in orders:
+                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
+        if opt=='2':
+            result=self.dirMayer()
+            for a1,a2,x,y,z,val in result:
+                printer.res(f'{a1:>2d}-{a2:>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
+        if opt=='3':
+            orders=self.piOrder()
+            for a1,a2,val in orders:
+                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
+        if opt=='4':
+            orders=self.hmo()
+            for a1,a2,val in orders:
+                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
+        else:
+            return

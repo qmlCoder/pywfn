@@ -21,7 +21,7 @@ def set_config(key:str,value):
     configDict[key]=value
     configPath.write_text(json.dumps(configDict))
 
-BOND_LIMIT=get_config('BOND_LIMIT',1.7) # 判断量原子之间是否成键的长度限制
+BOND_LIMIT=get_config('BOND_LIMIT',1.7*1.889) # 判断量原子之间是否成键的长度限制
 
 IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell中的print冲突
 IF_SHELL=False # 是否在shell中执行
