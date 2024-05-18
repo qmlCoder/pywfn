@@ -12,8 +12,8 @@ class Calculator:
         self.mol=mol
         self.caler=obtEnergy.Calculator(mol)
     
-    def calculate(self)->np.ndarray:
-        EM=self.caler.calculate() # 获取能量矩阵
+    def calculate(self,CM:np.ndarray=None)->np.ndarray:
+        EM=self.caler.calculate(CM) # 获取能量矩阵
         atoms=self.mol.atoms
         engs=np.zeros(len(atoms))
         for a,atom in enumerate(self.mol.atoms):
@@ -21,6 +21,22 @@ class Calculator:
             atomEng=EM[u:l,:].sum()
             engs[a]=atomEng
         return engs
+    
+    def dirEnergy(self):
+        """计算投影后系数矩阵算出的能量"""
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(self.mol)
+        atms=[]
+        dirs=[]
+        for atom in self.mol.atoms:
+            normal=dirCaler.normal(atom.idx) # 原子的法向量
+            if normal is None:continue
+            atms.append(atom.idx)
+            dirs.append(normal)
+        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,True,False)
+        engs=self.calculate(CMp)
+        return engs
+
         
     def printRes(self):
         resStr=self.resStr()

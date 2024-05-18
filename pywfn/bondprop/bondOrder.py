@@ -42,12 +42,12 @@ class Calculator:
             dirs=dirCaler.reaction(a1)
             atms=[a1]*len(dirs)
             if a1>a2:a1,a2=a2,a1
-            for d,(atm,dir_) in enumerate(zip(atms,dirs)):
-                CMp=self.mol.projCM(obts,[atm],[dir_],True,True)
+            for d in range(len(dirs)):
+                CMp=self.mol.projCM(obts,[atms[d]],[dirs[d]],True,True)
                 PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
                 a1_,a2_,order=self.mayer(PM=PMp,bonds=[[a1,a2]]).flatten()
                 assert a1==a1_ and a2==a2_,"原子不对应"
-                x,y,z=dir_
+                x,y,z=dirs[d]
                 result.append([a1,a2,x,y,z,order])
         return np.array(result)
     
@@ -72,8 +72,7 @@ class Calculator:
         return result[indexs,:]
 
     def hmo(self):
-        self.bond:list[int]=None
-        # 1.建立系数矩阵
+        # 1.建立键连矩阵
         atms=self.mol.heavyAtoms
         natm=len(atms)
         BM=np.zeros(shape=(natm,natm)) # 键连矩阵
@@ -89,10 +88,12 @@ class Calculator:
             BM[i,j]=1.0
             BM[j,i]=1.0
         # 2.求解
-        e,C=np.linalg.eigh(BM) # 矩阵对角化
+        e,C=np.linalg.eig(BM) # 矩阵对角化
+        print('C\n',C)
         nele=int(len(atms)-self.mol.charge) #电子数量
         idxs=np.argsort(e)[:nele//2] # 占据轨道
         CM=C[:,idxs] # 每一列对应一个特征向量
+        print('CM\n',CM)
         # 3.构建键级矩阵
         result=[]
         OM=np.zeros_like(BM)
@@ -103,9 +104,6 @@ class Calculator:
             if DM[i,j]>1.7*1.889:continue
             result.append([atms[i],atms[j],order])
         result=np.array(result)
-        # vals=result[:,-1]
-        # vals=np.sqrt(vals**2)
-        # result[:,-1]=vals
         return np.abs(result)
 
     def multiCenter(self,atms:list[int]):

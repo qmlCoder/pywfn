@@ -187,9 +187,11 @@ class Printer:
         self.console.print(table)
     
     def track(self,seq:Sequence,tip:str='')->Iterable:
-        if not config.IF_SHELL:return
-        from rich import progress
-        return progress.track(seq,description=tip)
+        if config.IF_DEBUG:
+            from rich import progress
+            return progress.track(seq,description=tip)
+        else:
+            return seq
 
 printer=Printer()
 

@@ -13,3 +13,5 @@ log.txt
 test.f90
 test.ipynb
 test.py
+dist
+pywfn.egg-info

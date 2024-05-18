@@ -1,5 +1,5 @@
 import sys
-sys.path.append("D:\code\pywfn")
+sys.path.append("D:\code\pywfn\src")
 
 from pywfn.base import Mol
 from pywfn.reader import LogReader,MolReader

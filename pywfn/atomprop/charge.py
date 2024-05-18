@@ -151,7 +151,7 @@ class Calculator(AtomCaler):
         for d in range(len(dirs_)):
             atm=atms_[d]
             dir_=dirs_[d]
-            CMp=self.mol.projCM(obts,[atm],[dir_],False,False) # 获取投影后的轨道系数
+            CMp=self.mol.projCM(obts,[atm],[dir_],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
             PMp=CM2PM(CMp,obts,self.mol.oE)
             if chrg=='mulliken':
                 val=self.mulliken(num=True,PM=PMp)[atm-1]
@@ -159,8 +159,31 @@ class Calculator(AtomCaler):
                 val=self.lowdin(num=True,PM=PMp)[atm-1]
             x,y,z=dir_
             dirVal[d]=[atm,x,y,z,val]
-
         return dirVal
+    
+    def piElectron(self,chrg:Chrgs='mulliken'):
+        """计算π电子"""
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(self.mol)
+        atms=[]
+        dirs=[]
+        idxs=[]
+        for idx,atom in enumerate(self.mol.atoms):
+            normal=dirCaler.normal(atom.idx) # 原子的法向量
+            if normal is None:continue
+            atms.append(atom.idx)
+            dirs.append(normal)
+            idxs.append(idx)
+        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
+        PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
+        if chrg=='mulliken':
+            val=self.mulliken(num=True,PM=PMp)
+        elif chrg=='lowdin':
+            val=self.lowdin(num=True,PM=PMp)
+        atms=np.array(atms).reshape(-1,1)
+        dirs=np.vstack(dirs)
+        val=val[idxs].reshape(-1,1)
+        return np.hstack([atms,dirs,val])
 
     def resStr(self)->str:
         """获取结果的打印内容"""

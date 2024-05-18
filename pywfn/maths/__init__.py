@@ -38,10 +38,13 @@ def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
     CM:系数矩阵,如果是开壳层的话,列数是行数的两倍[n,n]/[n,2n]
     n:分子轨道占据电子数
     """
+    assert type(obts)==list,"obts必须为列表"
     CMv=CM[:,obts]
     CMh=np.transpose(CMv)
-    PMs = CM2PMs(CM, obts, oe)
-    return np.sum(PMs, axis=0)
+    PM = (CMv @ CMh) * oe
+    return PM
+    # PMs = CM2PMs(CM, obts, oe)
+    # return np.sum(PMs, axis=0)
 
 
 def CM2PMs(CM, obts: list[int], oe: int):

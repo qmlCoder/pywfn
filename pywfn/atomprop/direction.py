@@ -34,6 +34,13 @@ class Calculator:
         - 平面sp2，垂直于平面的两个方向
         - 弯曲sp2，垂直于平面，且与键轴之间夹角大于90°
         """
+        def get_anyv(axis:np.ndarray): # 获取任意向量，但也不是真的任意
+            for i in range(3):
+                anyv=np.zeros(3)
+                anyv[i]=1.0
+                if vector_angle(anyv,axis)>1e-1:
+                    return anyv
+            raise ValueError("no anyv")
         atom=self.mol.atom(atm)
         nebs=atom.neighbors
         if len(nebs)==2:
@@ -46,17 +53,15 @@ class Calculator:
             angle=vector_angle(va,vb) # 两向量之间的夹角
             linear=abs(1-angle)<1e-1 # 是否为线性
             cent=atom.coord
-            axis=vb-va
+            axis=va-vb # 要保证旋转
             if linear:
-                anyv=np.random.rand(3) # 定义一个任意的向量
-                anyv/=np.linalg.norm(anyv)
+                anyv=get_anyv(axis) # 保证相同分子每次计算结果都一致
                 cros=np.cross(axis,anyv) # 计算垂直于键轴和任意向量的向量
-                cros/=np.linalg.norm(cros)
                 angs=np.linspace(0,np.pi*2,35,endpoint=False)
             else:
                 cros=np.cross(va,vb) # 垂直于va和vb的向量
-                cros/=np.linalg.norm(cros)
                 angs=np.linspace(0,np.pi,18,endpoint=True)
+            cros/=np.linalg.norm(cros)
             points=(cent+cros).reshape(-1,3)
             dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
             dirs=np.concatenate(dirs,axis=0)

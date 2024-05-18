@@ -12,11 +12,11 @@ class Calculator:
         self.CM=mol.CM
         self.NM:np.ndarray=None
     
-    def calculate(self)->np.ndarray:
+    def calculate(self,CM:np.ndarray=None)->np.ndarray:
         """
         返回与轨道系数矩阵对应的电子分布矩阵
         """
-        CM=self.CM
+        if CM is None:CM=self.CM
         SM=self.mol.SM
         row,col=CM.shape
         oE=self.mol.oE

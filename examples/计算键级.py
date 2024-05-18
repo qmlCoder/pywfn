@@ -7,15 +7,17 @@ from pywfn.atomprop import activity
 from pywfn.bondprop import bondOrder
 
 
-path0=fr"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn0.log"
-path0=fr"D:\BaiduSyncdisk\Articles\HFV\gfile\cnhn\C6H6_1.log"
-# path0="D:\BaiduSyncdisk\gfile\scans\lianxi\dingerxi.log"
-mol0=Mol(reader=LogReader(path0))
+path=fr"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn0.log"
+path=fr"D:\BaiduSyncdisk\Articles\HFV\gfile\cnhn\C6H6_1.log"
+path=fr"D:\BaiduSyncdisk\gfile\scans\lianxi\lianxiScan\f01.log"
+# path="D:\BaiduSyncdisk\gfile\scans\lianxi\dingerxi.log"
+# path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\lianben\b3lyp\logs\f13.log"
+mol=Mol(reader=LogReader(path))
 
-caler=bondOrder.Calculator(mol0)
+caler=bondOrder.Calculator(mol)
 
-result=caler.mayer()
-print(result)
+# result=caler.mayer()
+# print(result)
 
 # result=caler.dirMayer([
 #     [1,2],
@@ -27,6 +29,5 @@ result=caler.piOrder()
 print(result)
 
 result=caler.hmo()
-idxs=(result[:,0]==1) & (result[:,1]==2)
-print(result[idxs,:])
+print(result)
 pass

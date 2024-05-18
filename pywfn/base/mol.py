@@ -150,8 +150,7 @@ class Mol:
                 if atom1.idx>=atom2.idx:continue
                 r=np.linalg.norm(atom2.coord-atom1.coord)
                 # r_=elements[atom1.symbol].radius+elements[atom2.symbol].radius
-                r_=1.7*1.889
-                if r>r_:continue
+                if r>config.BOND_LIMIT:continue
                 self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
     
