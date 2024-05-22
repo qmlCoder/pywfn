@@ -31,23 +31,27 @@ class Calculator(AtomCaler):
         caler=charge.Calculator(self.mol)
 
         # 将长方形的系数矩阵分为两个正方形分别计算
-
-        self.mol.props['obtOccs']=a_occs
-        a_Ects=caler.calculate(chrg=chrg)
-
-        self.mol.props['obtOccs']=b_occs
-        b_Ects=caler.calculate(chrg=chrg)
+        PMa=CM2PM(self.mol.CM.copy(),a_occs,1)
+        PMb=CM2PM(self.mol.CM.copy(),b_occs,1)
+        a_Ects=caler.calculate(chrg=chrg,PM=PMa)
+        b_Ects=caler.calculate(chrg=chrg,PM=PMb)
         # 恢复分子属性
-        self.mol.props['obtOccs']=occs_old
         return -(a_Ects-b_Ects)
-        
-    def resStr(self):
-        elects=self.calculate()
-        atoms=lutils.atomIdxs(self.mol.atoms)
-        return lutils.atomValueStr(self.mol,atoms,elects)
     
     def onShell(self):
-        spins=self.calculate()
-        for i,spin in enumerate(spins):
-            printer.res(f'{i+1}: {spin}')
-        return
+        while True:
+            printer.options('原子自旋',{
+                '1':'mulliken电子自旋',
+                '2':'lowdin电子自旋',
+            })
+            opt=input('请输入自旋类型:')
+            if opt=='1':
+                spins=self.calculate(chrg='mulliken')
+                for i,spin in enumerate(spins):
+                    printer.res(f'{i+1}: {spin}')
+            elif opt=='2':
+                spins=self.calculate(chrg='lowdin')
+                for i,spin in enumerate(spins):
+                    printer.res(f'{i+1}: {spin}')
+            else:
+                break

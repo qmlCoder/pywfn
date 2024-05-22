@@ -75,7 +75,7 @@ subroutine fac2(num, res) bind(C, name="fac2_") !计算双阶乘
     end if
 end subroutine fac2
 
-subroutine gtf(alp, np, pos, r2, lmn, val) bind(C, name="gtf_") ! 计算某些点处的高斯函数值
+subroutine gtf(alp, np, pos, r2, lmn, val) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
     ! 高斯指数，坐标数量，坐标值，坐标平方和，角动量分量，返回值
     ! 直接传入平方和防止重复计算，减少计算量
     use iso_c_binding
@@ -109,7 +109,7 @@ subroutine gtf(alp, np, pos, r2, lmn, val) bind(C, name="gtf_") ! 计算某些�
     
 end subroutine gtf
 
-subroutine cgf(nc, alps, coes, lmn, np, r2, pos, wfn) bind(C, name="cgf_") ! 计算收缩波函数
+subroutine cgf(nc, alps, coes, lmn, np, r2, pos, wfn) bind(C, name="cgf_") ! 计算收缩波函数，原子轨道
     ! 收缩数量，高斯指数，收缩系数，角动量分量，点数量，点平方和，点坐标，波函数值
     use iso_c_binding
     implicit none

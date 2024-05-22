@@ -25,7 +25,7 @@ class Title:
     def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
         self.line:int=-1
         self.mark:str=mark
-        self.jtype=0 # 0：正则表达式匹配，1：包含式匹配，2：全等匹配
+        self.jtype=jtype # 0：正则表达式匹配，1：包含式匹配，2：全等匹配
         self.multi=multi # 是否持续查找（多个中查找最后一个）
     
     def judge(self,line:str):
@@ -34,6 +34,8 @@ class Title:
             return re.search(self.mark,line) is not None
         elif self.jtype==1:
             return self.mark in line
+        elif self.jtype==2:
+            return line==self.mark
 
     
     def __repr__(self) -> str:
@@ -50,15 +52,42 @@ class LogReader(Reader):
             'coefs':Title(r'  Molecular Orbital Coefficients',0),
             'acoefs':Title(r'Alpha Molecular Orbital Coefficients',1),
             'bcoefs':Title(r'Beta Molecular Orbital Coefficients',1),
-            'overlap':Title('\*\*\* Overlap \*\*\*',1),
-            'kinetic':Title('\*\*\* Kinetic Energy \*\*\*',1),
-            'potential':Title('\*\*\* Potential Energy \*\*\*',1),
+            'overlap':Title(' *** Overlap *** \n',2),
+            'kinetic':Title(' *** Kinetic Energy *** \n',2),
+            'potential':Title(' ***** Potential Energy ***** \n',2),
             'density':Title(r'Density Matrix:',1),
             'basisData':Title(r'Overlap normalization',1),
             'engs':Title(r'Zero-point correction',1),
             'keyWards':Title(r'# .+',0),
         }
         self.search_title()
+    
+    def search_title(self):
+        """
+        在文件中搜索需要的行号
+        """
+        from concurrent.futures import ThreadPoolExecutor
+        from concurrent.futures._base import Future
+        # 所有标题所在的行
+        def sear_group(start:int): #每一个搜索的线程
+            keys=list(self.titles.keys())
+            for j in range(start,start+bsize):
+                line=self.getline(j)
+                if line=='':break
+                for key in keys:
+                    title:Title=self.titles[key]
+                    if title.line!=-1 and title.multi==False:continue
+                    if not title.judge(line):continue
+                    self.titles[key].line=j
+                        # print(j,line)
+        nWork=5
+        bsize=10_000
+        with ThreadPoolExecutor(max_workers=nWork) as executor:
+            futures:list[Future] = []
+            for i in range(0,self.lineNum,bsize):
+                futures.append(executor.submit(sear_group, i))
+            for future in futures:
+                future.result()
     
     @property
     def normalEnd(self)->bool:
@@ -92,7 +121,6 @@ class LogReader(Reader):
     def get_obtShls(self) -> list[int]:
         ObtShls=self.read_CMs()[1]
         return ObtShls
-
 
     @lru_cache
     def get_obtSyms(self)-> list[list[int]]:
@@ -131,30 +159,6 @@ class LogReader(Reader):
         basis.setData(data)
         return basis
 
-
-    def search_title(self):
-        """
-        搜索到需要用到的标题行就停止
-        """
-        # 所有标题所在的行
-        def sear_group(start:int): #每一个搜索的线程
-            for j in range(start,start+100_000):
-                line=self.getline(j)
-                if line=='':break
-                for key in self.titles.keys():
-                    title:Title=self.titles[key]
-                    if title.line!=-1 and title.multi==False:continue
-                    if title.judge(line):
-                        self.titles[key].line=j
-                        # print(j,line)
-        threads:list[threading.Thread]=[]
-        for i in range(0,self.lineNum,100_000):
-            t=threading.Thread(target=sear_group,args=(i,))
-            t.start()
-            threads.append(t)
-        for t in threads:
-            t.join()
-
     def read_keyWrds(self):
         """读取关键字"""
         titleNum=self.titles['keyWards'].line
@@ -164,7 +168,6 @@ class LogReader(Reader):
             if line=='-'*70:break
             keyWards+=line
         return keyWards
-
 
     @lru_cache
     def read_coords(self)->tuple[list[str],np.ndarray]:
@@ -419,7 +422,17 @@ class LogReader(Reader):
         获取轨道系数及相关信息
         atms,shls,angs,engs,occs,CM
         """
-        if self.titles['coefs'].line!=-1:
+        atms=self.load_fdata('atms.npy')
+        shls=self.load_fdata('shls.npy')
+        angs=self.load_fdata('angs.npy')
+        engs=self.load_fdata('engs.npy')
+        occs=self.load_fdata('occs.npy')
+        CM=self.load_fdata('CM.npy')
+        fdatas=[atms,shls,angs,engs,occs,CM]
+        rdatas=[fdata is not None for fdata in fdatas]
+        if all(rdatas): # 所有读取的数据都不为空，有可能某些数据被用户删除
+            return atms,shls,angs,engs,occs,CM
+        elif self.titles['coefs'].line!=-1:
             atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
             return atms,shls,angs,engs,occs,CM
         elif self.titles['acoefs'].line!=-1:
@@ -431,6 +444,12 @@ class LogReader(Reader):
             engs=engsA+engsB
             occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
+            self.save_fdata('atms',atms)
+            self.save_fdata('shls',shls)
+            self.save_fdata('angs',angs)
+            self.save_fdata('engs',engs)
+            self.save_fdata('occs',occs)
+            self.save_fdata('CM',CM)
             return atms,shls,angs,engs,occs,CM
         else:
             raise ValueError('没有找到轨道系数')
@@ -438,7 +457,11 @@ class LogReader(Reader):
     @lru_cache
     def read_SM(self):
         """读取重叠矩阵"""
-        return self.read_Mat('overlap')
+        SM=self.load_fdata('SM.npy')
+        if SM is None:
+            SM=self.read_Mat('overlap')
+            self.save_fdata('SM.npy',SM)
+        return SM
 
     def read_Mat(self,title:str):
         """读取矩阵"""
@@ -447,6 +470,7 @@ class LogReader(Reader):
         lineDatas:dict[str:str]={}
         titleNum=self.titles[title].line
         if titleNum is None:
+            printer.warn('未找到矩阵',title)
             return None
         for i in range(titleNum+1,self.lineNum):
             line=self.getline(i)

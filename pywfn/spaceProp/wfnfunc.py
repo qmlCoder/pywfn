@@ -1,5 +1,8 @@
 """
-计算空间波函数
+计算分子轨道空间波函数
+基函数的波函数
+原子轨道的波函数
+原子的波函数
 """
 from pywfn.base import Mol
 from pywfn.maths import Gto
@@ -13,34 +16,6 @@ class Calculator:
     def __init__(self,mol) -> None:
         self.mol:Mol=mol
         self.pos=np.zeros((1,3)) # 初始坐标设为原点
-
-    def molDens(self,pos:np.ndarray):
-        """计算分子电子密度"""
-        obts = self.mol.O_obts
-        dens=np.zeros(len(pos))
-        for o in obts:
-            wfn=self.obtWfn(o,pos)
-            dens+=wfn**2*self.mol.oE
-        return dens
-    
-    def molDens2(self,pos:np.ndarray):
-        dens=np.zeros(len(pos))
-        for atom in self.mol.atoms:
-            dens+=self.atmDens(atom.idx,pos)
-        return dens
-    
-    def atmDens(self,atm:int,pos:np.ndarray):
-        """计算原子电子密度"""
-        nmat=self.mol.CM.shape[0]
-        atom=self.mol.atom(atm)
-        dens=np.zeros(len(pos))
-        u,l = atom.obtBorder
-        for i in range(nmat):
-            wfn_i=self.atoWfn(i,pos)
-            for j in range(u,l):
-                wfn_j=self.atoWfn(j,pos)
-                dens+=wfn_i*wfn_j*self.mol.PM[i,j]
-        return dens
     
     def obtWfn(self,obt:int,pos:np.ndarray):
         """

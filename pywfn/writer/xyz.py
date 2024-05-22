@@ -5,26 +5,33 @@ from pywfn import base
 from pathlib import Path
 from pywfn.data.elements import elements
 from pywfn.utils import printer
+from pywfn.data import temps
 
-class xyzWriter:
+class XyzWriter:
     def __init__(self,mol:"base.Mol") -> None:
         self.mol=mol
-        self.resStr=''
+        self.title='generate by pywfn'
+        self.temp=temps.xyz
 
-    def write(self):
-        self.resStr+=f'{len(self.mol.atoms)}\n'
-        self.resStr+=f'generate by pywfn\n'
+    def build(self):
+        natm=len(self.mol.atoms)
+        self.temp=self.temp.replace('<NATM>',f'{natm}')
+        self.temp=self.temp.replace('<title>',self.title)
+        
+        coordStrs=[]
         for atom in self.mol.atoms:
             x,y,z=atom.coord
             sym=atom.symbol
             idx=elements[sym].charge
-            self.resStr+=f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}\n'
+            coordStrs.append(f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')
+        self.temp=self.temp.replace('<coord>','\n'.join(coordStrs))
 
-    def save(self):
-        self.write()
-        path=self.mol.reader.path
-        path=Path(path)
-        filePath=(path.parent/f'{path.stem}.xyz')
-        filePath.write_text(self.resStr)
-        print(filePath)
-        printer.res(f'{filePath} 导出成功!😄')
+    def save(self,path:str):
+        self.build()
+        Path(path).write_text(self.temp)
+        printer.res(f'{path} 导出成功!😄')
+
+    def onShell(self):
+        path=Path(self.mol.reader.path)
+        path=(path.parent/f'{path.stem}.xyz')
+        self.save(path)

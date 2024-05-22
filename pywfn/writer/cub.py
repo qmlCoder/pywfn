@@ -17,7 +17,7 @@ from pywfn.utils import printer
 from pywfn.writer import lutils
 
 
-class cubWriter:
+class CubWriter:
     def __init__(self,mol:base.Mol) -> None:
         self.mol=mol
         self.step:float=config.RENDER_CLOUD_STEP
@@ -35,7 +35,6 @@ class cubWriter:
         self.filePath=(path.parent/f'{path.stem}_{name}.cub')
         self.file=open(self.filePath,mode='w')
         
-
     def get_gridPos(self):
         """生成格点数据"""
         self.mol.bohr=False
@@ -57,8 +56,6 @@ class cubWriter:
         self.file.write(f'{Nz:>5}{0:>12.6f}{0:>12.6f}{step:>12.6f}\n')
         self.write_coord()
         return gridPos
-    
-
     
     def write_coord(self):
         
@@ -98,3 +95,11 @@ class cubWriter:
         self.write_value()
         printer.res(f'导出文件至{self.filePath}')
         self.file.close()
+
+    def onShell(self):
+        from pywfn.utils import parse_intList
+        atms=input('输入要导出的原子[*]')
+        if atms!='':self.atoms=parse_intList(atms)
+        step=input(f'输入格点步长[{self.step:>.2f}]')
+        if step!='':step=float(step)
+        self.save(self.mol.reader.fileName)

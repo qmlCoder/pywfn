@@ -17,11 +17,11 @@ class Calculator(AtomCaler):
         self.mol=mol
         self.chrg:Chrgs='mulliken'
     
-    def calculate(self,chrg:Chrgs)->np.ndarray:
+    def calculate(self,chrg:Chrgs,PM=None)->np.ndarray:
         if chrg=='mulliken':
-            return self.mulliken()
+            return self.mulliken(PM)
         if chrg=='lowdin':
-            return self.lowdin()
+            return self.lowdin(PM)
         if chrg=='hirshfeld':
             return self.hirshfeld()
     
@@ -76,8 +76,8 @@ class Calculator(AtomCaler):
         """
         计算原子的Hirshfeld电荷，目前还未成功（分子的电子密度计算不正确）
         """
-        from pywfn.spaceProp import wfn
-        wfnCaler=wfn.Calculator(self.mol)
+        from pywfn.spaceProp import wfnfunc
+        wfnCaler=wfnfunc.Calculator(self.mol)
         self.mol.bohr=True
         from pywfn.data import sphGrid,radDens
         coords=sphGrid.gridData[:,:3]# 原点为0的坐标
@@ -108,7 +108,7 @@ class Calculator(AtomCaler):
     def hirshfeld2(self):
         """第二种计算hirshfeld电荷的方法"""
         from pywfn.data import sphGrid,radDens
-        from pywfn.spaceProp import wfn
+        from pywfn.spaceProp import wfnfunc
         coords=sphGrid.gridData[:,:3]# 原点为0的坐标
         weight=sphGrid.gridData[:,3]
         pos=[]
@@ -120,7 +120,7 @@ class Calculator(AtomCaler):
         natm=len(self.mol.atoms)
         wei=np.hstack(wei)/natm
         
-        wfnCaler=wfn.Calculator(self.mol)
+        wfnCaler=wfnfunc.Calculator(self.mol)
         chars=[]
         molDens=wfnCaler.molDens(pos)
         print(np.min(molDens),np.max(molDens)),print(np.sum(molDens*wei))
@@ -144,21 +144,21 @@ class Calculator(AtomCaler):
     
     def dirCharge(self,chrg:Chrgs,atms:list[int],dirs:list[np.ndarray]=None)->np.ndarray:
         """计算不同方向的电荷[n,5](atm,x,y,z,val)"""
-        atms_,dirs_=fit_dirs(self.mol,atms,dirs)
-        assert len(atms_)==len(dirs_),"长度需要一致"
-        dirVal=np.zeros(shape=(len(dirs_),5))
+        fatms,fdirs=fit_dirs(self.mol,atms,dirs)
+        assert len(fatms)==len(fdirs),"长度需要一致"
+        dirVal=np.zeros(shape=(len(fdirs),5))
         obts=self.mol.O_obts
-        for d in range(len(dirs_)):
-            atm=atms_[d]
-            dir_=dirs_[d]
-            CMp=self.mol.projCM(obts,[atm],[dir_],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
+        for d in range(len(fdirs)):
+            fatm=fatms[d]
+            fdir=fdirs[d]
+            CMp=self.mol.projCM(obts,[fatm],[fdir],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
             PMp=CM2PM(CMp,obts,self.mol.oE)
             if chrg=='mulliken':
-                val=self.mulliken(num=True,PM=PMp)[atm-1]
+                val=self.mulliken(num=True,PM=PMp)[fatm-1]
             elif chrg=='lowdin':
-                val=self.lowdin(num=True,PM=PMp)[atm-1]
-            x,y,z=dir_
-            dirVal[d]=[atm,x,y,z,val]
+                val=self.lowdin(num=True,PM=PMp)[fatm-1]
+            x,y,z=fdir
+            dirVal[d]=[fatm,x,y,z,val]
         return dirVal
     
     def piElectron(self,chrg:Chrgs='mulliken'):
@@ -184,40 +184,46 @@ class Calculator(AtomCaler):
         dirs=np.vstack(dirs)
         val=val[idxs].reshape(-1,1)
         return np.hstack([atms,dirs,val])
-
-    def resStr(self)->str:
-        """获取结果的打印内容"""
-        satoms=lutils.atomIdxs(self.mol.atoms)
-        charges=self.calculate()
-        return lutils.atomValueStr(self.mol,satoms,charges)
     
     def onShell(self):
-        from pywfn.utils import parse_atmList
-        printer.info('1. mulliken电荷')
-        printer.info('2. lowdin电荷')
-        printer.info('3. 方向性电荷')
+        from pywfn.utils import parse_intList
+        chrgMap={'':'mulliken','1':'mulliken','2':'lowdin'}
         while True:
+            printer.options('原子电荷',{
+                '1':'mulliken电荷',
+                '2':'lowdin电荷',
+                '3':'方向性电荷',
+                '4':'π电子分布',
+            })
             opt=input('请选择电荷类型:')
-            if opt=='':break
             if opt=='1':
                 charges=self.mulliken()
                 for i,v in enumerate(charges):
                     print(f'{i+1}: {v}')
-            if opt=='2':
+            elif opt=='2':
                 charges=self.lowdin()
                 for i,v in enumerate(charges):
                     print(f'{i+1}: {v}')
-            if opt=='3':
-                printer.info('1. Mulliken[*]; 2. lowdin')
-                opt=input('请选择方向性电荷类型:')
-                if opt not in ['1','2']:return
-                if opt=='1':charg='mulliken'
-                if opt=='2':charg='lowdin'
-                numStr=input('请输入要计算的原子索引：')
-                atms=parse_atmList(numStr)
-                charges=self.dirCharge(charg,atms)
+            elif opt=='3':
+                print('1. Mulliken[*]; 2. lowdin')
+                opt=input('选择电荷类型:')
+                if opt not in chrgMap.keys():return
+                chrg=chrgMap[opt]
+                numStr=input('输入要计算的原子：')
+                atms=parse_intList(numStr)
+                charges=self.dirCharge(chrg,atms)
                 for a,x,y,z,v in charges:
-                    print(f'{a}: {x},{y},{z}  {v}')
+                    print(f'{int(a):>3d}({x:>6.2f},{y:>6.2f},{z:>6.2f}):{v:>8.4f}')
+            elif opt=='4':
+                print('1. Mulliken[*]; 2. lowdin')
+                opt=input('选择电荷类型:')
+                if opt not in chrgMap.keys():return
+                chrg=chrgMap[opt]
+                result=self.piElectron(chrg)
+                for i,val in enumerate(result):
+                    print(f'{i+1:>3d}:{val:>8.4f}')
+            else:
+                break
     
 def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]):
     """
@@ -226,14 +232,14 @@ def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]):
     if dirs is None:
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(mol)
-        atms_=[]
-        dirs_=[]
+        fatms=[]
+        fdirs=[]
         for atm in atms:
             resDirs=dirCaler.reaction(atm)
-            dirs_.append(resDirs)
-            atms_+=[atm]*len(resDirs)
-        dirs_=np.vstack(dirs_)
+            fdirs.append(resDirs)
+            fatms+=[atm]*len(resDirs)
+        fdirs=np.vstack(fdirs)
     else:
-        atms_=atms
-        dirs_=dirs
-    return atms_,dirs_
+        fatms=atms
+        fdirs=dirs
+    return fatms,fdirs

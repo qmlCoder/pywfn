@@ -13,6 +13,7 @@ class Calculator:
         self.caler=obtEnergy.Calculator(mol)
     
     def calculate(self,CM:np.ndarray=None)->np.ndarray:
+        """计算每个原子对应的轨道能量"""
         EM=self.caler.calculate(CM) # 获取能量矩阵
         atoms=self.mol.atoms
         engs=np.zeros(len(atoms))
@@ -36,20 +37,22 @@ class Calculator:
         CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,True,False)
         engs=self.calculate(CMp)
         return engs
-
-        
-    def printRes(self):
-        resStr=self.resStr()
-        printer.info('原子能量分布: ')
-        printer.res(resStr)
-        
-    def resStr(self):
-        engs=self.calculate()
-        atoms=[a.idx for a in self.mol.atoms]
-        return lutils.atomValueStr(self.mol,atoms,engs)
     
     def onShell(self):
         engs=self.calculate()
-        for i,eng in enumerate(engs):
-            printer.res(f'{i}: {eng}')
-        return
+        while True:
+            printer.options('原子能量',{
+                '1':'原子轨道能',
+                '2':'方向原子能'
+            })
+            opt=input('输入要计算的原子能:')
+            if opt=='1':
+                energy=self.calculate()
+                for i,eng in enumerate(energy):
+                    printer.res(f'{i+1}: {eng}')
+            elif opt=='2':
+                energy=self.dirEnergy()
+                for i,eng in enumerate(engs):
+                    printer.res(f'{i}: {eng}')
+            else:
+                break

@@ -11,10 +11,10 @@ if not configPath.exists():
 configDict:dict=json.loads(configPath.read_text())
 
 def get_config(key:str,value):
-    if key in configDict.keys():
-        return configDict[key]
-    else:
-        return value
+    if key not in configDict.keys():
+        configDict[key]=value
+        set_config(key,value)
+    return configDict[key]
 
 def set_config(key:str,value):
     global configDict
@@ -22,7 +22,6 @@ def set_config(key:str,value):
     configPath.write_text(json.dumps(configDict))
 
 BOND_LIMIT=get_config('BOND_LIMIT',1.7*1.889) # 判断量原子之间是否成键的长度限制
-
 IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell中的print冲突
 IF_SHELL=False # 是否在shell中执行
 
@@ -44,3 +43,5 @@ TEMPLATE_PATH_SI=get_config('TEMPLATE_PATH_SI',None)
 SHOW_PRINT=False
 
 IF_CM_P=False # 是否使用投影轨道
+
+DATA_ROOT=Path(__file__).parent/'data'

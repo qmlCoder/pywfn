@@ -8,7 +8,7 @@ from pywfn.base import Mol
 from pywfn import config
 from pywfn.data import temps
 
-class gjfWriter:
+class GjfWriter:
     def __init__(self,mol:Mol):
         self.mol:Mol=mol
         self.temp=temps.gjf
@@ -44,3 +44,9 @@ class gjfWriter:
     def save(self,path:str):
         self.build()
         Path(path).write_text(self.temp)
+        print(f'文件导出至{path}')
+    
+    def onShell(self):
+        path=Path(self.mol.reader.path)
+        path=(path.parent/f'{path.stem}.gjf')
+        self.save(path)

@@ -82,3 +82,11 @@ class Tool:
             f.write(self.template)
 
 
+    def onShell(self):
+        from pywfn.utils import parse_intList
+        print('(1:能量,2:坐标,3:频率):')
+        msgs=input('请输入需要保存的信息[*]')
+        if msgs!='':self.selects=parse_intList(msgs)
+        same=input('是否保存到同一文件内？[y]/n')
+        if same=='n':self.sameFile=False
+        self.save()

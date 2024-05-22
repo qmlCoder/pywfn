@@ -12,6 +12,11 @@ Title Card Required
 <COORD>
 
 """
+xyz=\
+"""<NATM>
+<TITLE>
+<COORD>
+"""
 
 si=\
 """<FILENAME>

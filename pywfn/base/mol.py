@@ -255,7 +255,7 @@ class Mol:
         lkeep:其它价层系数是否保留 keep other layer
         keeps:额外保留的轨道，可以使用正则表达式匹配
         """
-        assert isinstance(dirs,list),"方向想两需要为列表"
+        assert isinstance(dirs,list),"方向向量需为列表"
         assert len(atms)==len(dirs),"原子和方向数量不同"
         if akeep:
             CMp=np.copy(self.CM)

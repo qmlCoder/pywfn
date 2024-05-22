@@ -44,7 +44,7 @@ class Calculator:
             atms=[a1]*len(dirs)
             if a1>a2:a1,a2=a2,a1
             for d in range(len(dirs)):
-                CMp=self.mol.projCM(obts,[atms[d]],[dirs[d]],True,True)
+                CMp=self.mol.projCM(obts,[a1,a2],[dirs[d],dirs[d]],False,True)
                 PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
                 a1_,a2_,order=self.mayer(PM=PMp,bonds=[[a1,a2]]).flatten()
                 assert a1==a1_ and a2==a2_,"原子不对应"
@@ -91,11 +91,9 @@ class Calculator:
             BM[j,i]=1.0
         # 2.求解
         e,C=np.linalg.eig(BM) # 矩阵对角化
-        print('C\n',C)
         nele=int(len(atms)-self.mol.charge) #电子数量
         idxs=np.argsort(e)[:nele//2] # 占据轨道
         CM=C[:,idxs] # 每一列对应一个特征向量
-        print('CM\n',CM)
         # 3.构建键级矩阵
         result=[]
         OM=np.zeros_like(BM)
@@ -113,26 +111,33 @@ class Calculator:
         pass
 
     def onShell(self):
-        printer.info('1. 计算mayer键级')
-        printer.info('2. 计算方向mayer键级')
-        printer.info('3. 计算pi键级')
-        printer.info('4. 计算HMO键级')
-        opt=input('请输入序号选择要计算的键级：')
-        if opt=='1':
-            orders=self.mayer()
-            for a1,a2,val in orders:
-                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
-        if opt=='2':
-            result=self.dirMayer()
-            for a1,a2,x,y,z,val in result:
-                printer.res(f'{a1:>2d}-{a2:>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
-        if opt=='3':
-            orders=self.piOrder()
-            for a1,a2,val in orders:
-                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
-        if opt=='4':
-            orders=self.hmo()
-            for a1,a2,val in orders:
-                printer.res(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
-        else:
-            return
+        while True:
+            printer.options('键级计算',{
+                '1':'mayer键级',
+                '2':'方向mayer键级',
+                '3':'pi键级',
+                '4':'HMO键级',
+            })
+            opt=input('请输入序号选择要计算的键级：')
+            if opt=='1':
+                orders=self.mayer()
+                for a1,a2,val in orders:
+                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+            elif opt=='2':
+                opt=input('请输入需要计算的键，例如(1-2): ')
+                a1,a2=opt.split('-')
+                result=self.dirMayer(bonds=[[int(a1),int(a2)]])
+                for a1,a2,x,y,z,val in result:
+                    print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
+            elif opt=='3':
+                orders=self.piOrder()
+                for a1,a2,val in orders:
+                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+            elif opt=='4':
+                orders=self.hmo()
+                for a1,a2,val in orders:
+                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+            elif opt=='':
+                break
+            else:
+                printer.warn('无效选项!')

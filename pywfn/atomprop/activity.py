@@ -38,7 +38,7 @@ class Calculator:
         result[:,1]=spins[:,1]-spins[:,2]
         return spins
     
-    def delEng(self):
+    def engDiff(self):
         from pywfn.atomprop import energy
         cals=[energy.Calculator(mol) for mol in self.mols]
         natm=len(cals[0].mol.atoms)
@@ -124,20 +124,51 @@ class Calculator:
     
     def onShell(self,shell:Shell):
         from pywfn.utils import printer
-        opts=[
-            'fukui函数',
-            'parr函数',
-            '电荷差值',
-            '化合价',
-            '自由价',
-            '方向fukui函数'
-        ]
-        for i,each in enumerate(opts):
-            printer.info(f'{i+1}.{each}')
-        opt=input('请选择要计算的活性:')
-        if opt=='1':
-            self.mols=shell.input.Moles()
-            printer.info('请输入电荷类型：')
-            printer.info('1.mulliken; 2.lowdin')
-            chrg=input()
-            result=self.fukui()
+        while True:
+            printer.options('原子活性',{
+                '1':'福井函数',
+                '2':'parr函数',
+                '3':'原子能差',
+                '4':'化合价',
+                '5':'方向自由价',
+                '6':'方向福井函数',
+            })
+            opt=input('选择计算活性类型:')
+            chrgMap={'':'mulliken','1':'mulliken','2':'lowdin'}
+            if opt=='1':
+                self.mols=shell.input.Moles(num=3)
+                opt=input('请输入电荷类型：1.mulliken; 2.lowdin')
+                if opt not in chrgMap.keys():continue
+                result=self.fukui()
+                for i,e,n in enumerate(result):
+                    print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
+            elif opt=='2':
+                self.mols=shell.input.Moles(num=3)
+                opt=input('请输入电荷类型：1.mulliken; 2.lowdin')
+                if opt not in chrgMap.keys():continue
+                result=self.parr()
+                for i,e,n in enumerate(result):
+                    print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
+            elif opt=='3':
+                self.mols=shell.input.Moles(num=3)
+                result=self.engDiff()
+                for i,val in enumerate(result):
+                    print(f'{i+1:>3d} {val:>8.4f}')
+            elif opt=='4': # 化合价
+                self.mols=shell.input.Moles(num=1)
+                result=self.valence()
+                for i,val in enumerate(result):
+                    print(f'{i+1:>3d} {val:>8.4f}')
+            elif opt=='5': # 自由价
+                self.mols=shell.input.Moles(num=1)
+                result=self.freeValence()
+                for a,x,y,z,v in result:
+                    print(f'{a:>3d} {x:>8.4f} {y:>8.4f} {z:>8.4f} {v:>8.4f}')
+            elif opt=='6': # 方向fukui函数
+                self.mols=shell.input.Moles(num=3)
+                atms=shell.input.Number(tip='输入原子编号: ',dtype='int')
+                result=self.dirFukui(atms)
+                for i,val in enumerate(result):
+                    print(f'{i+1:>3d} {val:>8.4f}')
+            else:
+                break

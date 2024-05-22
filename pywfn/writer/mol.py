@@ -3,6 +3,8 @@
 """
 from pywfn.base import Mol
 from pywfn.data import temps
+from pathlib import Path
+
 class MolWriter:
     def __init__(self,mol:Mol):
         self.mol = mol
@@ -42,5 +44,10 @@ class MolWriter:
         保存mol文件到指定路径
         path:str 文件路径
         """
-        with open(path,'w') as f:
-            f.write(self.temp)
+        self.build()
+        Path(path).write_text(self.temp)
+    
+    def onShell(self):
+        path=Path(self.mol.reader.path)
+        path=(path.parent/f'{path.stem}.mol')
+        self.save(path)

@@ -60,7 +60,7 @@ class Calculator:
                 angs=np.linspace(0,np.pi*2,35,endpoint=False)
             else:
                 cros=np.cross(va,vb) # 垂直于va和vb的向量
-                angs=np.linspace(0,np.pi,18,endpoint=True)
+                angs=np.linspace(0,np.pi,19,endpoint=True)
             cros/=np.linalg.norm(cros)
             points=(cent+cros).reshape(-1,3)
             dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]

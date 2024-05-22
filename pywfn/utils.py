@@ -5,7 +5,7 @@ import numpy as np
 from pywfn import config
 
 
-def parse_atmList(string)->list[int]:
+def parse_intList(string)->list[int]:
     """将字符串解析为数字列表"""
     res = []
     for each in re.split(r',|，', string):
