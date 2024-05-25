@@ -7,6 +7,7 @@
 from pywfn.base import Mol
 from pywfn.maths import Gto
 import numpy as np
+from scipy.interpolate import griddata
 
 from pywfn.data import sphGrid
 weight = sphGrid.gridData[:, -1]
@@ -15,7 +16,8 @@ coords = sphGrid.gridData[:, :3]
 class Calculator:
     def __init__(self,mol) -> None:
         self.mol:Mol=mol
-        self.pos=np.zeros((1,3)) # 初始坐标设为原点
+        self.molPos=np.zeros((1,3)) # 初始坐标设为原点
+        self.a2mWfns={}
     
     def obtWfn(self,obt:int,pos:np.ndarray):
         """
@@ -28,6 +30,18 @@ class Calculator:
         for c,coef in enumerate(coefs):
             wfn+=coef*self.atoWfn(c,pos)
         return wfn
+    
+    def a2mWfn(self,i,atmPos):
+        keys=self.a2mWfns.keys()
+        if i in keys:
+            return self.a2mWfns[i]
+        else:
+            # atmWfn=self.atoWfn(i,atmPos)
+            # molWfn=griddata(atmPos,atmWfn,self.molPos,method='linear')
+            molWfn=self.atoWfn(i,self.molPos)
+            assert True not in np.isnan(molWfn),"a2mWfn计算不正确"
+            self.a2mWfns[i]=molWfn
+            return molWfn
     
     def atoWfn(self,i:int,pos:np.ndarray):
         """

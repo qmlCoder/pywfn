@@ -37,6 +37,10 @@ class Atom:
     @cached_property
     def atomic(self)->int:
         return elements[self.symbol].idx
+    
+    @cached_property
+    def radius(self)->float:
+        return elements[self.symbol].radius
 
     @cached_property
     def obtBorder(self): # 获取元素上下界
@@ -253,6 +257,17 @@ class Atoms:
     @property
     def indexs(self)->list[int]:
         return [a.idx for a in self.atoms]
+    
+    @cached_property
+    def DM(self):
+        """原子之间的键长矩阵"""
+        nmat=self.num
+        DM=np.zeros((nmat,nmat))
+        for i,atomi in enumerate(self.atoms):
+            for j,atomj in enumerate(self.atoms):
+                DM[i,j]=np.linalg.norm(atomj.coord-atomi.coord)
+        return DM
+
     
     @property
     def num(self)->int:

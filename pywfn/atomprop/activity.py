@@ -6,6 +6,7 @@ from pywfn.atomprop import charge, direction, spin
 from pywfn.atomprop.charge import Chrgs
 import numpy as np
 from pywfn.shell import Shell
+from pywfn.maths import CM2PM
 
 class Calculator:
     def __init__(self) -> None:
@@ -73,29 +74,23 @@ class Calculator:
             result[a]=valence
         return result
 
-    def freeValence(self,atms:list[int]):
+    def freeValence(self,atm:int):
         """计算指定原子的自由价[d,5](atm,x,y,z,val)"""
         assert len(self.mols)==1,"只能算一个分子"
         from pywfn.bondprop import bondOrder
+        from pywfn.atomprop import direction
         mol=self.mols[0]
         caler=bondOrder.Calculator(mol)
         # STAND=1.6494
-        STAND=4.0
+        STAND=3.0
         result=[]
-        for atm1 in atms:
-            dirs=None
-            orders=[]
-            for atm2 in mol.atom(atm1).neighbors:
-                bond=[atm1,atm2]
-                res=caler.dirMayer([bond]) #[d,4](a1,a2,x,y,z,v)
-                if dirs is None:dirs=res[:,2:5]
-                vals=res[:,5]
-                orders.append(vals)
-            orderSum=np.array(orders).sum(axis=0)
-            for d in range(len(dirs)):
-                x,y,z=dirs[d]
-                order=STAND-orderSum[d]
-                result.append([atm1,x,y,z,order])
+        bmays=caler.boundMayer(atm)
+        nebs=mol.atom(atm).neighbors
+        for i in range(0,len(bmays),len(nebs)):
+            orders=bmays[i:i+len(nebs),-1]
+            x,y,z=bmays[i,2:5]
+            valence=STAND-sum(orders)
+            result.append([atm,x,y,z,valence])
         return np.array(result)
 
     def dirFukui(self,atms:list[int])->np.ndarray:

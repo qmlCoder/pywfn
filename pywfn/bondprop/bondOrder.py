@@ -13,11 +13,10 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def mayer(self,*,PM=None,bonds=None)->np.ndarray:
+    def mayer(self,PM=None,bonds=None)->np.ndarray:
         """计算指定键的mayer键级，可以有多个"""
         # 获取密度矩阵 P
-        if PM is None:
-            PM=self.mol.PM
+        if PM is None:PM=self.mol.PM
         # 获取重叠矩阵
         SM=self.mol.SM
         PS=PM@SM
@@ -50,6 +49,26 @@ class Calculator:
                 assert a1==a1_ and a2==a2_,"原子不对应"
                 x,y,z=dirs[d]
                 result.append([a1,a2,x,y,z,order])
+        return np.array(result)
+    
+    def boundMayer(self,atm:int)->np.ndarray:
+        """
+        计算与指定愿原子相邻的键的束缚键级
+        """
+        dirCaler=direction.Calculator(self.mol)
+        dirs=dirCaler.reaction(atm)
+        nebs=self.mol.atom(atm).neighbors
+        bonds=[[atm,neb] for neb in  nebs]
+        obts=self.mol.O_obts
+        result=[]
+        
+        for d in range(len(dirs)):
+            CMp=self.mol.projCM(obts,[atm],[dirs[d]],True,True,akeeps=nebs)
+            PMp=CM2PM(CMp,obts,self.mol.oE)
+            orders=self.mayer(PM=PMp,bonds=bonds)
+            x,y,z=dirs[d]
+            for a1,a2,val in orders:
+                result.append([a1,a2,x,y,z,val])
         return np.array(result)
     
     def piOrder(self):

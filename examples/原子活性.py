@@ -8,7 +8,7 @@ from pywfn.atomprop import activity
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\M4\M4_wfn"
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn"
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\反极性卡宾\N2R_t_wfn"
-root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\反极性卡宾\since4_s_wfn"
+# root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\反极性卡宾\since4_s_wfn"
 
 pathn=rf"{root}-.log"
 path0=rf"{root}0.log"
@@ -19,6 +19,12 @@ moln=Mol(reader=LogReader(pathn))
 molp=Mol(reader=LogReader(pathp))
 
 caler=activity.Calculator()
+
+caler.mols=[mol0]
+result=caler.freeValence(1)
+print(result)
+
+
 # results=[]
 # for mol in [moln,mol0,molp]:
 #     caler.mols=[mol]
@@ -43,29 +49,29 @@ caler=activity.Calculator()
 # print(result)
 
 # 计算方向福井函数
-print('方向fukui')
-caler.mols=[moln,mol0,molp]
-result=caler.dirFukui([13])
-print(result)
+# print('方向fukui')
+# caler.mols=[moln,mol0,molp]
+# result=caler.dirFukui([13])
+# print(result)
 
-me=min(result[:,4])
-mn=min(result[:,5])
-me=0
-mn=0
+# me=min(result[:,4])
+# mn=min(result[:,5])
+# me=0
+# mn=0
 # print('亲电性')
 # for a,x,y,z,e,n in result:
 #     print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{e-me:>6.2f}],')
     # print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{n-mn:>6.2f}],')
 
-print('亲核性')
-for a,x,y,z,e,n in result:
-    # print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{e-me:>6.2f}],')
-    print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{n-mn:>6.2f}],')
+# print('亲核性')
+# for a,x,y,z,e,n in result:
+#     # print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{e-me:>6.2f}],')
+#     print(f'[{a:.0f},{x:>6.2f},{y:>6.2f},{z:>6.2f},{n-mn:>6.2f}],')
 
-import matplotlib.pyplot as plt
-plt.plot(result[:,4],c='b')
-plt.plot(result[:,5],c='r')
-plt.show()
+# import matplotlib.pyplot as plt
+# plt.plot(result[:,4],c='b')
+# plt.plot(result[:,5],c='r')
+# plt.show()
 # # 计算化合价
 
 # print('自由价')

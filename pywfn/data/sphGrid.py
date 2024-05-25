@@ -188,4 +188,5 @@ sphData=np.array([
 # gridData=np.array(gridData)
 dataPath=f'{config.DATA_ROOT}/grid_74,80.npy'
 gridData:np.ndarray=np.load(dataPath)
-gridData.setflags(write=False)
+# gridData.setflags(write=False)
+

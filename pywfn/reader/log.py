@@ -11,6 +11,7 @@ from pathlib import Path
 from functools import lru_cache
 from collections import namedtuple
 import threading
+import json
 
 from pywfn.data.basis import Basis
 from pywfn.maths.gto import Gto
@@ -27,6 +28,9 @@ class Title:
         self.mark:str=mark
         self.jtype=jtype # 0：正则表达式匹配，1：包含式匹配，2：全等匹配
         self.multi=multi # 是否持续查找（多个中查找最后一个）
+    
+    def set_line(self,line:int):
+        self.line=line
     
     def judge(self,line:str):
         """判断所给行是否满足条件"""
@@ -60,7 +64,23 @@ class LogReader(Reader):
             'engs':Title(r'Zero-point correction',1),
             'keyWards':Title(r'# .+',0),
         }
+        
+        cpath=Path(f'{self.dfold}/log.json') # config path
+        if not cpath.exists():cpath.write_text('{}')
+        self.conf:dict=json.loads(cpath.read_text())
+        self.cpath=cpath
+        self.get_confTitle()
         self.search_title()
+    
+    def get_confTitle(self):
+        """从配置文件中回去标题所在的行"""
+        keys=self.conf.keys()
+        for tip in self.titles.keys():
+            if not f'title_{tip}' in keys:continue
+            line=self.conf[f'title_{tip}']
+            self.titles[tip].set_line(line)
+    def save_config(self):
+        self.cpath.write_text(json.dumps(self.conf,indent=4))
     
     def search_title(self):
         """
@@ -70,7 +90,9 @@ class LogReader(Reader):
         from concurrent.futures._base import Future
         # 所有标题所在的行
         def sear_group(start:int): #每一个搜索的线程
-            keys=list(self.titles.keys())
+            keys=list(self.titles.keys()) # 总的key
+            keys=[key for key in keys if self.titles[key].line==-1] # 需要搜索的key
+            if len(keys)==0:return
             for j in range(start,start+bsize):
                 line=self.getline(j)
                 if line=='':break
@@ -79,6 +101,8 @@ class LogReader(Reader):
                     if title.line!=-1 and title.multi==False:continue
                     if not title.judge(line):continue
                     self.titles[key].line=j
+                    self.conf[f'title_{key}']=j
+                    self.save_config()
                         # print(j,line)
         nWork=5
         bsize=10_000
@@ -431,10 +455,11 @@ class LogReader(Reader):
         fdatas=[atms,shls,angs,engs,occs,CM]
         rdatas=[fdata is not None for fdata in fdatas]
         if all(rdatas): # 所有读取的数据都不为空，有可能某些数据被用户删除
+            lists=atms,shls,angs,engs,occs
+            atms,shls,angs,engs,occs=[e.tolist() for e in lists]
             return atms,shls,angs,engs,occs,CM
         elif self.titles['coefs'].line!=-1:
             atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
-            return atms,shls,angs,engs,occs,CM
         elif self.titles['acoefs'].line!=-1:
             atmsA,shlsA,angsA,engsA,occsA,CMA=self.read_CM('acoefs')
             atmsB,shlsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
@@ -444,15 +469,15 @@ class LogReader(Reader):
             engs=engsA+engsB
             occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
-            self.save_fdata('atms',atms)
-            self.save_fdata('shls',shls)
-            self.save_fdata('angs',angs)
-            self.save_fdata('engs',engs)
-            self.save_fdata('occs',occs)
-            self.save_fdata('CM',CM)
-            return atms,shls,angs,engs,occs,CM
         else:
             raise ValueError('没有找到轨道系数')
+        self.save_fdata('atms',atms)
+        self.save_fdata('shls',shls)
+        self.save_fdata('angs',angs)
+        self.save_fdata('engs',engs)
+        self.save_fdata('occs',occs)
+        self.save_fdata('CM',CM)
+        return atms,shls,angs,engs,occs,CM
 
     @lru_cache
     def read_SM(self):

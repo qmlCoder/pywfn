@@ -7,6 +7,7 @@
 from pywfn.base import Mol
 from pywfn import maths
 from pywfn.maths import vector_angle,points_rotate
+from pywfn import config
 
 import numpy as np
 
@@ -99,14 +100,17 @@ class Calculator:
                 va/=np.linalg.norm(va)
                 vb/=np.linalg.norm(vb)
                 normal=np.cross(va,vb)
-                return normal/np.linalg.norm(normal)
+                normal/=np.linalg.norm(normal)
+                if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
+                return normal
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord.copy() for n in nebs]
-            pa/=np.linalg.norm(pa)
-            pb/=np.linalg.norm(pb)
-            pc/=np.linalg.norm(pc)
             vab=pb-pa
             vac=pc-pa
+            vab/=np.linalg.norm(vab)
+            vac/=np.linalg.norm(vac)
             normal=np.cross(vab,vac)
-            return normal/np.linalg.norm(normal)
+            normal/=np.linalg.norm(normal)
+            if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
+            return normal
         return None

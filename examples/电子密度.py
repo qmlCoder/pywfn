@@ -13,14 +13,75 @@ import numpy as np
 import time
 
 path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
-path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4.log"
+# path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4.log"
+# path="D:\BaiduSyncdisk\gfile\elements\C.out"
+# path = "D:\BaiduSyncdisk\gfile\elements\O2.out"
+# path = "D:\BaiduSyncdisk\gfile\elements\S2.out"
+# path = "D:\BaiduSyncdisk\gfile\elements\S.out"
+# path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
 
 mol = Mol(reader=LogReader(path))
 
 caler=density.Calculator(mol)
 
+# nums=[]
+# for i in range(5):
+#     result=caler.atmDens(i+1)
+#     print(i+1,np.sum(result))
+#     nums.append(np.sum(result))
+# print(sum(nums))
 
-for i in range(4):
-    result=caler.atmDens(i+1,caler.points)
-    print(np.sum(result*caler.weights))
-pass
+## 每个原子轨道电子密度加和应该为1
+atmPos=caler.atmPos(1)
+# print(atmPos.shape)
+
+molPos,molWei=caler.molPos
+# print(molPos.shape,molWei.shape)
+
+# wfn=caler.wfnCaler.atoWfn(1,atmPos)
+# den=wfn**2
+# wei=caler.weights
+# print(np.sum(den*wei))
+
+# wfn=caler.wfnCaler.atoWfn(1,molPos)
+# den=wfn**2
+# wei=caler.a2mWeight(1)
+# print(np.sum(den*wei)) # 相当于在原来正确的基础上添加了一些东西，肯定就不对了
+
+## 分子轨道的电子密度
+# print('-'*20)
+# for obt in mol.O_obts:
+#     wfn=caler.wfnCaler.obtWfn(obt,caler.points)
+#     den=wfn**2
+#     wei=caler.weights
+#     print(np.sum(den*wei))
+
+print('-'*20)
+for obt in mol.O_obts:
+    wfn=caler.wfnCaler.obtWfn(obt,molPos)
+    den=wfn**2
+    wei=molWei
+    print(np.sum(den*wei))
+
+print('-'*20)
+qs=[]
+for atom in mol.atoms:
+    dens=caler.atmDens(atom.idx)
+    q=np.sum(dens)
+    print(q)
+    qs.append(q)
+print(sum(qs))
+
+print('-'*20)
+qs=[]
+for atom in mol.atoms:
+    dens=caler.atmDens2(atom.idx)
+    q=np.sum(dens)
+    qs.append(q)
+    print(q)
+print(sum(qs))
+
+# wfn=caler.wfnCaler.obtWfn(0,molPos)
+# den=wfn**2
+# wei=caler.a2mWeight(2)
+# print(np.sum(den*wei))

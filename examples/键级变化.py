@@ -30,11 +30,10 @@ for i in range(37):
     orderList.append(order)
     energys.append(mol.energy)
 orderList=np.array(orderList)
-orderList=(orderList+orderList[::-1])/2
 print(orderList.shape)
 means=np.mean(orderList,axis=1).reshape(-1,1)
 print(means.shape)
-stds=np.sum((orderList-means)**2,axis=1)
+stds=np.std(orderList,axis=1)
 print(stds.shape)
 angs=np.linspace(-np.pi,np.pi,37)
 
