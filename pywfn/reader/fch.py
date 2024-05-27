@@ -7,7 +7,7 @@ import numpy as np
 
 from pywfn import base
 from pywfn.data.elements import elements
-from pywfn.reader.lutils import Reader
+from pywfn import reader
 from collections import defaultdict
 
 class Title:
@@ -18,7 +18,7 @@ class Title:
         self.hasData=hasData # 是否包含更多数据
 
 titleMatch='^(.{40}) {3}(.{1})(.{5})(.{12})$'
-class FchReader(Reader):
+class FchReader(reader.Reader):
     def __init__(self,path:str):
         super().__init__(path)
         self.mol=base.Mol()

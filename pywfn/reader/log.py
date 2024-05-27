@@ -15,9 +15,9 @@ import json
 
 from pywfn.data.basis import Basis
 from pywfn.maths.gto import Gto
-from pywfn.reader.lutils import Reader
 from pywfn.utils import printer
 from pywfn.data.elements import elements
+from pywfn import reader
 
 from typing import Callable
 import linecache
@@ -45,7 +45,7 @@ class Title:
     def __repr__(self) -> str:
         return f'{self.line}: {self.mark}'
 
-class LogReader(Reader):
+class LogReader(reader.Reader):
     def __init__(self, path:str):
         super().__init__(path)
         assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'

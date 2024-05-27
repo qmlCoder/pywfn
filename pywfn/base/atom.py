@@ -259,14 +259,14 @@ class Atoms:
         return [a.idx for a in self.atoms]
     
     @cached_property
-    def DM(self):
+    def LM(self):
         """原子之间的键长矩阵"""
         nmat=self.num
-        DM=np.zeros((nmat,nmat))
+        LM=np.zeros((nmat,nmat))
         for i,atomi in enumerate(self.atoms):
             for j,atomj in enumerate(self.atoms):
-                DM[i,j]=np.linalg.norm(atomj.coord-atomi.coord)
-        return DM
+                LM[i,j]=np.linalg.norm(atomj.coord-atomi.coord)
+        return LM
 
     
     @property

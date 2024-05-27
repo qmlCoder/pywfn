@@ -4,13 +4,14 @@
 from pathlib import Path
 from pywfn.data import temps
 
-def gjf(path,chk:str,coord:list[list[float]],charge:int,spin:int):
+def gjf(path,chk:str,title:str,charge:int,spin:int,coord:list[list[float]]):
     temp=temps.gjf
     replaces=[
-        ['<COORD>', cord2str(coord)],
         ['<CHK>', chk],
+        ['<TITLE>', title],
         ['<CHARGE>',f'{charge}'],
         ['<MULTI>',f'{spin}']
+        ['<COORD>', cord2str(coord)],
     ]
     for k,v in replaces:
         temp=temp.replace(k,v)

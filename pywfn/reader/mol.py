@@ -3,9 +3,9 @@ mol文件读取器
 """
 import numpy as np
 from numpy import ndarray
-from pywfn.reader import Reader
+from pywfn import reader
 from functools import lru_cache
-class MolReader(Reader):
+class MolReader(reader.Reader):
     def __init__(self, path: str) -> None:
         super().__init__(path)
         line3=self.getline(3)

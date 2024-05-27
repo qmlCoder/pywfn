@@ -2,12 +2,12 @@
 定义gjf的读取器，感觉可能也不会用得到
 """
 from numpy import ndarray
-from pywfn.reader import lutils
+from pywfn import reader
 import re
 import numpy as np
 from functools import lru_cache
 
-class GjfReader(lutils.Reader):
+class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
     

@@ -14,7 +14,8 @@ class GjfWriter:
         self.temp=temps.gjf
         self.chkPath='chk'
         self.charge=0
-        self.multi=1
+        self.spin=1
+        self.title=''
         
     def get_coordStr(self):
         """生成坐标的字符串形式"""
@@ -28,17 +29,23 @@ class GjfWriter:
     
     def search(self):
         """搜索需要的各种属性"""
-        if self.mol.charge is not None:
-            self.charge=self.mol.charge
-        if self.mol.spin is not None:
-            self.multi=self.mol.spin
+        try:
+            self.charge=self.mol.reader.get_charge()
+        except:
+            pass
+
+        try:
+            self.spin=self.mol.reader.get_spin()
+        except:
+            pass
 
     def build(self)->str:
         self.search()
         self.temp=self.temp.replace('<COORD>',self.get_coordStr())
         self.temp=self.temp.replace('<CHARGE>',f'{self.charge}')
-        self.temp=self.temp.replace('<MULTI>',f'{self.multi}')
+        self.temp=self.temp.replace('<SPIN>',f'{self.spin}')
         self.temp=self.temp.replace('<CHK>',self.chkPath)
+        self.temp=self.temp.replace('<TITLE>',self.title)
         return self.temp
 
     def save(self,path:str):

@@ -18,7 +18,7 @@ path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\O2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S.out"
-# path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
+path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
 
 mol = Mol(reader=LogReader(path))
 
@@ -66,7 +66,7 @@ for obt in mol.O_obts:
 print('-'*20)
 qs=[]
 for atom in mol.atoms:
-    dens=caler.atmDens(atom.idx)
+    dens=caler.atmDens_ca(atom.idx)
     q=np.sum(dens)
     print(q)
     qs.append(q)
@@ -75,7 +75,7 @@ print(sum(qs))
 print('-'*20)
 qs=[]
 for atom in mol.atoms:
-    dens=caler.atmDens2(atom.idx)
+    dens=caler.atmDens_cm(atom.idx)
     q=np.sum(dens)
     qs.append(q)
     print(q)

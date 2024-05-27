@@ -7,9 +7,9 @@ from typing import List
 import re
 
 from pywfn import base
-from pywfn.reader.lutils import Reader
+from pywfn import reader
 
-class XyzReader(Reader):
+class XyzReader(reader.Reader):
     def __init__(self,path) -> None:
         self.path=path
         with open(path,'r',encoding='utf-8') as f:

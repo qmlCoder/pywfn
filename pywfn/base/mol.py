@@ -46,7 +46,7 @@ class Props(dict):
 
     def get(self,key:str,fun:Callable):
         if key not in self.keys():
-            self[key]=fun()
+            self.set(key,fun())
         return self[key]
 
     def set(self,key:str,value):
@@ -75,11 +75,13 @@ class Mol:
 
     @cached_property
     def charge(self)->int:
-        return self.reader.get_charge()
+        charge=self.props.get('charge',self.reader.get_charge)
+        return charge
     
     @cached_property
     def spin(self)->int:
-        return self.reader.get_spin()
+        spin=self.props.get('spin',self.reader.get_spin)
+        return spin
 
     @property
     def open(self)->bool:
@@ -136,8 +138,8 @@ class Mol:
     def atoms(self)->Atoms:
         """获取所有原子"""
         if self._atoms:return self._atoms
-        symbols=self.reader.get_symbols()
-        coords=self.reader.get_coords()
+        symbols=self.props.get('symbols',self.reader.get_symbols)
+        coords=self.props.get('coords',self.reader.get_coords)
         for s,c in zip(symbols,coords):
             self._atoms.add(symbol=s,coord=c)
         return self._atoms

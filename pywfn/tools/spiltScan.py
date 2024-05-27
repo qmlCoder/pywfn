@@ -1,6 +1,7 @@
 """
 输入文件有很多结构，将每个结构分割来来
 重点在于分割，首先根据指定的分割符将文本分割为很多块，然后在每一块提取所需内容
+重点在于提取结构信息，其他信息是不需要的，因此扫描的时候不要加入太多信息
 """
 import re,os
 from typing import Any
@@ -9,17 +10,17 @@ from pathlib import Path
 from pywfn.tools import writer
 from pywfn.data import Elements
 from pywfn.utils import printer
+from pywfn.base import Mol
+from pywfn.writer import GjfWriter
+from pywfn.reader import AnyReader
+import numpy as np
 
 class Tool:
     def __init__(self,path:str) -> None:
         """输入log文件的路径"""
         self.path=Path(path)
-        self.dirName=self.path.parent
-        self.baseName=self.path.name # 包含后缀的文件名
-        self.fileName=self.path.stem # 不包含后缀的文件名
-        folder=self.dirName / self.fileName
-        if not Path(folder).exists(): #判断文件夹是否存在
-            os.mkdir(folder) # 创建文件夹
+        self.fold=self.path.parent / self.path.stem
+        
         self.content=self.path.read_text(encoding='utf-8')
         self.lines=self.content.splitlines(keepends=False)
 
@@ -28,6 +29,7 @@ class Tool:
         else:
             self.coordType='Input orientation'
         self.elements=Elements()
+        self.title=''
 
     def split_raw(self)->list[str]:
         """将原始的一大段文本分割"""
@@ -54,31 +56,56 @@ class Tool:
     def match_coords(self,blocks:list[str],titleNums:list[tuple[int]])->list[list[float]]:
         """返回包含全部结构坐标的三维数组"""
         s=r" +\d+ +(\d+) +\d+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)"
-        coords=[]
+        xyzl=[]
+        syml=[]
         for idx,titleNum in titleNums:
-            coord=[]
+            xyzs=[]
+            syms=[]
             lines=blocks[idx].splitlines(keepends=False)
             for i in range(titleNum+5,len(lines)): # 从标题后的第五行开始
                 line=lines[i]
                 if re.search(s,line) is not None:
                     idx,x,y,z=re.search(s,line).groups()
                     symbol=self.elements[int(idx)].symbol
-                    coord.append([symbol,float(x),float(y),float(z)])
+                    syms.append(symbol)
+                    xyzs.append([float(x),float(y),float(z)])
                 else:
                     break
-            coords.append(coord)
-        return coords
+            xyzl.append(xyzs)
+            syml.append(syms)
+        return syml,np.array(xyzl)
             
     def split(self):
         """分割文件"""
         blocks=self.split_raw()
         # 首先获取所有构象的坐标
-
+        
         titleNums=self.find_titles(blocks)
-        coords=self.match_coords(blocks,titleNums)
-        for i,coord in printer.track(enumerate(coords)):
-            path=os.path.join(self.dirName,self.fileName,f'f{i+1:0>2}.gjf')
-            writer.gjf(path,f'{i+1}',coord,0,1)
+        syml,xyzl=self.match_coords(blocks,titleNums)
+        return syml,xyzl
+
+    def save(self,path:str=None):
+        """保存文件"""
+        syml,xyzl=self.split()
+        gjfStrs=[]
+        for i in range(len(syml)-1):
+            # 创建文件夹
+            mol=Mol(AnyReader('',{
+                'symbols':syml[i],
+                'coords':xyzl[i],
+                'charge':0,
+                'spin':1,
+            }))
+            writer=GjfWriter(mol)
+            writer.title=self.title
+            gjfStr=writer.build()
+            gjfStrs.append(gjfStr)
+        if path is None:
+            if not Path(self.fold).exists():os.mkdir(self.fold) # 创建文件夹
+            for i,gjfStr in enumerate(gjfStrs):
+                (self.fold/f's{i+1:0>2}.gjf').write_text(gjfStr,encoding='utf-8')
+        else:
+            Path(path).write_text('--Link1--\n\n'.join(gjfStrs),encoding='utf-8')
 
     def __call__(self) -> Any:
         self.blocks=self.split_raw()

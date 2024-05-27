@@ -1,28 +1,37 @@
 """
 将多个link的log文件拆分出来
+log->log
+文件会很大不要全部读取
+根据“ Initial command:”进行分割
 """
 from pathlib import Path
 from pywfn.utils import printer
 class Tool:
     def __init__(self,path:str) -> None:
-        self.path=Path(path)
-        self.texts=self.path.read_text()
-        self.lines=self.texts.splitlines(keepends=False)
-        self.mark=' Initial command:'
-        self.nums=[]
-        for i,line in enumerate(self.lines):
-            if line!=self.mark:continue
-            self.nums.append(i)
-        self.nums.append(len(self.lines))
+        self.path=path
+        self.mark=' Initial command:\n'
+        root=Path(path).parent
+        stem=Path(path).stem
+        self.fold=root/f'{stem}_lsp'
+        if not self.fold.exists():
+            self.fold.mkdir()
     
     def split(self):
-        for i in range(len(self.nums)-1):
-            l1,l2=self.nums[i:i+2]
-            text='\n'.join(self.lines[l1:l2])
-            self.write(text,i)
-        printer.res('导出完成 >_<')
-
-    def write(self,text,idx):
-        name=self.path.stem
-        (self.path.parent/f'{name}_{idx+1}.log').write_text(text)
+        lkIdx=0
+        ftext=''
+        with open(self.path,'r',encoding='utf-8') as f:
+            for line in printer.track(f):
+                if line==self.mark:
+                    if lkIdx!=0:
+                        self.save(f'{self.fold}/{lkIdx}.log',ftext)
         
+                    lkIdx+=1
+                    ftext=''
+                else:
+                    ftext+=f'{line}'
+            self.save(f'{self.fold}/{lkIdx}.log',ftext)
+        printer.res('导出完成 >_<')
+    
+    def save(self,path,text):
+        with open(path,'w',encoding='utf-8') as f:
+            f.write(text)        

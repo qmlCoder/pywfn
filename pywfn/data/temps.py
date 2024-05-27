@@ -4,12 +4,13 @@
 
 gjf=\
 """%chk=<CHK>.chk
-# opt freq b3lyp/6-31g(d) gfinput pop=full iop(3/33=1)
+# <TITLE>
 
 Title Card Required
 
-<CHARGE> <MULTI>
+<CHARGE> <SPIN>
 <COORD>
+
 
 """
 xyz=\
