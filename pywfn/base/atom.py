@@ -32,8 +32,8 @@ class Atom:
         self._squareSum=None
         self._sContribution:dict={}
         self.OC:np.ndarray=None
+        self._props:dict={}
     
-
     @cached_property
     def atomic(self)->int:
         return elements[self.symbol].idx

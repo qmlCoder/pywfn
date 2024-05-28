@@ -18,8 +18,8 @@ mol=Mol(reader=LogReader(path))
 
 caler=bondOrder.Calculator(mol)
 
-result=caler.boundMayer(7)
-print(result)
+# result=caler.boundMayer(7)
+# print(result)
 
 # result=caler.mayer()
 # print(result)
@@ -30,8 +30,8 @@ print(result)
 # ])
 # print(result)
 
-# result=caler.piOrder()
-# print(result)
+result=caler.piOrder()
+print(result)
 
 # result=caler.hmo()
 # print(result)

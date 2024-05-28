@@ -9,7 +9,6 @@
 from pywfn.base import Mol
 from pywfn.spaceProp import wfnfunc
 from pywfn.data import sphGrid
-from scipy.interpolate import griddata,LinearNDInterpolator
 from functools import cached_property,lru_cache
 
 import numpy as np
@@ -86,12 +85,15 @@ class Calculator:
         return a2mPos,np.array(a2mWei)
     
 
-    def molDens_obt(self,pos:np.ndarray):
+    def molDens_obt(self,pos:np.ndarray,atms:list[int]=None,
+                    CM=None,obts:list[int]=None):
         """计算根据分子轨道电子密度计算的分子电子密度"""
-        obts = self.mol.O_obts
+        if obts is None:obts=self.mol.O_obts
+        if CM is None:CM=self.mol.CM
         dens=np.zeros(len(pos))
-        for o in obts:
-            wfn=self.wfnCaler.obtWfn(o,pos)
+        for obt in obts:
+            coefs=CM[:,obt]
+            wfn=self.wfnCaler.obtWfn(obt,pos,atms,coefs)
             dens+=wfn**2*self.mol.oE
         return dens
     

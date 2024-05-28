@@ -7,7 +7,7 @@ from pywfn.maths.gto import Gto
 
 
 def gridPos(
-    p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0, getN: bool = False
+    p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
 ):
     """生成网格数据点,range:生成数据的范围
     getN:是否获取每个维度的数量
@@ -26,10 +26,7 @@ def gridPos(
             for z in zs:
                 pos.append([x, y, z])
 
-    if getN:
-        return (Nx, Ny, Nz), np.array(pos, dtype=np.float32)
-    else:
-        return np.array(pos, dtype=np.float32)
+    return (Nx, Ny, Nz), np.array(pos, dtype=np.float32)
 
 
 def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:

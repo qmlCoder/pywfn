@@ -86,7 +86,10 @@ class Calculator:
     
     def normal(self,atm:int)->np.ndarray|None:
         """计算原子的法向量"""
+        
         atom=self.mol.atom(atm)
+        if 'normal' in atom._props.keys(): # 方便用户指定
+            return atom._props['normal']
         nebs=atom.neighbors
         if len(nebs)==2:
             ia,ib=nebs

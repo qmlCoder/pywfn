@@ -65,7 +65,7 @@ class EnergyUnit(Unit):
             'hartree':1.,
             'eV':27.211,
             'KJ/mol':2625,
-            'J':1.36e-18
+            'J':4.36e-18
         }
 
 units:list[Unit]=[ChargeUnit(),LengthUnit(),EnergyUnit()]

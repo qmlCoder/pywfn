@@ -7,7 +7,6 @@
 from pywfn.base import Mol
 from pywfn.maths import Gto
 import numpy as np
-from scipy.interpolate import griddata
 
 from pywfn.data import sphGrid
 weight = sphGrid.gridData[:, -1]
@@ -19,17 +18,26 @@ class Calculator:
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
         self.a2mWfns={}
     
-    def obtWfn(self,obt:int,pos:np.ndarray):
+    def obtWfn(self,obt:int,pos:np.ndarray,atms:list[int]=None,coefs:np.ndarray=None):
         """
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标
         coefs：线性组合系数
+        atms：可以自定义原子
+        CM：可自定义系数矩阵
         """
+        if coefs is None:coefs=self.mol.CM[:,obt]
+        if atms is None:atms=self.mol.atoms.indexs
+        idxs=[]
+        for atm in atms:
+            u,l=self.mol.atom(atm).obtBorder
+            idxs+=list(range(u,l))
         wfn=np.zeros(len(pos))
-        coefs=self.mol.CM[:,obt]
         for c,coef in enumerate(coefs):
+            if c not in idxs:continue
             wfn+=coef*self.atoWfn(c,pos)
         return wfn
+    
     
     def a2mWfn(self,i,atmPos):
         keys=self.a2mWfns.keys()

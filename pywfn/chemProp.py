@@ -22,3 +22,14 @@ def steSelEE(deR,deS,T):
     RS = np.exp((deS - deR) * 4185.8518 / RT)
     ee = (RS - 1) / (RS + 1)
     return ee
+
+# 计算一堆分子能量的玻尔兹曼分布，能量差越大，玻尔兹曼分布越平均
+def bezm(engs):
+    """
+    计算玻尔兹曼分布
+    """
+    engs=engs-np.min(engs) # Hartee
+    engs=engs*4.5e-18 # J
+    k=1.380694e-23 # J/K
+    T=298.15 # K
+    return np.exp(-engs/(k*T))

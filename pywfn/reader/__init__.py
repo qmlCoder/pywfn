@@ -51,11 +51,18 @@ from typing import Callable
 import os
 
 class Reader:
-    def __init__(self,path:str,remake:bool=False) -> None:
+    def __init__(self,path:str) -> None:
         self.path:str=path
         fold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
         # if fold.exists() and remake:
-        if not fold.exists():os.mkdir(f'{fold}')
+        if not fold.exists():
+            os.mkdir(f'{fold}')
+        else:
+            foldTime=fold.stat().st_atime
+            fileTime=Path(path).stat().st_atime
+            if fileTime>foldTime: # 如果文件更新了
+                os.remove(f'{fold}')
+                os.mkdir(f'{fold}')
         self.dfold=f'{fold}' # 数据存储路径
     
     @cached_property

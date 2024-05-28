@@ -83,7 +83,7 @@ class Calculator(AtomCaler):
     
     def hirshfeld(self):
         """
-        计算原子的Hirshfeld电荷，目前还未成功（分子的电子密度计算不正确）
+        计算原子的Hirshfeld电荷
         """
         from pywfn.spaceProp import density
         from pywfn.data import radDens
