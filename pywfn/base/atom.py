@@ -262,11 +262,17 @@ class Atoms:
     def LM(self):
         """原子之间的键长矩阵"""
         nmat=self.num
-        LM=np.zeros((nmat,nmat))
+        LM=np.zeros((nmat,nmat),dtype=np.float32)
         for i,atomi in enumerate(self.atoms):
             for j,atomj in enumerate(self.atoms):
                 LM[i,j]=np.linalg.norm(atomj.coord-atomi.coord)
         return LM
+    
+    @property
+    def radius(self):
+        """所有原子的半径"""
+        radius=[elements[atom.symbol].radius for  atom in self.atoms]
+        return radius
 
     
     @property

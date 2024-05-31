@@ -3,10 +3,28 @@
 """
 
 import ctypes as ct
-from ctypes import c_int, c_double
+from ctypes import c_int, c_double,POINTER
 from pathlib import Path
 import numpy as np
 import os
+
+def trans_dtype(paras:list):
+    """转换数据类型"""
+    targs=[]
+    types=[]
+    for para in paras:
+        if type(para)==int:
+            targs.append(c_int(para))
+            types.append(c_int)
+        elif type(para)==float:
+            targs.append(c_double(para))
+            types.append(c_double)
+        elif type(para)==np.ndarray:
+            targs.append(para.ctypes.data_as(POINTER(c_double)))
+            types.append(POINTER(c_double))
+        else:
+            raise TypeError("Unsupported type")
+    return targs,types
 
 os.add_dll_directory(r"D:\program\mingw64\bin")
 
@@ -87,3 +105,47 @@ def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarr
     print(R2.shape)
     flib.gtf_(c_double(exp), c_int(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
     return wfn
+
+
+
+flib.a2mWeight_.argtypes=[
+    ct.c_int, # atm
+    ct.c_int, # nGrid
+    ct.POINTER(c_double), # atmGrid
+    ct.POINTER(c_double), # atmWeit
+    ct.c_int, # natm
+    ct.POINTER(c_double), # atmPos
+    ct.POINTER(c_double), # atmRad
+    ct.POINTER(c_double), # atmDis
+    ct.POINTER(c_double), # a2mGrid
+    ct.POINTER(c_double), # a2mWeit
+]
+def a2mWeight(
+        atm:int,
+        nGrid:int,
+        atmGrid:np.ndarray, # 原子的网格点坐标
+        atmWeit:np.ndarray,
+        natm:int,
+        atmPos:np.ndarray,
+        atmRad:np.ndarray,
+        atmDis:np.ndarray,
+        ):
+    """
+    """
+    a2mGrid=np.zeros_like(atmGrid)
+    a2mWeit=np.zeros_like(atmWeit)
+    flib.a2mWeight_(
+        ct.c_int(atm),
+        ct.c_int(nGrid),
+        atmGrid.ctypes.data_as(ct.POINTER(c_double)),
+        atmWeit.ctypes.data_as(ct.POINTER(c_double)),
+        ct.c_int(natm),
+        atmPos.ctypes.data_as(ct.POINTER(c_double)),
+        atmRad.ctypes.data_as(ct.POINTER(c_double)),
+        atmDis.ctypes.data_as(ct.POINTER(c_double)),
+        a2mGrid.ctypes.data_as(ct.POINTER(c_double)),
+        a2mWeit.ctypes.data_as(ct.POINTER(c_double)),
+    )
+    return a2mGrid,a2mWeit
+    # flib.a2mWeight_(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid,a2mWeit)
+

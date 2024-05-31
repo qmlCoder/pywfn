@@ -18,6 +18,10 @@ gto的计算量是很大的，所以可以尝试多种加速计算的方法
 系数非常小的也可不算
 
 ## python调用fortran
+
+```shell
+gfortran -shared flib.f90 -o flib.dll
+```
 - 使用fortran的iso_c_binding
 - 使用python的ctypes
 
@@ -31,6 +35,11 @@ ctypes是python与fortran联用的工具
 使用python的ctypes调用动态链接库
 
 > 关键问题是数据类型之间的对接，对c不太熟悉
+
+一般的阐述只有三种
+- int,c_int
+- float,c_double
+- np.ndarray,POINTER(c_double)
 
 ## 波函数的计算
 高斯基函数gtf用$γ$表示，表达式为：

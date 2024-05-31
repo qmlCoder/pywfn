@@ -31,11 +31,13 @@ def onShell(shell:"shell.Shell"):
         splitLink.Tool(path).split()
     elif opt=='4': # 提取SI信息
         from pywfn.tools import extractSI
-        path=input('请输入文件路径：')
         from pywfn.utils import parse_intList
         print('(1:能量,2:坐标,3:频率):')
-        msgs=input('请输入需要保存的信息[*]')
-        msgs=parse_intList(msgs)
+        msgStr=input('请输入需要保存的信息[*]')
+        if msgStr:
+            msgs=parse_intList(msgs)
+        else:
+            msgs=[1,2,3]
         same=shell.input.Bool('是否保存到同一文件内？',default=True)
         mols=shell.input.Moles()
         for mol in mols:

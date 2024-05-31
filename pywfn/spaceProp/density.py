@@ -38,8 +38,8 @@ class Calculator:
         return self.points.copy()+self.mol.atom(atm).coord
     
     @lru_cache
-    def a2mWeight(self,atm:int): # 将原子的格点权重插值到分子中，但是权重是密度的权重而不是波函数的权重
-        """单个原子在分子网格中的权重""" # 径向和角度分别插值
+    def a2mWeight_(self,atm:int):
+        """将原子格点的权重转为分子格点的权重""" # 径向和角度分别插值
         atmPos=self.atmPos(atm)
         atoms=self.mol.atoms
         natm=len(atoms)
@@ -83,6 +83,18 @@ class Calculator:
             a2mPos.append(gp)
             a2mWei.append(wi)
         return a2mPos,np.array(a2mWei)
+
+    def a2mWeight(self,atm:int):
+        from pywfn.maths import flib
+        atmGrid=self.atmPos(atm)
+        nGrid=len(atmGrid)
+        atmWeit=self.weights
+        natm=len(self.mol.atoms)
+        atmPos=self.mol.coords
+        atmRad=np.array(self.mol.atoms.radius,dtype=np.float32)
+        atmDis=self.mol.atoms.LM
+        a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
+        return a2mGrid,a2mWeit
     
 
     def molDens_obt(self,pos:np.ndarray,atms:list[int]=None,
@@ -134,7 +146,6 @@ class Calculator:
             for j in range(nmat):
                 wfn_j=self.wfnCaler.atoWfn(j,pos)
                 dens+=wfn_i*wfn_j*self.mol.PM[i,j]
-                # assert True not in np.isnan(dens),"密度计算不正确"
         return dens
     
     def weiSqrt(self,weights:np.ndarray):

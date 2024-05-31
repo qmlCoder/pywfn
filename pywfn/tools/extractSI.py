@@ -25,10 +25,10 @@ class Tool:
         self.sameFile:bool=True
     
     def write_energy(self):
-        engList,engNums=self.reader.read_energys()
+        engNums=self.reader.read_energys()
         """匹配并保存各种校正能量"""
-        ENERGY='\n'.join([f'{name:<45}{value:>15}' for name,value in zip(engList,engNums)])
-        self.template=self.template.replace('<ENERGY>',ENERGY)
+        for i,eng in enumerate(engNums):
+            self.template=self.template.replace(f'<E{i}>',f'{eng:>15.8f}')
             
     def write_coord(self):
         COORDS=[]
@@ -44,7 +44,9 @@ class Tool:
             matchContent=f''
             for freq in freqObj:
                 freqs=re.split(r' +',freq)
-                matchContent+=f'{freqs[0]:>15}{freqs[1]:>15}{freqs[2]:>15}\n'
+                freqs=[f'{e:>15}' for e in freqs]
+                freqs=''.join(freqs)
+                matchContent+=f'{freqs}\n'
             self.template=self.template.replace('<FREQ>',matchContent[:-1])
         else:
             printer.wrong('Match Frequencies Error')

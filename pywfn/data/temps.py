@@ -22,7 +22,14 @@ xyz=\
 si=\
 """<FILENAME>
 
-<ENERGY>
+Zero-point correction                        <E0>
+Thermal correction to Energy                 <E1>
+Thermal correction to Enthalpy               <E2>
+Thermal correction to Gibbs Free Energy      <E3>
+Sum of electronic and zero-point Energies    <E4>
+Sum of electronic and thermal Energies       <E5>
+Sum of electronic and thermal Enthalpies     <E6>
+Sum of electronic and thermal Free Energies  <E7>
 
 Cartesian coordinate
 <COORD>

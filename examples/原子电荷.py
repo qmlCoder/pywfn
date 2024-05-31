@@ -16,11 +16,11 @@ mol=Mol(LogReader(path))
 
 caler=charge.Calculator(mol)
 
-result=caler.mulliken()
-print(result)
+# result=caler.mulliken()
+# print(result)
 
-result=caler.lowdin()
-print(result)
+# result=caler.lowdin()
+# print(result)
 
 # result=caler.sapce()
 # print(result)

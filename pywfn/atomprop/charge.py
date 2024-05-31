@@ -108,13 +108,6 @@ class Calculator(AtomCaler):
             Wa=np.divide(fdens,pdens,out=np.zeros_like(fdens),where=pdens!=0)
             Zs[a]=np.sum(fdens*molWei) # 自由态下核电荷数
             Ps[a]=np.sum(Wa*mdens*molWei) # 真实体系的电子布局
-        atmics=np.array(self.mol.atoms.atomics)
-        Qt=np.sum(atmics) # 总原子数
-        print('Zs',Zs)
-        print('Ps',Ps)
-        print(Zs.sum(),Ps.sum())
-        # Zs=Zs/np.sum(Zs)*Qt #强行归一化可否？
-        # Ps=Ps/np.sum(Ps)*Qt
         chargs=Zs-Ps
         
         return chargs
