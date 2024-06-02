@@ -85,6 +85,7 @@ class Calculator(AtomCaler):
         """
         计算原子的Hirshfeld电荷
         """
+        import time
         from pywfn.spaceProp import density
         from pywfn.data import radDens
         denCaler=density.Calculator(self.mol)
@@ -94,6 +95,7 @@ class Calculator(AtomCaler):
         natm=len(self.mol.atoms)
         pdens=np.zeros(npos) # 前体电子密度
         fdensl=[]
+        # print(time.time())
         for atom in self.mol.atoms:
             radius=np.linalg.norm(molPos-atom.coord,axis=1)
             fdens=radDens.get_radDens(atom.atomic,radius)
@@ -101,7 +103,10 @@ class Calculator(AtomCaler):
             fdensl.append(fdens)
         Ps=np.zeros(natm)
         Zs=np.zeros(natm)
-        mdens=denCaler.molDens_atm(molPos)
+        # print(time.time())
+        # mdens=denCaler.molDens_atm(molPos)
+        mdens=denCaler.molDens_lib(molPos)
+        # print(time.time())
         for a,atom in enumerate(self.mol.atoms): # 计算每一个原子的电荷
             radius=np.linalg.norm(molPos-atom.coord,axis=1)
             fdens=fdensl[a]
@@ -109,7 +114,7 @@ class Calculator(AtomCaler):
             Zs[a]=np.sum(fdens*molWei) # 自由态下核电荷数
             Ps[a]=np.sum(Wa*mdens*molWei) # 真实体系的电子布局
         chargs=Zs-Ps
-        
+        # print(time.time())
         return chargs
     
     

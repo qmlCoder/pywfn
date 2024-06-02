@@ -41,6 +41,20 @@ ctypes是python与fortran联用的工具
 - float,c_double
 - np.ndarray,POINTER(c_double)
 
+- 传入的数据全部要使用np.float64类型
+
+- 当python传入的参数数量与Fortran中的对应不上，python会直接停止
+
+- fortran代码执行一部分就停止了
+
+- 对函数绑定C命名时需要全为小写字母
+
+- 不要单独的写函数，而是要写到模块里
+
+- c_long:int32,c_float:float32
+
+- 中间变量在函数中要先初始化为0
+
 ## 波函数的计算
 高斯基函数gtf用$γ$表示，表达式为：
 $$

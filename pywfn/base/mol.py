@@ -170,7 +170,10 @@ class Mol:
     @cached_property
     def coords(self)->np.ndarray:
         """返回原子坐标矩阵[n,3]"""
-        return np.array([atom.coord for atom in self.atoms])*1.889
+        coords=[atom.coord for atom in self.atoms]
+        coords=np.array(coords)
+        coords.setflags(write=False)
+        return coords
 
     @property
     def O_obts(self)->list[int]:

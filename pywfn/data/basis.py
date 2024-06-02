@@ -11,6 +11,7 @@
 
 from dataclasses import dataclass
 from pywfn import utils
+import numpy as np
 
 printer = utils.Printer()
 
@@ -24,6 +25,7 @@ class BasisData:
     ang: int  # 角动量
     exp: float  # 指数
     coe: float  # 系数
+    # 对应的矩阵
 
     def __iter__(self):
         data = self.atmic, self.shl, self.ang, self.exp, self.coe
@@ -96,7 +98,7 @@ class Basis:
         return lmnMap[sym]
     
     @staticmethod
-    def sym2Ang(sym: str)->list[int]:
+    def sym2ang(sym: str)->list[int]:
         lmn=Basis.sym2lmn(sym)
         return sum(lmn)
 
@@ -105,7 +107,8 @@ class Basis:
         data = self.get(atomic)
         return sum([len(self.lmn(ang)) for ang, _, _ in data])
 
-    def lName(self, l, m, n):
+    def lmn2sym(self, lmn):
+        l,m,n = lmn
         key = f"{l}{m}{n}"
         names = {
             "000": "S",
@@ -121,6 +124,28 @@ class Basis:
         }
         return names[key]
 
-    def numAng(self, strs):
-        """将角动量符号转为数值"""
-        return [[int(i) for i in s] for s in strs]
+    def matMap(self,atmic:int):
+        from collections import defaultdict
+        alpsDict=defaultdict(list)
+        coesDict=defaultdict(list)
+        keys=[]
+        for each in self.data:
+            if each.atmic!=atmic:continue
+            shl=each.shl
+            lmns = self.ang2lmn(each.ang)
+            for lmn in lmns:
+                l,m,n=lmn
+                key=f'{each.atmic},{shl},{l},{m},{n}'
+                if key not in keys:keys.append(key)
+                alpsDict[key].append(each.exp)
+                coesDict[key].append(each.coe)
+
+        ncgs=[len(alpsDict[key]) for key in keys] # 每一个原子轨道对应的收缩数量
+        alps=[]
+        coes=[]
+        for i,key in enumerate(keys):
+            alps.append(alpsDict[key])
+            coes.append(coesDict[key])
+        assert len(ncgs)==len(alps),"长度需一致"
+        return ncgs,alps,coes
+        

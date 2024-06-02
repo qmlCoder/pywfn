@@ -18,7 +18,9 @@ path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\O2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S.out"
-path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
+# path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
+path="D:\BaiduSyncdisk\gfile\elements\H2.out"
+path="D:\BaiduSyncdisk\gfile\elements\He2.out"
 
 mol = Mol(reader=LogReader(path))
 
@@ -56,30 +58,51 @@ molPos,molWei=caler.molPos
 #     wei=caler.weights
 #     print(np.sum(den*wei))
 
-print('-'*20)
-for obt in mol.O_obts:
-    wfn=caler.wfnCaler.obtWfn(obt,molPos)
-    den=wfn**2
-    wei=molWei
-    print(np.sum(den*wei))
+# print('-'*20)
+# for obt in mol.O_obts:
+#     wfn=caler.wfnCaler.obtWfn(obt,molPos)
+#     den=wfn**2
+#     wei=molWei
+#     print(np.sum(den*wei))
 
-print('-'*20)
-qs=[]
-for atom in mol.atoms:
-    dens=caler.atmDens_ca(atom.idx)
-    q=np.sum(dens)
-    print(q)
-    qs.append(q)
-print(sum(qs))
+# print('-'*20)
+# qs=[]
+# for atom in mol.atoms:
+#     dens=caler.atmDens_ca(atom.idx)
+#     q=np.sum(dens)
+#     print(q)
+#     qs.append(q)
+# print(sum(qs))
 
-print('-'*20)
-qs=[]
-for atom in mol.atoms:
-    dens=caler.atmDens_cm(atom.idx)
-    q=np.sum(dens)
-    qs.append(q)
-    print(q)
-print(sum(qs))
+# print('-'*20)
+# qs=[]
+# for atom in mol.atoms:
+#     dens=caler.atmDens_cm(atom.idx)
+#     q=np.sum(dens)
+#     qs.append(q)
+#     print(q)
+# print(sum(qs))
+
+coord=np.random.rand(20,3)*10
+# print(coord)
+# dens=caler.molDens_lib(coord)
+# print(np.min(dens),np.max(dens))
+# print(dens)
+# print(mol.CM)
+
+# obts=mol.O_obts
+# nobt=len(obts)
+# print(mol.CM[:,obts])
+# print(mol.CM[:,:nobt])
+
+dens=caler.molDens_lib(molPos)
+print(np.sum(dens*molWei))
+
+print('-'*40)
+dens=caler.molDens_obt(molPos)
+print(np.sum(dens*molWei))
+
+
 
 # wfn=caler.wfnCaler.obtWfn(0,molPos)
 # den=wfn**2

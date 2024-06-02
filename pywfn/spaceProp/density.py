@@ -25,13 +25,19 @@ class Calculator:
     @cached_property
     def molPos(self):
         """整个分子的网格点坐标"""
+        import time
+        # t0=time.time()
         molPos=[]
         molWei=[]
         for atom in self.mol.atoms:
             a2mPos,a2mWei=self.a2mWeight(atom.idx)
             molPos.append(a2mPos)
             molWei.append(a2mWei)
-        return np.vstack(molPos),np.concatenate(molWei)
+        molPos=np.vstack(molPos)
+        molWei=np.concatenate(molWei)
+        # t1=time.time()
+        # print('权重耗时：',t1-t0)
+        return molPos,molWei
 
     def atmPos(self,atm:int):
         """单个原子的网格点坐标"""
@@ -40,35 +46,34 @@ class Calculator:
     @lru_cache
     def a2mWeight_(self,atm:int):
         """将原子格点的权重转为分子格点的权重""" # 径向和角度分别插值
-        atmPos=self.atmPos(atm)
+        atmGrid=self.atmPos(atm)
         atoms=self.mol.atoms
         natm=len(atoms)
         LM=self.mol.atoms.LM
         a2mPos=[]
         a2mWei=[]
-        for p,gp in enumerate(atmPos): # 对每个格点坐标进行循环
+        for p,gp in enumerate(atmGrid): # 对每个格点坐标进行循环
             S_u=np.ones(shape=(natm,natm))
             for i in range(natm):
                 pi=atoms[i].coord
-                r_i=np.linalg.norm(gp-pi) # 格点与原子的距离
+                ri=np.linalg.norm(gp-pi) # 格点与原子的距离
                 
                 for j in range(natm):
                     if i==j:continue # 相同原子，i=j，直接跳过了
                     pj=atoms[j].coord
-                    r_j=np.linalg.norm(gp-pj)
-
-                    miu_ij=(r_i-r_j)/LM[j,i]
+                    rj=np.linalg.norm(gp-pj)
+                    miu_ij=(ri-rj)/LM[j,i]
                     chi=atoms[i].radius/atoms[j].radius # 半径的比例，不受单位影响
                     
                     # Change μ(i,j) to ν(i,j)
                     if abs(chi-1)<1e-6: # 相同元素，半径相等
                         nu_ij=miu_ij
                     else:
-                        uij=(chi-1)/(chi+1)
-                        aij=uij/(uij**2-1)
-                        if aij>0.5:aij=0.5
-                        if aij<-0.5:aij=-0.5
-                        nu_ij=miu_ij+aij*(1-miu_ij**2)
+                        u_ij=(chi-1)/(chi+1)
+                        a_ij=u_ij/(u_ij**2-1)
+                        if a_ij>0.5:a_ij=0.5
+                        if a_ij<-0.5:a_ij=-0.5
+                        nu_ij=miu_ij+a_ij*(1-miu_ij**2)
 
                     nu_ij=1.5*nu_ij-0.5*nu_ij**3
                     nu_ij=1.5*nu_ij-0.5*nu_ij**3
@@ -91,9 +96,11 @@ class Calculator:
         atmWeit=self.weights
         natm=len(self.mol.atoms)
         atmPos=self.mol.coords
-        atmRad=np.array(self.mol.atoms.radius,dtype=np.float32)
+        atmRad=np.array(self.mol.atoms.radius)
         atmDis=self.mol.atoms.LM
         a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
+        # print(np.isnan(a2mWeit))
+        assert True not in np.isnan(atmWeit),"不应该有nan"
         return a2mGrid,a2mWeit
     
 
@@ -116,24 +123,52 @@ class Calculator:
             dens+=self.atmDens(atom.idx,pos)
         return dens
     
+    def molDens_lib(self,pos:np.ndarray):
+        """使用Fortran库计算电子密度"""
+        from pywfn.maths import flib
+        ngrid=len(pos)
+        grids=pos
+        nmat=self.mol.CM.shape[0]
+        nobt=len(self.mol.O_obts)
+        obts=self.mol.O_obts
+        atms=self.mol.obtAtms
+        atms=[atm-1 for atm in atms]
+        cords=self.mol.coords[atms,:]
+        # print('obts',obts)
+        # CM=self.mol.CM[:,:nobt].copy()
+        # print(CM.shape)
+        CM=self.mol.CM[:,obts].copy()
+        # print(CM.shape)
+
+        # np.asfortranarray
+
+        ncgs=[]
+        alpl=[]
+        coel=[]
+        for atom in self.mol.atoms:
+            result=self.mol.basis.matMap(atom.atomic)
+            ncgs+=result[0]
+            alpl+=result[1]
+            coel+=result[2]
+        cmax=max(ncgs)
+        nmat=len(ncgs)
+        alps=np.zeros(shape=(nmat,cmax))
+        coes=np.zeros(shape=(nmat,cmax))
+        
+        for i,c in enumerate(ncgs):
+            alps[i,:c]=alpl[i]
+            coes[i,:c]=coel[i]
+        syms=self.mol.obtSyms
+        lmns=[self.mol.basis.sym2lmn(sym) for sym in syms]
+        lmns=np.array(lmns,dtype=np.int64)
+        ncgs=np.array(ncgs,dtype=np.int64)
+        # print('ncgs',ncgs,ncgs.shape)
+        dens=flib.molDens(ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,alps,coes,lmns)
+        return dens*self.mol.oE
+        
+    
     def atmDens(self,atm:int,pos)->np.ndarray:
         return self.atmDens_cm(atm,pos)
-
-    def atmDens_ca(self,atm:int):
-        """计算原子电子密度，使用原子中心坐标"""
-        atmPos=self.atmPos(atm)
-        nmat=self.mol.CM.shape[0]
-        atom=self.mol.atom(atm)
-        dens=np.zeros(len(atmPos))
-        atmDens=np.zeros(len(atmPos))
-        u,l = atom.obtBorder
-        for i in range(u,l):
-            wfn_i=self.wfnCaler.atoWfn(i,atmPos)
-            for j in range(nmat):
-                wfn_j=self.wfnCaler.atoWfn(j,atmPos)
-                dens=wfn_i*wfn_j*self.mol.PM[i,j]
-                atmDens+=dens
-        return atmDens*self.weights
     
     def atmDens_cm(self,atm:int,pos:np.ndarray):
         """计算原子电子密度，使用分子空间坐标"""

@@ -133,9 +133,11 @@ class Gto:
         c1*f1+c2*f2...
         """
         # R2=np.sum(pos**2,axis=1)
+        # print('cgf',pos[0,:])
         wfns = np.zeros(len(pos))
         for exp, coe in zip(exps, coes):
             wfns += coe * Gto.gtf(exp, R2, pos, lmn)
+        # print('cgf', np.sum(wfns**2))
         return wfns
 
     @staticmethod
@@ -150,6 +152,7 @@ class Gto:
         # i=0,(2i-1)=-1,(2i-1)!!=1
         # i=1,(2i-1)= 1,(2i-1)!!=1
         # i=2,(2i-1)= 3,(2i-1)!!=3
+        # print('gtf',pos[0,:])
         facs=[1,1,3] # n与阶乘的对应关系？
         l, m, n = lmn
         x, y, z = pos.T
@@ -158,4 +161,7 @@ class Gto:
         N = (2 * exp / π) ** (3 / 4) * np.sqrt((4 * exp) ** ang / fac)
         # N = (2 * exp / π) ** (3 / 4) * np.sqrt((2 ** (2 * ang) * exp**ang) / fac)
         wfn = x**l * y**m * z**n * np.exp(-exp * R2) * N
+        # for i in range(1):
+        #     print('gtf',i,pos[i,:],R2[i],N,wfn[i])
+        # print('gtf',np.sum(wfn**2),fac,N,len(pos),exp)
         return wfn

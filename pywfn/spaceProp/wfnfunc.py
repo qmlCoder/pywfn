@@ -36,6 +36,7 @@ class Calculator:
         for c,coef in enumerate(coefs):
             if c not in idxs:continue
             wfn+=coef*self.atoWfn(c,pos)
+        # print('obtWfn',np.sum(wfn),coefs)
         return wfn
     
     
@@ -44,8 +45,6 @@ class Calculator:
         if i in keys:
             return self.a2mWfns[i]
         else:
-            # atmWfn=self.atoWfn(i,atmPos)
-            # molWfn=griddata(atmPos,atmWfn,self.molPos,method='linear')
             molWfn=self.atoWfn(i,self.molPos)
             assert True not in np.isnan(molWfn),"a2mWfn计算不正确"
             self.a2mWfns[i]=molWfn
@@ -56,6 +55,7 @@ class Calculator:
         计算原子轨道的波函数，形成在轨道线性组合之前
         i:原子轨道指标
         """
+        # print('atoWfn',pos[0,:])
         atms = self.mol.obtAtms
         shls = self.mol.obtShls
         syms = self.mol.obtSyms
@@ -72,4 +72,5 @@ class Calculator:
         pos_ = pos-self.mol.atom(atm).coord # 空间坐标-原子坐标=以原子为中心的空间坐标
         R2 = np.sum(pos_**2, axis=1)
         wfn = self.mol.gto.cgf(exps, coes, lmn, R2, pos_)  # 空间坐标-以原子为中心的坐标
+        
         return wfn
