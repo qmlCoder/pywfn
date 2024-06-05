@@ -21,6 +21,7 @@ from pywfn import reader
 
 from typing import Callable
 import linecache
+import textwrap
 
 class Title:
     def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
@@ -393,6 +394,7 @@ class LogReader(reader.Reader):
     
     @lru_cache
     def read_CM(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
+        
         keyWards=self.read_keyWrds()
         assert 'pop=full' in keyWards,'关键词应包含：pop=full'
         find=re.search('NBasis *= *(\d+)',self.text).groups()[0]
@@ -411,12 +413,14 @@ class LogReader(reader.Reader):
         
         CM=np.zeros(shape=(NBasis,NBasis))
         for i,l in enumerate(range(titleNum+1,titleNum+NBlock*blockLen+1,blockLen)):
+            ltex=self.getline(l+1)
             occs=self.getline(l+1)[21:71] # 占据类型的起止位置
             occs=[occs[i:i+10].strip() for i in range(0,50,10)]
             occs=[e for e in occs if e!='']
             occs=[True if e[-1]=='O' else False for e in occs]
             ObtOccs+=occs
-            engs =re.split(' +',self.getline(l+2)[21:].strip())
+            # engs =re.split(' +',self.getline(l+2)[21:].strip())
+            engs =textwrap.wrap(self.getline(l+2)[21:].strip(),10)
             line=self.getline(l+2)
             engs=[float(e) for e in engs]
             ObtEngs+=engs

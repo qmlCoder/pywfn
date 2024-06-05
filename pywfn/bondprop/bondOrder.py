@@ -27,13 +27,14 @@ class Calculator:
         for a1,a2 in bonds:
             u1,l1=self.mol.atom(a1).obtBorder
             u2,l2=self.mol.atom(a2).obtBorder
-            order=np.sum(OM[u1:l1,u2:l2])
+            vals=OM[u1:l1,u2:l2]
+            order=np.sum(vals)
             orders.append([a1,a2,order])
         order = np.array(orders)
         # print(order)
         return order
     
-    def dirMayer(self,bonds:list[list[int,int]])->np.ndarray:
+    def dirMayer(self,bonds:list[list[int]])->np.ndarray:
         """带有方向的Mayer键级[d,6](a1,a2,x,y,z,v)"""
         dirCaler=direction.Calculator(self.mol)
         obts=self.mol.O_obts

@@ -2,7 +2,7 @@
 计算分子轨道内每个原子的能量
 """
 from pywfn.base import Mol
-from pywfn.molprop import obtEnergy
+from pywfn.molprop import energy
 from pywfn.atomprop import lutils
 from pywfn.utils import printer
 import numpy as np
@@ -10,11 +10,12 @@ import numpy as np
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.caler=obtEnergy.Calculator(mol)
+        self.caler=energy.Calculator(mol)
     
-    def calculate(self,CM:np.ndarray=None)->np.ndarray:
-        """计算每个原子对应的轨道能量"""
-        EM=self.caler.calculate(CM) # 获取能量矩阵
+    def atmEngs(self,CM:np.ndarray|None=None)->np.ndarray:
+        """计算每个原子对应的轨道能量，原子电子能"""
+        if CM is None:CM=self.mol.CM
+        EM=self.caler.engMat(CM) # 获取能量矩阵
         atoms=self.mol.atoms
         engs=np.zeros(len(atoms))
         for a,atom in enumerate(self.mol.atoms):
@@ -23,8 +24,8 @@ class Calculator:
             engs[a]=atomEng
         return engs
     
-    def dirEnergy(self):
-        """计算投影后系数矩阵算出的能量"""
+    def atmPiEngs(self):
+        """计算投影后系数矩阵算出的能量，原子pi电子能"""
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol)
         atms=[]
@@ -34,12 +35,12 @@ class Calculator:
             if normal is None:continue
             atms.append(atom.idx)
             dirs.append(normal)
-        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,True,False)
-        engs=self.calculate(CMp)
+        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
+        # print(CMp==self.mol.CM)
+        engs=self.atmEngs(CMp)
         return engs
     
     def onShell(self):
-        engs=self.calculate()
         while True:
             printer.options('原子能量',{
                 '1':'原子轨道能',
@@ -47,11 +48,11 @@ class Calculator:
             })
             opt=input('输入要计算的原子能:')
             if opt=='1':
-                energy=self.calculate()
+                energy=self.atmEngs()
                 for i,eng in enumerate(energy):
                     printer.res(f'{i+1}: {eng}')
             elif opt=='2':
-                energy=self.dirEnergy()
+                engs=self.atmPiEngs()
                 for i,eng in enumerate(engs):
                     printer.res(f'{i}: {eng}')
             else:

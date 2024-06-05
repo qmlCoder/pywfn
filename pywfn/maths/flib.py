@@ -3,7 +3,7 @@
 """
 from typing import Any
 import ctypes as ct
-from ctypes import c_long,c_float,POINTER
+from ctypes import c_long,c_float,POINTER,byref
 from pathlib import Path
 import numpy as np
 import os
@@ -14,11 +14,11 @@ def trans_dtype(paras:list):
     types=[]
     for para in paras:
         if type(para)==int:
-            targs.append(c_long(para))
-            types.append(c_long)
+            targs.append(byref(c_long(para)))
+            types.append(POINTER(c_long))
         elif type(para)==float:
-            targs.append(c_float(para))
-            types.append(c_float)
+            targs.append(byref(c_float(para)))
+            types.append(POINTER(c_float))
         elif type(para)==np.ndarray:
             # print(para.dtype,para.dtype in ['float32','float64'])
             if para.dtype in ['float32','float64']:
@@ -55,8 +55,9 @@ flib.sum2_.restype = ct.c_float
 
 
 def sum2(a: float):
-    a = ct.byref(ct.c_float(a))
-    b = flib.sum2_(a)
+    # a_ref = ct.byref(ct.c_float(a))
+    a_ref = ct.c_float(a)
+    b = flib.sum2_(a_ref)
     return b
 
 
@@ -116,16 +117,16 @@ def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarr
 
 def molDens(
         ngrid:int,
-        grids:np.ndarray[(Any,3),float],
+        grids:np.ndarray, # type: ignore
         nmat:int,
-        cords:np.ndarray[(Any,3),float],
+        cords:np.ndarray,
         nobt:int,
-        CM:np.ndarray[float],
-        ncgs:np.ndarray[int], # 每一个原子轨道的基组收缩数量
+        CM:np.ndarray,
+        ncgs:np.ndarray, # 每一个原子轨道的基组收缩数量
         cmax:int,
-        oalps:np.ndarray[float],
-        ocoes:np.ndarray[float],
-        lmns:np.ndarray[int]
+        oalps:np.ndarray,
+        ocoes:np.ndarray,
+        lmns:np.ndarray
 ):
     """计算分子电子密度"""
     # print(grids[:3,:])
@@ -167,6 +168,27 @@ def a2mWeight(
     flib.a2mWeight_(*(iparas+oparas))
     return a2mGrid,a2mWeit
 
-import ctypes
+def get_NM(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
+    """计算电子数量矩阵"""
+    assert CM.shape==(nmat,nobt),'CM.shape must be (nmat,nobt)'
+    assert SM.shape==(nmat,nmat),'SM.shape must be (nmat,nmat)'
+    paras=[nmat,nobt,CM,SM]
+    iparas,itypes=trans_dtype(paras)
+    NM=np.zeros((nmat,nobt),dtype=np.float32)
+    oparas,otypes=trans_dtype([NM])
+    # if flib.get_NM_.argtypes is None:
+    ftypes=itypes+otypes
+    fparas=iparas+oparas
+    # if flib.a2mWeight_.argtypes is None:
+    flib.get_eleMat_.argtypes=ftypes
+    
+    flib.get_eleMat_(*fparas)
+    return NM
 
-# flib.test2_.argtypes = [ctypes.c_long] * 5
+if __name__=='__main__':
+    nmat=20
+    nobt=10
+    CM=np.random.rand(nmat,nobt)+1
+    SM=np.random.rand(nmat,nmat)+1
+    NM=get_NM(nmat,nobt,CM,SM)
+    print(NM)

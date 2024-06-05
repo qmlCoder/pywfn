@@ -11,7 +11,7 @@ class Bond:
         self.mol=mol
         self.atm1=atm1
         self.atm2=atm2
-        self._length:float=None
+        self._length:float|None=None
         self.key:str=f'{atm1}-{atm2}'
         self.ats:list[int]=[atm1,atm2]
     
@@ -26,7 +26,8 @@ class Bond:
     @cached_property
     def length(self):
         """获取键长"""
-        return np.linalg.norm(self.a2.coord-self.a1.coord)
+        length=np.linalg.norm(self.a2.coord-self.a1.coord)
+        return float(length)
 
     @cached_property
     def vector(self):
@@ -73,7 +74,15 @@ class Bonds:
         for bond in self.bonds:
             if bond.a1.idx==idx1 and bond.a2.idx==idx2:
                 return bond
-        raise f'没有指定的键{idx1}-{idx2}'
+        return None
+    
+    def pop(self,idx1:int,idx2:int):
+        """删除一个键"""
+        for bond in self.bonds:
+            if bond.ats==[idx1,idx2]:
+                self.bonds.remove(bond)
+                return bond
+        return None # 没有删除成功
     
     
     @property

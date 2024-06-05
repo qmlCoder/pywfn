@@ -93,6 +93,10 @@ class Calculator:
             result.append([atm,x,y,z,valence])
         return np.array(result)
 
+    def delFreeValence(self,atm:int):
+        """计算自由价之差"""
+        pass
+
     def dirFukui(self,atms:list[int])->np.ndarray:
         """计算指定原子，指定方向的福井函数[n,6](atm,x,y,z,E,N)"""
         assert len(self.mols)==3,"需要三个分子"

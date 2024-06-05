@@ -98,7 +98,7 @@ class Basis:
         return lmnMap[sym]
     
     @staticmethod
-    def sym2ang(sym: str)->list[int]:
+    def sym2ang(sym: str)->int:
         lmn=Basis.sym2lmn(sym)
         return sum(lmn)
 

@@ -89,7 +89,7 @@ class Elements:
             Element(idx,sym,rad) for idx,sym,rad in rawData
         ]  # 原子列表，一定是按照顺序排列的
         self.symbols: list[str] = [e.symbol for e in self.elements]
-        self.charges: list[str] = [e.charge for e in self.elements]
+        self.charges: list[int] = [e.charge for e in self.elements]
         self.i2e = {}
         self.s2e = {}
 

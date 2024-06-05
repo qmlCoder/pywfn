@@ -54,7 +54,7 @@ class Props(dict):
 
 class Mol:
     """基础的分子对象"""
-    def __init__(self,reader:"reader.Reader"=None) -> None:
+    def __init__(self,reader:"reader.Reader") -> None:
         """
         分子实例化
         `reader:Reader`，分子读取器
@@ -133,6 +133,12 @@ class Mol:
     @cached_property
     def obtSyms(self)->list[str]:
         return self.reader.get_obtSyms()
+    
+    @cached_property
+    def obtAngs(self)->list[int]:
+        syms=self.obtSyms
+        angs=[self.basis.sym2ang(sym) for sym in syms]
+        return angs
 
     @property
     def atoms(self)->Atoms:
@@ -151,7 +157,10 @@ class Mol:
             for atom2 in self.atoms:
                 if atom1.idx>=atom2.idx:continue
                 r=np.linalg.norm(atom2.coord-atom1.coord)
-                if r>config.BOND_LIMIT:continue
+                r1=elements[atom1.symbol].radius
+                r2=elements[atom2.symbol].radius
+                # if r>config.BOND_LIMIT:continue
+                if r>(r1+r2)*1.1:continue
                 self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
     
@@ -163,7 +172,7 @@ class Mol:
         return self.atoms[idx-1]
     
     @lru_cache
-    def bond(self,idx1:int,idx2:int)->Bond:
+    def bond(self,idx1:int,idx2:int)->Bond|None:
         """第一次调用是生成键,第二次调用时直接返回,秒啊"""
         return self.bonds.get(idx1,idx2)
 
@@ -223,7 +232,8 @@ class Mol:
         """
         if len(atms)==2:
             a1,a2=atms
-            return self.bond(a1,a2).length
+            bond=self.atom(a1).coord-self.atom(a2).coord
+            return float(np.linalg.norm(bond))
         elif len(atms)==3:
             a1,a2,a3=atms
             v21=self.atom(a1).coord-self.atom(a2).coord
@@ -249,7 +259,7 @@ class Mol:
 
     
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
-               ,akeep:bool,lkeep:bool,akeeps=None,keeps:str=None)->np.ndarray:
+               ,akeep:bool,lkeep:bool,akeeps=None,keeps:str|None=None)->np.ndarray:
         """
         获取投影后的系数矩阵
         atms:需要投影的原子
@@ -281,7 +291,7 @@ class Mol:
                 else:
                     Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
                 if keeps is not None: # 其它保留的层
-                    idxs=[i for i,s in enumerate(syms) if re.match(s)]
+                    idxs=[i for i,s in enumerate(syms) if re.match(keeps,s)]
                     Cos=atom.obtCoeffs.copy()[idxs,obt]
                     Co[idxs]=Cos
                 Cop=atom.get_pProj(vect,obt)
@@ -296,46 +306,3 @@ class Mol:
 
     def __repr__(self):
         return f'atom number: {len(self.atoms)}'
-
-    def get_wfnv(self,obt:int,pos:np.ndarray,atoms:list[int])->np.ndarray:
-        """
-        导出指定点的分子轨道数据
-        obt: 要渲染的分子轨道
-        pos: 要渲染的格点坐标[n,3]
-        atoms: 要渲染的原子，索引从1开始
-        """
-        print(f'渲染轨道{obt=},{pos.shape},{atoms}')
-        assert pos.shape[1]==3,'坐标的形状需为[n,3]'
-        values=np.zeros(len(pos))
-        # pool=mp.Pool(mp.cpu_count())
-        # proces:list[AsyncResult]=[]
-        # multi=True
-        # if multi:
-        #     for idx in atoms:
-        #         atom=self.atom(idx)
-        #         posi=pos-atom.coord
-        #         proce=pool.apply_async(atom.get_wfnv,(posi,obt,))
-        #         proces.append(proce)
-        #     for proce in tqdm(proces):
-        #         values+=proce.get()
-        #     return values
-        # else:
-        for idx in atoms:
-            atom=self.atom(idx)
-            posi=pos-atom.coord
-            values+=atom.get_wfnv(posi,obt)
-        return values
-    
-    def get_dens(self,atoms:list[int],obts:list[int],coords:np.ndarray)->np.ndarray:
-        """
-        计算分子的电子密度
-        atoms:要计算的原子，从1开始
-        coords:空间笛卡尔坐标
-        """
-        molDens=np.zeros(shape=(len(coords))) # 每一个坐标的电子密度值
-        for a in atoms:
-            atom=self.atom(a)
-            coord=coords-atom.coord #以原子为中心的坐标
-            atmDens=atom.get_dens(obts,coord)
-            molDens+=atmDens
-        return molDens

@@ -29,18 +29,19 @@ class GjfReader(reader.Reader):
 
     @lru_cache
     def read_coord(self):
-        finds=re.findall(' ([A-Za-z]+) +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)',self.text)
+        finds=re.findall(r' ([A-Za-z]+) +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)',self.text)
         symbols=[]
         coords=[]
         for s,x,y,z in finds:
             symbols.append(s)
             coords.append([x,y,z])
-        return symbols,np.array(coords,dtype=float)
+        coords=np.array(coords,dtype=np.float32)*1.889
+        return symbols,coords
     
     @lru_cache
-    def read_multi(self)->tuple[int]:
+    def read_multi(self)->tuple[int,int]:
         """读取电荷与自旋多重度"""
-        finds=re.search('(-?\d) (\d)',self.text)
+        finds=re.search(r'(-?\d) (\d)',self.text)
         assert finds is not None,'未正确读取电荷与自旋多重度!'
         charge,multi=finds.groups()
         return int(charge),int(multi)

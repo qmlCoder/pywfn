@@ -1,5 +1,6 @@
 """
 计算分子的芳香性
+使用pi键级的标准差表示
 """
 from pywfn.base import Mol
 from pywfn.atomprop import charge

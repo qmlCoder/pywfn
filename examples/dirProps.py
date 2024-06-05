@@ -3,7 +3,7 @@ sys.path.append("D:\code\pywfn")
 from pywfn.base import Mol
 from pywfn.reader import LogReader
 from pywfn.atomprop import delProps,piProps,dirProps
-from pywfn.molprop import obtEnergy
+from pywfn.molprop import energy
 import numpy as np
 
 # root=r"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\NHC-wfn"

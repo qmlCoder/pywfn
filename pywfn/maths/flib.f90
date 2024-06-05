@@ -99,14 +99,14 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算�
         y = grids(2,i)-coord(2)
         z = grids(3,i)-coord(3)
         r2 = x**2 + y**2 + z**2
-        val=x**l * y**m * z**n * exp(-alp*r2)*Nm
+        if (ang==0)then
+            val=exp(-alp*r2)*Nm
+        else
+            val=x**l * y**m * z**n * exp(-alp*r2)*Nm
+        end if
         vals(i) = val
-        ! if ( i<=1 ) then
-        !     write(*,*)'gtf',i,x,y,z,r2,Nm,val
-        ! end if
         
     end do
-    ! write(*,*)'gtf',sum(vals**2),fac,Nm,ngrid,alp
     
 end subroutine gtf
 
@@ -136,8 +136,6 @@ subroutine cgf(cmax,nc,alps, coes,ngrid,grids,coord,l,m,n, wfn) bind(C, name="cg
     ! write(*,*)'cgf',sum(wfn**2)
     ! write(*,*)'cgf done'
 end subroutine cgf
-
-
 
 ! 计算某点处所有原子轨道波函数加和
 subroutine obtWfn(ngrid,grids,nmat,cords,ncgs,cmax,oalps,ocoes,coefs,lmns,wfn) bind(C,name="obtwfn_")
@@ -198,23 +196,31 @@ subroutine molDens(ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,oalps,ocoes,lmns,den
     integer(c_long),intent(in) :: lmns(3,nmat) !角动量分量
     real(c_float),intent(inout)::dens(ngrid)
 
-    real(c_float)::coefs(nmat)
+    ! real(c_float)::coefs(nmat),coef
     real(c_float) ::wfn(ngrid)
-    integer :: i
-    ! write(*,*)'molDen',nmat,nobt,cmax
-    ! do i=1,nmat
-    !     write(*,*)'CMi',i,CM(:,i)
-    ! end do
+    real(c_float)::wfns(ngrid,nmat) ! 将每个原子轨道的波函数存储下来
+    integer(c_long)::l,m,n
+    integer :: i,j
+    ! 提前算出所有原子轨道的波函数并存储起来，分子轨道的波函数只是原子轨道波函数的线性组合
+    do i=1,nmat
+        l=lmns(1,i)
+        m=lmns(2,i)
+        n=lmns(3,i)
+        call cgf(cmax,ncgs(i),oalps(:,i),ocoes(:,i),ngrid,grids,cords(:,i),l,m,n,wfn)
+        wfns(:,i)=wfn
+    end do
+    
     dens=0.0
     do i=1,nobt
-        coefs = CM(i,:)
-        wfn = 0.0
-        call obtwfn(ngrid,grids,nmat,cords,ncgs,cmax,oalps,ocoes,coefs,lmns,wfn)
-        dens = dens + wfn**2
+        wfn=0.0
+        do j=1,nmat
+            wfn = wfn + wfns(:,j)*CM(i,j)
+        end do
+        dens=dens+wfn**2
     end do
 end subroutine molDens
 
-
+! 计算原子在分子格点的权重
 subroutine a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid,a2mWeit) bind(C,name="a2mWeight_")
     use iso_c_binding
     implicit none
@@ -281,5 +287,28 @@ subroutine a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid
         a2mGrid(:,g)=atmGrid(:,g)
     end do
 end subroutine a2mWeight
+
+subroutine get_eleMat(nmat,nobt,CM,SM,NM) bind(c, name="get_eleMat_")
+    use iso_c_binding
+    implicit none
+    integer(c_long), intent(in) :: nobt
+    integer(c_long), intent(in) :: nmat
+    real(c_float), intent(in) ::  CM(nobt,nmat) ! 系数矩阵
+    real(c_float), intent(in) ::  SM(nmat,nmat) ! 重叠矩阵
+    real(c_float), intent(out) ::  NM(nobt,nmat) ! 电子数量矩阵
+    integer::i,j,o
+    real(c_float)::val
+    ! NM=0.0
+    do o=1,nobt
+        do i=1,nmat
+            val=0.0
+            do j=1,nmat
+                val=val+CM(o,i)*CM(o,j)*SM(i,j)
+            end do
+            NM(o,i)=val
+        end do
+    end do
+        
+end subroutine get_eleMat
 
 end module flib

@@ -142,7 +142,7 @@ class Reader:
         """获取轨道系数每一行对应的原子层[m]"""
         raise ValueError("未继承的函数")
     
-    def get_obtSyms(self)->list[float]:
+    def get_obtSyms(self)->list[str]:
         """获取轨道系数每一行对应的轨道符号(S,PX,PY...)"""
         raise ValueError("未继承的函数")
     
@@ -152,7 +152,7 @@ class Reader:
         """
         raise ValueError("未继承的函数")
     
-    def load_fdata(self,name:str)->np.ndarray|list:
+    def load_fdata(self,name:str)->np.ndarray|list|None:
         """获取保存的数据"""
         path=Path(self.dfold)/name
         if not path.exists():return None

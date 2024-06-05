@@ -15,14 +15,14 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def pObt(self)->np.ndarray:
+    def pObt(self)->np.ndarray|None:
         """计算p轨道的方向向量"""
         pass
 
-    def maxWfn(self)->np.ndarray:
+    def maxWfn(self)->np.ndarray|None:
         """计算波函数最大值方向"""
 
-    def sphAro(self)->np.ndarray:
+    def sphAro(self)->np.ndarray|None:
         """计算周围一圈的球形范围"""
         pass
 
@@ -50,6 +50,7 @@ class Calculator:
             vb=self.mol.atom(ib).coord-atom.coord
             va/=np.linalg.norm(va)
             vb/=np.linalg.norm(vb)
+            vm=(va+vb)/2.0 # 中间向量
 
             angle=vector_angle(va,vb) # 两向量之间的夹角
             linear=abs(1-angle)<1e-1 # 是否为线性
@@ -66,6 +67,7 @@ class Calculator:
             points=(cent+cros).reshape(-1,3)
             dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
             dirs=np.concatenate(dirs,axis=0)
+            if vector_angle(vm,dirs[9])>0.5:dirs*=-1
             return dirs
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord for n in nebs]
@@ -91,6 +93,15 @@ class Calculator:
         if 'normal' in atom._props.keys(): # 方便用户指定
             return atom._props['normal']
         nebs=atom.neighbors
+        if len(nebs)==1:
+            neb=nebs[0]
+            nebb=self.mol.atom(neb).neighbors
+            if atom.symbol=='H': # H肯定没有法向量吧
+                return None
+            elif len(nebb) in [2,3]:
+                return self.normal(neb)
+            else:
+                return None
         if len(nebs)==2:
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
