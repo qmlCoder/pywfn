@@ -40,8 +40,6 @@ def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
     CMh=np.transpose(CMv)
     PM = (CMv @ CMh) * oe
     return PM
-    # PMs = CM2PMs(CM, obts, oe)
-    # return np.sum(PMs, axis=0)
 
 
 def CM2PMs(CM, obts: list[int], oe: int):

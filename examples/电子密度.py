@@ -1,110 +1,85 @@
 import sys
-sys.path.append("D:\code\pywfn")
+sys.path.append(rf"D:\code\pywfn")
 
-from pywfn.data import sphGrid
+from pywfn.data import sphGrid,radDens
 from pywfn.base import Mol
 from pywfn.reader import LogReader
 from pywfn.atomprop import charge
-from pywfn.spaceProp import density
+from pywfn.spaceProp import density,dftgrid,wfnfunc
 
 import matplotlib.pyplot as plt
-import pyvista as pv
 import numpy as np
 import time
 
-path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
+path = rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
 # path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4.log"
-# path="D:\BaiduSyncdisk\gfile\elements\C.out"
+path=rf"D:\BaiduSyncdisk\gfile\elements\C.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\O2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S2.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\S.out"
 # path = "D:\BaiduSyncdisk\gfile\elements\CO.out"
-path="D:\BaiduSyncdisk\gfile\elements\H2.out"
-path="D:\BaiduSyncdisk\gfile\elements\He2.out"
+# path="D:\BaiduSyncdisk\gfile\elements\H2.out"
+# path="D:\BaiduSyncdisk\gfile\elements\He2.out"
 
 mol = Mol(reader=LogReader(path))
 
-caler=density.Calculator(mol)
 
-# nums=[]
-# for i in range(5):
-#     result=caler.atmDens(i+1)
-#     print(i+1,np.sum(result))
-#     nums.append(np.sum(result))
-# print(sum(nums))
-
-## 每个原子轨道电子密度加和应该为1
-atmPos=caler.atmPos(1)
-# print(atmPos.shape)
-
-molPos,molWei=caler.molPos
-# print(molPos.shape,molWei.shape)
-
-# wfn=caler.wfnCaler.atoWfn(1,atmPos)
-# den=wfn**2
-# wei=caler.weights
-# print(np.sum(den*wei))
-
-# wfn=caler.wfnCaler.atoWfn(1,molPos)
-# den=wfn**2
-# wei=caler.a2mWeight(1)
-# print(np.sum(den*wei)) # 相当于在原来正确的基础上添加了一些东西，肯定就不对了
-
-## 分子轨道的电子密度
-# print('-'*20)
-# for obt in mol.O_obts:
-#     wfn=caler.wfnCaler.obtWfn(obt,caler.points)
-#     den=wfn**2
-#     wei=caler.weights
-#     print(np.sum(den*wei))
-
-# print('-'*20)
-# for obt in mol.O_obts:
-#     wfn=caler.wfnCaler.obtWfn(obt,molPos)
-#     den=wfn**2
-#     wei=molWei
-#     print(np.sum(den*wei))
-
-# print('-'*20)
-# qs=[]
+wfnCaler=wfnfunc.Calculator(mol)
+denCaler=density.Calculator(mol)
+gridCaler=dftgrid.Calculator(mol)
 # for atom in mol.atoms:
-#     dens=caler.atmDens_ca(atom.idx)
-#     q=np.sum(dens)
-#     print(q)
-#     qs.append(q)
-# print(sum(qs))
+#     atm=atom.idx
+#     cords,weits=dftgrid.Calculator(mol).dftGrid(atm)
+#     wfns=wfnCaler.atoWfn(atm,cords)
+#     print(np.sum(wfns**2*weits))
 
-# print('-'*20)
-# qs=[]
-# for atom in mol.atoms:
-#     dens=caler.atmDens_cm(atom.idx)
-#     q=np.sum(dens)
-#     qs.append(q)
-#     print(q)
-# print(sum(qs))
-
-coord=np.random.rand(20,3)*10
-# print(coord)
-# dens=caler.molDens_lib(coord)
-# print(np.min(dens),np.max(dens))
-# print(dens)
-# print(mol.CM)
-
-# obts=mol.O_obts
-# nobt=len(obts)
-# print(mol.CM[:,obts])
-# print(mol.CM[:,:nobt])
-
-dens=caler.molDens_lib(molPos)
-print(np.sum(dens*molWei))
-
-print('-'*40)
-dens=caler.molDens_obt(molPos)
-print(np.sum(dens*molWei))
+def count(array:np.ndarray,nums:list[float]):
+    counts=[]
+    for i in range(len(nums)-1):
+        l=nums[i]
+        u=nums[i+1]
+        where=np.argwhere((array>l)&(array<=u))
+        count=where.shape[0]
+        counts.append(count)
+    return counts
 
 
+molGrid,molWeit=denCaler.molGrid
+# print(molGrid)
 
-# wfn=caler.wfnCaler.obtWfn(0,molPos)
-# den=wfn**2
-# wei=caler.a2mWeight(2)
-# print(np.sum(den*wei))
+# dens=denCaler.molDens_obt(molGrid)
+# print(np.sum(dens*molWeit)) # 分子电子密度
+
+# dens=denCaler.molDens_atm(molGrid)
+# print(np.sum(dens*molWeit)) # 分子电子密度
+
+# dens=denCaler.molDens_lib(molGrid.copy())
+# print(np.sum(dens*molWeit)) # 分子电子密度
+
+# grid,weit=gridCaler.dftGrid(1)
+
+# dens=denCaler.molDens_lib(grid.copy())
+# print(np.sum(dens*weit)) # 分子电子密度
+
+grid,weit=sphGrid.grids,sphGrid.weits
+rads=np.linalg.norm(grid,axis=1)
+rads=np.sort(rads)
+plt.plot(np.arange(len(rads)),rads)
+plt.show()
+print(len(molWeit))
+print(count(molWeit,list(np.linspace(0,1e-4,10))))
+dens=radDens.get_radDens(6,rads)
+
+
+print(np.sum(dens*weit))
+# cords,weits=sphGrid.cords,sphGrid.weits
+# plt.scatter(np.sum(cords**2,axis=1),weits)
+# plt.show()
+# wfns=caler.atoWfn(1,cords)
+# print(np.sum(wfns**2*weits))
+# caler.molPos=cords
+# wfn=caler.a2mWfn(1,cords)
+# print(np.sum(wfns**2*weits))
+# plt.show()
+# plt.show()
+pass

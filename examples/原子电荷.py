@@ -1,6 +1,6 @@
 import sys
 
-sys.path.append("D:\code\pywfn")
+sys.path.append(rf"D:\code\pywfn")
 
 # from pywfn.data import sphGrid
 from pywfn.base import Mol
@@ -8,10 +8,10 @@ from pywfn.reader import LogReader
 from pywfn.atomprop import charge
 
 # path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
-path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4.log"
-path="D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
-path="D:\BaiduSyncdisk\Articles\HFV\gfile\cnhn\C6H6_1.log"
-# path="D:\BaiduSyncdisk\gfile\elements\C.out"
+path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4.log"
+path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
+# path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\cnhn\C6H6_1.log"
+# path=rf"D:\BaiduSyncdisk\gfile\elements\C.out"
 # path="D:\BaiduSyncdisk\gfile\elements\CO.out"
 
 mol=Mol(LogReader(path))

@@ -3,10 +3,12 @@
 """
 from typing import Any
 import ctypes as ct
-from ctypes import c_long,c_float,POINTER,byref
+from ctypes import c_long,c_double,POINTER,byref
 from pathlib import Path
 import numpy as np
 import os
+
+ftype=np.float64
 
 def trans_dtype(paras:list):
     """转换数据类型"""
@@ -14,17 +16,17 @@ def trans_dtype(paras:list):
     types=[]
     for para in paras:
         if type(para)==int:
-            targs.append(byref(c_long(para)))
-            types.append(POINTER(c_long))
+            targs.append(c_long(para))
+            types.append(c_long)
         elif type(para)==float:
-            targs.append(byref(c_float(para)))
-            types.append(POINTER(c_float))
+            targs.append(c_double(para))
+            types.append(c_double)
         elif type(para)==np.ndarray:
             # print(para.dtype,para.dtype in ['float32','float64'])
             if para.dtype in ['float32','float64']:
-                if para.dtype!=np.float32:para=para.astype(np.float32) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
-                targs.append(para.ctypes.data_as(POINTER(c_float)))
-                types.append(POINTER(c_float))
+                if para.dtype!=ftype:para=para.astype(ftype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
+                targs.append(para.ctypes.data_as(POINTER(c_double)))
+                types.append(POINTER(c_double))
             elif para.dtype in ['int32','int64']:
                 if para.dtype!=np.int32:para=para.astype(np.int32) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
                 targs.append(para.ctypes.data_as(POINTER(c_long)))
@@ -40,79 +42,79 @@ os.add_dll_directory(r"D:\program\mingw64\bin")
 path = str(Path(__file__).parent / "flib.dll")
 flib = ct.CDLL(path)
 
-flib.add_.argtypes = [ct.c_float, ct.c_float, ct.POINTER(ct.c_float)]
+flib.add_.argtypes = [ct.c_double, ct.c_double, ct.POINTER(ct.c_double)]
 
 
 def add_(x: float, y: float):
-    res = ct.c_float()
-    flib.add_(ct.c_float(x), ct.c_float(y), ct.byref(res))
+    res = ct.c_double()
+    flib.add_(ct.c_double(x), ct.c_double(y), ct.byref(res))
     return res.value
 
 
 # 抄的例子
-flib.sum2_.argtypes = [ct.POINTER(ct.c_float)]
-flib.sum2_.restype = ct.c_float
+flib.sum2_.argtypes = [ct.POINTER(ct.c_double)]
+flib.sum2_.restype = ct.c_double
 
 
 def sum2(a: float):
-    # a_ref = ct.byref(ct.c_float(a))
-    a_ref = ct.c_float(a)
+    # a_ref = ct.byref(ct.c_double(a))
+    a_ref = ct.c_double(a)
     b = flib.sum2_(a_ref)
     return b
 
 
 # 抄的例子，矩阵运算
-flib.double_array_.argtypes = [ct.POINTER(ct.c_float), ct.c_long]
+flib.double_array_.argtypes = [ct.POINTER(ct.c_double), ct.c_long]
 
 
 def double_array():
     # Create a double array, pass it to Fotran as a pointer
     x = np.ones((3, 3), order="F")
-    x_ptr = x.ctypes.data_as(ct.POINTER(ct.c_float))
+    x_ptr = x.ctypes.data_as(ct.POINTER(ct.c_double))
 
     # Call function
     rint = flib.double_array_(x_ptr, ct.c_long(3))
     return x
 
 
-flib.grid_pos_.argtypes = [ct.c_long, ct.c_long, ct.c_long, ct.POINTER(ct.c_float)]
+flib.grid_pos_.argtypes = [ct.c_long, ct.c_long, ct.c_long, ct.POINTER(ct.c_double)]
 
 
 def grid_pos(Nx: int, Ny: int, Nz: int):
     pos = np.zeros((Nx * Ny * Nz, 3), order="F")
-    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_float))
+    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
     flib.grid_pos_(ct.c_long(Nx), ct.c_long(Ny), ct.c_long(Nz), pos_ptr)
     return pos
 
 
-flib.same_array_.argtypes = [ct.c_long, ct.c_long, ct.POINTER(ct.c_float)]
+flib.same_array_.argtypes = [ct.c_long, ct.c_long, ct.POINTER(ct.c_double)]
 
 def same_array():
     row, col = 2, 3
     pos = np.array([[1, 2, 3], [4, 5, 6]], dtype=float, order="F")
 
-    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_float))
+    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
     flib.same_array_(ct.c_long(row), ct.c_long(col), pos_ptr)
     return pos
 
 
 flib.gtf_.argtypes = [
-    c_float, # alp
+    c_double, # alp
     c_long, # np
-    ct.POINTER(ct.c_float), # pos
-    ct.POINTER(ct.c_float), # r2
+    ct.POINTER(ct.c_double), # pos
+    ct.POINTER(ct.c_double), # r2
     ct.POINTER(ct.c_long), # lmn
-    ct.POINTER(ct.c_float), # val
+    ct.POINTER(ct.c_double), # val
 ]
 
 def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarray:
-    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_float))
+    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
     npos = pos.shape[0]
-    R2_ptr = R2.ctypes.data_as(ct.POINTER(ct.c_float))
+    R2_ptr = R2.ctypes.data_as(ct.POINTER(ct.c_double))
     lmn_ptr = lmn.ctypes.data_as(ct.POINTER(ct.c_long))
     wfn = np.zeros(npos)
-    val_ptr = wfn.ctypes.data_as(ct.POINTER(ct.c_float))
-    flib.gtf_(c_float(exp), c_long(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
+    val_ptr = wfn.ctypes.data_as(ct.POINTER(ct.c_double))
+    flib.gtf_(c_double(exp), c_long(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
     return wfn
 
 def molDens(
@@ -133,7 +135,7 @@ def molDens(
     paras=[ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,oalps,ocoes,lmns]
     iparas,itypes=trans_dtype(paras)
 
-    dens=np.zeros(ngrid,dtype=np.float32)
+    dens=np.zeros(ngrid,dtype=ftype)
     oparas,otypes=trans_dtype([dens])
 
     flib.moldens_.argtypes=itypes+otypes
@@ -157,16 +159,16 @@ def a2mWeight(
     paras=[atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis]
     iparas,itypes=trans_dtype(paras)
 
-    a2mGrid=np.zeros_like(atmGrid,dtype=np.float32)
-    a2mWeit=np.zeros_like(atmWeit,dtype=np.float32)
-
+    a2mGrid=np.zeros_like(atmGrid,dtype=ftype)
+    a2mWeit=np.zeros_like(atmWeit,dtype=ftype)
+    total=c_long()
     oparas,otypes=trans_dtype([a2mGrid,a2mWeit])
 
-    if flib.a2mWeight_.argtypes is None:
-        flib.a2mWeight_.argtypes=itypes+otypes
-
-    flib.a2mWeight_(*(iparas+oparas))
-    return a2mGrid,a2mWeit
+    # if flib.a2mWeight_.argtypes is None:
+    flib.a2mWeight_.argtypes=itypes+otypes+[POINTER(c_long)]
+    flib.a2mWeight_(*(iparas+oparas+[byref(total)]))
+    # print(f'{total=},{len(atmWeit)}')
+    return a2mGrid[:total.value,:],a2mWeit[:total.value]
 
 def get_NM(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     """计算电子数量矩阵"""
@@ -174,14 +176,13 @@ def get_NM(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     assert SM.shape==(nmat,nmat),'SM.shape must be (nmat,nmat)'
     paras=[nmat,nobt,CM,SM]
     iparas,itypes=trans_dtype(paras)
-    NM=np.zeros((nmat,nobt),dtype=np.float32)
+    NM=np.zeros((nmat,nobt),dtype=ftype)
     oparas,otypes=trans_dtype([NM])
     # if flib.get_NM_.argtypes is None:
     ftypes=itypes+otypes
     fparas=iparas+oparas
     # if flib.a2mWeight_.argtypes is None:
     flib.get_eleMat_.argtypes=ftypes
-    
     flib.get_eleMat_(*fparas)
     return NM
 

@@ -65,7 +65,6 @@ E_a=\sum_{b∈a}E_b
 $$
 
 ## hirshfeld电荷
-⚠该方法尚未实现
 
 在r点处的`promolecule density`为：
 $$

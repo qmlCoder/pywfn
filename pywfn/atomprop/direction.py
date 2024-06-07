@@ -71,18 +71,26 @@ class Calculator:
             return dirs
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord for n in nebs]
+            va,vb,vc=[p-atom.coord for p in (pa,pb,pc)]
             params=maths.get_plane_by_3points(pa,pb,pc)
             distan=maths.get_distance_to_plane(params,atom.coord)
             planer=distan<1e-1 # 是否为平面
             a,b,c,_=params
             normal=np.array([a,b,c])
             normal=normal/np.linalg.norm(normal)
+            vmena=(va+vb+vc)/3.0
+            angle=vector_angle(vmena,normal)
+            if angle<0.5:normal*=-1
             if planer:
                 return np.array([normal,-normal])
             else:
-                angle=vector_angle(normal,pa-atom.coord)
-                if angle>0.5:normal*=-1
-                return normal.reshape(1,3)
+                vects=[
+                    normal,
+                    search_sp2Dir(normal.copy(),va,vb,vc),
+                    search_sp2Dir(normal.copy(),vb,va,vc),
+                    search_sp2Dir(normal.copy(),vc,va,vb),
+                ]
+                return np.array(vects)
         
         raise ValueError("找不到可能的反应方向")
     
@@ -128,3 +136,38 @@ class Calculator:
             if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
             return normal
         return None
+
+def search_sp2Dir(v0,v1,v2,v3):
+    """找到与va夹角为90°，且与vb,vc夹角相同的向量
+    """
+    def loss_fn(v):
+        a1=vector_angle(v,v1)
+        a2=vector_angle(v,v2)
+        a3=vector_angle(v,v3)
+        return (a1-0.5)**2+(a2-a3)**2
+    def grad_fn(v):
+        loss=loss_fn(v)
+        grad=np.zeros(3)
+        for i in range(3):
+            dv=np.zeros(3)
+            dv[i]=1e-3
+            grad[i]=(loss_fn(v+dv)-loss)/1e-3
+        return grad
+
+    step=1.0
+    loss0=np.inf
+    for i in range(1000):
+        grad=grad_fn(v0)
+        vn=v0-step*grad
+        vn/=np.linalg.norm(vn)
+        loss=loss_fn(vn)
+        # print(i,loss,step,grad)
+        if loss<loss0:
+            loss0=loss
+            v0=vn
+        else:
+            if step<1e-6:
+                break
+            else:
+                step/=10
+    return v0

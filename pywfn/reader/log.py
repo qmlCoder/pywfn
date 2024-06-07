@@ -47,8 +47,8 @@ class Title:
         return f'{self.line}: {self.mark}'
 
 class LogReader(reader.Reader):
-    def __init__(self, path:str):
-        super().__init__(path)
+    def __init__(self, path:str,clear:bool=False) -> None:
+        super().__init__(path,clear)
         assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
@@ -326,83 +326,85 @@ class LogReader(reader.Reader):
     #情况3     Eigenvalues --   -11.17917 -11.17907 -11.17829 -11.17818 -11.17794
     #情况4   1 1   C  1S         -0.00901  -0.01132   0.00047  -0.01645  -0.02767
     #情况5   2        2S         -0.00131  -0.00175  -0.00041  -0.00184  -0.00173
-    @lru_cache
-    def read_CM_(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
-        s1='^(( +\d+){1,5}) *$'
-        s2=r'^(( *(\(\w+\)--)?[OV]){1,5})$'
-        s3=r'^ +Eigenvalues --(( +-?\d+.\d+){1,5})'
-        s4='^ +\d+ +(\d+) +([A-Za-z]+) +(\d[A-Z]+)(( *-?\d+.\d+){1,5})$'
-        # s5='^ +\d+ +(\d+[A-Za-z ]+)(( *-?\d+.\d+){1,5})$'
-        s5='^ +\d+ +(\d+[A-Za-z]+ ?\+?-?\d?)(( *-?\d+.\d+){1,5})$'
+    # @lru_cache
+    # def read_CM_(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
+    #     s1=r'^(( +\d+){1,5}) *$'
+    #     s2=r'^(( *(\(\w+\)--)?[OV]){1,5})$'
+    #     s3=r'^ +Eigenvalues --(( +-?\d+.\d+){1,5})'
+    #     s4=r'^ +\d+ +(\d+) +([A-Za-z]+) +(\d[A-Z]+)(( *-?\d+.\d+){1,5})$'
+    #     # s5='^ +\d+ +(\d+[A-Za-z ]+)(( *-?\d+.\d+){1,5})$'
+    #     s5=r'^ +\d+ +(\d+[A-Za-z]+ ?\+?-?\d?)(( *-?\d+.\d+){1,5})$'
 
-        titleNum=self.titles[title].line
-        if titleNum is None:return None
+    #     titleNum=self.titles[title].line
+    #     if titleNum is None:return None
 
-        OrbitalAtom=[] # 系数矩阵每一行对应的原子
-        OrbitalLayer=[] # 系数矩阵每一行对应的壳层符号
-        OrbitalEngs=[] # 轨道本征值
-        OrbitalType=[] # 轨道类型
-        dataDict:dict[int:list[list[float]]]={}
-        firstShow=True
-        if titleNum is None:
-            return
-        for i in range(titleNum+1,self.lineNum):
-            line=self.getline(i)
-            if re.search(s1, line) is not None: #情况1
-                pass
-            elif re.search(s2, line) is not None: # 情况2，获得column
-                OrbitalType += re.split(r' +', line.replace('\n',''))[1:] # 获取占据轨道还是非占据轨道
+    #     OrbitalAtom=[] # 系数矩阵每一行对应的原子
+    #     OrbitalLayer=[] # 系数矩阵每一行对应的壳层符号
+    #     OrbitalEngs=[] # 轨道本征值
+    #     OrbitalType=[] # 轨道类型
+    #     dataDict:dict[int:list[list[float]]]={}
+    #     firstShow=True
+    #     if titleNum is None:
+    #         return
+    #     for i in range(titleNum+1,self.lineNum):
+    #         line=self.getline(i)
+    #         if re.search(s1, line) is not None: #情况1
+    #             pass
+    #         elif re.search(s2, line) is not None: # 情况2，获得column
+    #             OrbitalType += re.split(r' +', line.replace('\n',''))[1:] # 获取占据轨道还是非占据轨道
                 
-            elif re.search(s3, line) is not None: # 情况3，每个轨道本征值     
-                line_data,_=re.search(s3,line).groups()
-                line_data=re.findall('-?\d+.\d+', line_data)
-                line_data=[float(each) for each in line_data]
-                OrbitalEngs+=line_data
-            elif re.search(s4,line) is not None: # 原子出现
-                atomIDX,atomType,layer,line_data,_=re.search(s4,line).groups()
-                atomIDX = int(atomIDX)
-                nums=[float(each) for each in re.findall('-?\d+.\d+',line_data)]
-                if atomIDX not in dataDict.keys():
-                    dataDict[atomIDX]=[]
-                else:
-                    firstShow=False
-                dataDict[atomIDX].append([])
-                dataDict[atomIDX][-1].append(nums)
-                if firstShow:OrbitalLayer.append(layer)
-                if firstShow:OrbitalAtom.append(atomIDX)
-                # self.OCdict[atomIDX].set(layer,nums)
-            elif re.search(s5,line) is not None:
-                layer,line_data,_=re.search(s5,line).groups()
-                line_data=re.findall('-?\d+.\d+', line_data)
-                nums=[float(each) for each in line_data]
-                dataDict[atomIDX][-1].append(nums)
-                if firstShow:OrbitalLayer.append(layer)
-                if firstShow:OrbitalAtom.append(atomIDX)
-                # self.OCdict[atomIDX].set(layer,nums)
-            else: # 若不满足以上任意一种情况，说明已经查找完毕，则对收集到的数据进行处理
-                printer.console.log(f'读取完成,i={i},line={line}')
-                for atomic,matrics in dataDict.items():
-                    for i,matrix in enumerate(matrics):
-                        dataDict[atomic][i]=np.array(matrix)
-                for atomic,matrics in dataDict.items():
-                    dataDict[atomic]=np.concatenate(matrics,axis=1)
-                CM=np.concatenate([m for m in dataDict.values()],axis=0)
-                break
-        printer.console.log(f'读取完成CM,shape={CM.shape}')
-        assert CM.shape[0]==CM.shape[1],"CM需要为正方形矩阵"
-        return OrbitalAtom,OrbitalLayer,OrbitalEngs,OrbitalType,CM
+    #         elif re.search(s3, line) is not None: # 情况3，每个轨道本征值     
+    #             line_data,_=re.search(s3,line).groups()
+    #             line_data=re.findall('-?\d+.\d+', line_data)
+    #             line_data=[float(each) for each in line_data]
+    #             OrbitalEngs+=line_data
+    #         elif re.search(s4,line) is not None: # 原子出现
+    #             atomIDX,atomType,layer,line_data,_=re.search(s4,line).groups()
+    #             atomIDX = int(atomIDX)
+    #             nums=[float(each) for each in re.findall('-?\d+.\d+',line_data)]
+    #             if atomIDX not in dataDict.keys():
+    #                 dataDict[atomIDX]=[]
+    #             else:
+    #                 firstShow=False
+    #             dataDict[atomIDX].append([])
+    #             dataDict[atomIDX][-1].append(nums)
+    #             if firstShow:OrbitalLayer.append(layer)
+    #             if firstShow:OrbitalAtom.append(atomIDX)
+    #             # self.OCdict[atomIDX].set(layer,nums)
+    #         elif re.search(s5,line) is not None:
+    #             layer,line_data,_=re.search(s5,line).groups()
+    #             line_data=re.findall('-?\d+.\d+', line_data)
+    #             nums=[float(each) for each in line_data]
+    #             dataDict[atomIDX][-1].append(nums)
+    #             if firstShow:OrbitalLayer.append(layer)
+    #             if firstShow:OrbitalAtom.append(atomIDX)
+    #             # self.OCdict[atomIDX].set(layer,nums)
+    #         else: # 若不满足以上任意一种情况，说明已经查找完毕，则对收集到的数据进行处理
+    #             printer.console.log(f'读取完成,i={i},line={line}')
+    #             for atomic,matrics in dataDict.items():
+    #                 for i,matrix in enumerate(matrics):
+    #                     dataDict[atomic][i]=np.array(matrix)
+    #             for atomic,matrics in dataDict.items():
+    #                 dataDict[atomic]=np.concatenate(matrics,axis=1)
+    #             CM=np.concatenate([m for m in dataDict.values()],axis=0)
+    #             break
+    #     printer.console.log(f'读取完成CM,shape={CM.shape}')
+    #     assert CM.shape[0]==CM.shape[1],"CM需要为正方形矩阵"
+    #     return OrbitalAtom,OrbitalLayer,OrbitalEngs,OrbitalType,CM
+    
     
     @lru_cache
-    def read_CM(self, title:str):  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
+    def read_CM(self, title:str)->tuple[list[int],list[int],list[str],list[float],list[bool],np.ndarray]:  # 提取所有原子的轨道 自己写的代码自己看不懂真实一件可悲的事情,此函数逻辑复杂，要好好整明白
         
         keyWards=self.read_keyWrds()
         assert 'pop=full' in keyWards,'关键词应包含：pop=full'
-        find=re.search('NBasis *= *(\d+)',self.text).groups()[0]
-        NBasis=int(find)
+        find=re.search(r'NBasis *= *(\d+)',self.text)
+        assert find is not None,"没有找到基函数数量!!"
+        NBasis=int(find.groups()[0])
         NBlock=NBasis//5+(0 if NBasis%5==0 else 1)
         titleNum=self.titles[title].line
         
-        if titleNum is None:return None
+        assert titleNum!=-1,"没有轨道系数!!"
         blockLen=NBasis+3 #一块数据行数，在log文件的输出中，轨道系数是按照每一块五列来分块的
         # print(titleNum,NBlock,blockLen)
         ObtAtms=[] # 原子轨道对应的原子
@@ -427,16 +429,16 @@ class LogReader(reader.Reader):
             
             coefs=[line[21:] for line in self.getlines(l+3,l+3+NBasis)]
             for j,line in enumerate(coefs):
-                coef=re.findall('-?\d+.\d+',line)
+                coef=re.findall(r'-?\d+.\d+',line)
                 coef=[float(e) for e in coef]
                 CM[j,i*5:i*5+len(coef)]=coef
 
             if i==0: #只在第一块记录行信息
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
-                    line=self.getline(l2)[:15] # 行信息(角动量，对应原子)的起止位置
+                    line=self.getline(l2)[:16] # 行信息(角动量，对应原子)的起止位置
                     match=line[12:].strip()
-                    shl,sym=match[0],match[1:]
+                    shl,sym=match[0],match[1:] #这里壳层只能是整数哦
                     ObtShls.append(int(shl))
                     ObtSyms.append(sym)
                     obtAtom=line[5:9].strip()
@@ -460,7 +462,7 @@ class LogReader(reader.Reader):
         fdatas=[atms,shls,angs,engs,occs,CM]
         rdatas=[fdata is not None for fdata in fdatas]
         if all(rdatas): # 所有读取的数据都不为空，有可能某些数据被用户删除
-            lists=atms,shls,angs,engs,occs
+            lists:list[np.ndarray]=[atms,shls,angs,engs,occs]
             atms,shls,angs,engs,occs=[e.tolist() for e in lists]
             return atms,shls,angs,engs,occs,CM
         elif self.titles['coefs'].line!=-1:
@@ -493,15 +495,12 @@ class LogReader(reader.Reader):
             self.save_fdata('SM.npy',SM)
         return SM
 
-    def read_Mat(self,title:str):
+    def read_Mat(self,title:str)->np.ndarray:
         """读取矩阵"""
-        s1='^( +\d+){1,5} *$'
-        s2=' +\d+( +-?\d.\d{6}D[+-]\d{2}){1,5} *'
-        lineDatas:dict[str:str]={}
+        s1=r'^( +\d+){1,5} *$'
+        s2=r' +\d+( +-?\d.\d{6}D[+-]\d{2}){1,5} *'
+        lineDatas:dict[str,str]={}
         titleNum=self.titles[title].line
-        if titleNum is None:
-            printer.warn('未找到矩阵',title)
-            return None
         for i in range(titleNum+1,self.lineNum):
             line=self.getline(i)
             if re.match(s1, line) is not None:
@@ -529,9 +528,10 @@ class LogReader(reader.Reader):
         return float(res)
     
     def read_energy(self)->float:
-        engs=re.findall('SCF Done: +E\(.*\) += +(-?\d+.\d+)',self.text)
+        engs=re.findall(r'SCF Done: +E\(.*\) += +(-?\d+.\d+)',self.text)
         if engs:return float(engs[-1])
-        return None
+        printer.warn('未读取到能量，使用0代替')
+        return 0.0
 
     @lru_cache
     def read_energys(self)->list[float]:
@@ -547,18 +547,16 @@ class LogReader(reader.Reader):
             'Sum of electronic and thermal Free Energies'
             ]
         searhNum=0
-        engDict={e:None for e in engList}
+        engDict={e:0.0 for e in engList}
         lineNum=self.titles['engs'].line
-        if lineNum is None:
-            return engList,None
         # assert lineNum is not None,f"{self.path} 未读取到能量"
         for i in range(lineNum,self.lineNum):
             line=self.getline(i)
             for each in engList:
-                res=re.search(f'{each}=\s+(-?\d+\.\d+)',line)
+                res=re.search(r'{each}=\s+(-?\d+\.\d+)',line)
                 if res is not None:
-                    re.findall('-?\d+\.\d+',line)
-                    engDict[each]=res.groups()[0]
+                    re.findall(r'-?\d+\.\d+',line)
+                    engDict[each]=float(res.groups()[0])
                     searhNum+=1
             if searhNum==len(engList):break
         engNums=[float(e) for e in engDict.values()]

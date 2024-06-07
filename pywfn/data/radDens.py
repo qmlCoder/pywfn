@@ -1990,8 +1990,9 @@ def get_radDens(atomic:int,radius:np.ndarray):
     """计算某个原子的径向电子密度"""
     rdens=radDens[atomic]
     ndens=len(rdens)
-    idens=np.interp(range(200),range(ndens),rdens) # 将部分数值映射到长度为200的数值
-    fdens=np.interp(radius,radPos,idens)
+    # idens=np.interp(range(200),range(ndens),rdens) # 将部分数值映射到长度为200的数值
+    fdens=np.interp(radius,radPos[:ndens],rdens)
+    # print(max(radPos),np.max(radius))
     return fdens
 
 if __name__=='__main__':

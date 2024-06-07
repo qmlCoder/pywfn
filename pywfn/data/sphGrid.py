@@ -188,5 +188,7 @@ sphData=np.array([
 # gridData=np.array(gridData)
 dataPath=f'{config.DATA_ROOT}/grid_74,80.npy'
 gridData:np.ndarray=np.load(dataPath)
+grids=gridData[:,:3].copy()
+weits=gridData[:,3].copy()
 # gridData.setflags(write=False)
 

@@ -52,7 +52,7 @@ import os
 import shutil
 
 class Reader:
-    def __init__(self,path:str) -> None:
+    def __init__(self,path:str,clear:bool=False) -> None:
         self.path:str=path
         fold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
         # if fold.exists() and remake:
@@ -61,10 +61,10 @@ class Reader:
         else:
             foldTime=fold.stat().st_atime
             fileTime=Path(path).stat().st_atime
-            if fileTime>foldTime: # 如果文件更新了
-                # os.remove(f'{fold}')
+            if fileTime>foldTime or clear: # 如果文件更新了
                 shutil.rmtree(f'{fold}')
                 os.mkdir(f'{fold}')
+                printer.info("清空数据缓存")
         self.dfold=f'{fold}' # 数据存储路径
     
     @cached_property
@@ -152,7 +152,7 @@ class Reader:
         """
         raise ValueError("未继承的函数")
     
-    def load_fdata(self,name:str)->np.ndarray|list|None:
+    def load_fdata(self,name:str)->np.ndarray:
         """获取保存的数据"""
         path=Path(self.dfold)/name
         if not path.exists():return None

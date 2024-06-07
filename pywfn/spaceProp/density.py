@@ -10,43 +10,41 @@ from pywfn.base import Mol
 from pywfn.spaceProp import wfnfunc
 from pywfn.data import sphGrid
 from functools import cached_property,lru_cache
-
+from pywfn.spaceProp import dftgrid
 import numpy as np
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        
-        self.points=sphGrid.gridData[:,:-1] # 网格的坐标
-        self.weights=sphGrid.gridData[:,-1] # 网格的权重
+        self.gridCaler=dftgrid.Calculator(mol)
         self.wfnCaler=wfnfunc.Calculator(mol)
-        self.wfnCaler.molPos=self.molPos
+        self.wfnCaler.molPos=self.molGrid[0]
     
     @cached_property
-    def molPos(self):
+    def molGrid(self):
         """整个分子的网格点坐标"""
-        import time
-        # t0=time.time()
-        molPos=[]
-        molWei=[]
+        molGrid=[]
+        molWeit=[]
         for atom in self.mol.atoms:
-            a2mPos,a2mWei=self.a2mWeight(atom.idx)
-            molPos.append(a2mPos)
-            molWei.append(a2mWei)
-        molPos=np.vstack(molPos)
-        molWei=np.concatenate(molWei)
-        # t1=time.time()
-        # print('权重耗时：',t1-t0)
+            a2mGrid,a2mWeit=self.a2mGrid(atom.idx)
+            molGrid.append(a2mGrid)
+            molWeit.append(a2mWeit)
+        molPos=np.vstack(molGrid)
+        molWei=np.concatenate(molWeit)
+        print('molPos',molPos.shape)
         return molPos,molWei
 
-    def atmPos(self,atm:int):
+    def atmGrid(self,atm:int):
         """单个原子的网格点坐标"""
-        return self.points.copy()+self.mol.atom(atm).coord
+        atmGrid,atmWeit=self.gridCaler.dftGrid(atm)
+        # atmGrid,atmWeit=sphGrid.grids,sphGrid.weits
+        atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3)
+        return atmGrid,atmWeit
     
     @lru_cache
     def a2mWeight_(self,atm:int):
         """将原子格点的权重转为分子格点的权重""" # 径向和角度分别插值
-        atmGrid=self.atmPos(atm)
+        atmGrid,atmWeit=self.atmGrid(atm)
         atoms=self.mol.atoms
         natm=len(atoms)
         LM=self.mol.atoms.LM
@@ -84,18 +82,17 @@ class Calculator:
             for i in range(natm):
                 wt*=S_u[i,:]
             rat=wt[atm-1]/np.sum(wt) # 单个原子时，rat=1，相当于没做修改
-            wi=self.weights[p]*rat
+            wi=atmWeit*rat
             a2mPos.append(gp)
             a2mWei.append(wi)
         return a2mPos,np.array(a2mWei)
 
-    def a2mWeight(self,atm:int):
+    def a2mGrid(self,atm:int):
         from pywfn.maths import flib
-        atmGrid=self.atmPos(atm)
+        atmGrid,atmWeit=self.atmGrid(atm)
         nGrid=len(atmGrid)
-        atmWeit=self.weights
         natm=len(self.mol.atoms)
-        atmPos=self.mol.coords
+        atmPos=self.mol.coords.copy() # 分子坐标
         atmRad=np.array(self.mol.atoms.radius)
         atmDis=self.mol.atoms.LM
         a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
@@ -104,11 +101,11 @@ class Calculator:
         return a2mGrid,a2mWeit
     
 
-    def molDens_obt(self,pos:np.ndarray,atms:list[int]=None,
-                    CM=None,obts:list[int]=None):
-        """计算根据分子轨道电子密度计算的分子电子密度"""
+    def molDens_obt(self,pos:np.ndarray,CM=None,obts:list[int]|None=None):
+        """根据分子轨道电子密度计算分子电子密度"""
         if obts is None:obts=self.mol.O_obts
         if CM is None:CM=self.mol.CM
+        atms=self.mol.atoms.indexs
         dens=np.zeros(len(pos))
         for obt in obts:
             coefs=CM[:,obt]
@@ -134,13 +131,8 @@ class Calculator:
         atms=self.mol.obtAtms
         atms=[atm-1 for atm in atms]
         cords=self.mol.coords[atms,:]
-        # print('obts',obts)
-        # CM=self.mol.CM[:,:nobt].copy()
-        # print(CM.shape)
-        CM=self.mol.CM[:,obts].copy()
-        # print(CM.shape)
 
-        # np.asfortranarray
+        CM=self.mol.CM[:,obts].copy()
 
         ncgs=[]
         alpl=[]

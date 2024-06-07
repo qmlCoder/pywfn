@@ -45,7 +45,7 @@ class Calculator:
         natm=len(cals[0].mol.atoms)
         engs=np.zeros(shape=(natm,3))
         for c,cal in enumerate(cals):
-            res=cal.calculate()
+            res=cal.atmEngs()
             engs[:,c]=res
         result=np.zeros(shape=(natm,2))
         result[:,0]=engs[:,0]-engs[:,1]

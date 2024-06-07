@@ -1,7 +1,7 @@
 保存一些常用的数学公式
 
 gto的计算量是很大的，所以可以尝试多种加速计算的方法
-- 常规的numpy
+- numpy
 - taichi
 - julia
 - f2py
@@ -9,30 +9,32 @@ gto的计算量是很大的，所以可以尝试多种加速计算的方法
 
 加速计算做的尝试
 
-使用numba的jit加速
-使用fortran编译动态链接库
-整个原子的gto作为高维矩阵一块算
-原子轨道分层级计算
-牺牲精度换速度
-舍去不必要的点
-系数非常小的也可不算
+- 使用numba的jit加速
+- 使用fortran编译动态链接库
+- 整个原子的gto作为高维矩阵一块算
+- 原子轨道分层级计算
+- 牺牲精度换速度
+- 舍去不必要的点
+- 系数非常小的也可不算
 
 ## python调用fortran
 
 ```shell
 gfortran -shared flib.f90 -o flib.dll
+
+gfortran -c -fPIC -g -Wall -fcheck=all flib.f90 && gfortran -shared -o flib.dll flib.o
 ```
 - 使用fortran的iso_c_binding
 - 使用python的ctypes
 
-iso_c_binding是fortran与c联用的工具
+`iso_c_binding`是`fortran`与`c`联用的工具
 
-ctypes是python与fortran联用的工具
+`ctypes`是`python`与`fortran`联用的工具
 
 借用这两个工具，python就可以和fortran联用了
 
-将fortran代码编译成动态链接库
-使用python的ctypes调用动态链接库
+将`fortran`代码编译成动态链接库
+使用`python`的`ctypes`调用动态链接库
 
 > 关键问题是数据类型之间的对接，对c不太熟悉
 
@@ -41,14 +43,15 @@ ctypes是python与fortran联用的工具
 - float,c_double
 - np.ndarray,POINTER(c_double)
 
-- 传入的数据全部要使用np.float64类型
+
+- 传入的数据全部要使用`np.float32`类型
 - 当python传入的参数数量与Fortran中的对应不上，python会直接停止
 - fortran代码执行一部分就停止了
-- 对函数绑定C命名时需要全为小写字母
 - 不要单独的写函数，而是要写到模块里
-- c_long:int32,c_float:float32
+- `c_long:int32`；`c_float:float32`
 - 中间变量在函数中要先初始化为0
-- 使用高级索引后的数组作为参数时需要copy一下
+- 使用高级索引后的数组作为参数时需要`copy`一下
+- 参数整数是为传值，要加`value`
 
 ## 波函数的计算
 高斯基函数gtf用$γ$表示，表达式为：

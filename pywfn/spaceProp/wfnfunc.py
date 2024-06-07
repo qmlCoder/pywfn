@@ -18,7 +18,7 @@ class Calculator:
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
         self.a2mWfns={}
     
-    def obtWfn(self,obt:int,pos:np.ndarray,atms:list[int]=None,coefs:np.ndarray=None):
+    def obtWfn(self,obt:int,pos:np.ndarray,atms:list[int]|None=None,coefs:np.ndarray|None=None):
         """
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标
@@ -53,6 +53,7 @@ class Calculator:
     def atoWfn(self,i:int,pos:np.ndarray):
         """
         计算原子轨道的波函数，形成在轨道线性组合之前
+        pos,分子的空间坐标
         i:原子轨道指标
         """
         # print('atoWfn',pos[0,:])

@@ -16,12 +16,14 @@ class Calculator(AtomCaler):
         self.logTip:str=''
         self.mol=mol
         self.chrg:Chrgs='mulliken'
+        self.PM=self.mol.PM.copy()
     
-    def calculate(self,chrg:Chrgs,PM=None)->np.ndarray:
+    def calculate(self,chrg:Chrgs,PM:np.ndarray|None=None)->np.ndarray:
+        if PM is None:PM=self.mol.PM
         if chrg=='mulliken':
-            return self.mulliken(PM)
+            return self.mulliken()
         if chrg=='lowdin':
-            return self.lowdin(PM)
+            return self.lowdin()
         if chrg=='hirshfeld':
             return self.hirshfeld()
     
@@ -89,30 +91,33 @@ class Calculator(AtomCaler):
         from pywfn.spaceProp import density
         from pywfn.data import radDens
         denCaler=density.Calculator(self.mol)
-        molPos,molWei=denCaler.molPos
+        molGrid,molWeit=denCaler.molGrid
         
-        npos=len(molPos)
+        npos=len(molGrid)
         natm=len(self.mol.atoms)
         pdens=np.zeros(npos) # 前体电子密度
         fdensl=[]
         # print(time.time())
         for atom in self.mol.atoms:
-            radius=np.linalg.norm(molPos-atom.coord,axis=1)
+            radius=np.linalg.norm(molGrid-atom.coord,axis=1)
             fdens=radDens.get_radDens(atom.atomic,radius)
             pdens+=fdens
             fdensl.append(fdens)
+            # print('fdens',np.sum(fdens*molWeit))
+        # print('pdens',np.sum(pdens*molWeit))
         Ps=np.zeros(natm)
         Zs=np.zeros(natm)
         # print(time.time())
-        # mdens=denCaler.molDens_atm(molPos)
-        mdens=denCaler.molDens_lib(molPos)
+        # mdens=denCaler.molDens_atm(molGrid)
+        mdens=denCaler.molDens_lib(molGrid)
+        # print('mdens',np.sum(mdens*molWeit))
         # print(time.time())
         for a,atom in enumerate(self.mol.atoms): # 计算每一个原子的电荷
-            radius=np.linalg.norm(molPos-atom.coord,axis=1)
+            radius=np.linalg.norm(molGrid-atom.coord,axis=1)
             fdens=fdensl[a]
             Wa=np.divide(fdens,pdens,out=np.zeros_like(fdens),where=pdens!=0)
-            Zs[a]=np.sum(fdens*molWei) # 自由态下核电荷数
-            Ps[a]=np.sum(Wa*mdens*molWei) # 真实体系的电子布局
+            Zs[a]=np.sum(fdens*molWeit) # 自由态下核电荷数
+            Ps[a]=np.sum(Wa*mdens*molWeit) # 真实体系的电子布局
         chargs=Zs-Ps
         # print(time.time())
         return chargs

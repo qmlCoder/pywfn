@@ -10,7 +10,7 @@ class Unit:
     def __init__(self,utype:str) -> None:
         self.utype=utype # 单位类型
         self.maps:dict[str,float]={} # 单位与转换系数之间的映射
-        self.value:str
+        self.value:float
     
     @property
     def stand(self)->str:
@@ -45,7 +45,7 @@ class ChargeUnit(Unit):
         super().__init__('charge')
         self.maps={
             'e':1.,
-            'C':1.602e-19
+            'c':1.602e-19, # 库伦
         }
 
 class LengthUnit(Unit):
@@ -54,7 +54,7 @@ class LengthUnit(Unit):
         self.maps={
             'bohr':1.,
             'angstrom':0.52918,
-            'A':0.52918,
+            'a':0.52918,
             'nm':0.1
         }
         
@@ -63,15 +63,17 @@ class EnergyUnit(Unit):
         super().__init__('energy')
         self.maps={
             'hartree':1.,
-            'eV':27.211,
-            'KJ/mol':2625,
-            'J':4.36e-18
+            'ev':27.211,
+            'kj/mol':2625,
+            'j':4.36e-18
         }
 
 units:list[Unit]=[ChargeUnit(),LengthUnit(),EnergyUnit()]
 
 def trans(unit0:str,unit1:str,value:float):
     """将单位0转换为单位1"""
+    unit0=unit0.lower()
+    unit1=unit1.lower()
     for unit in units:
         if unit.include(unit0):
             assert unit.include(unit1),f'不符合的单位{unit1}'
