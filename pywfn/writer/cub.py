@@ -14,7 +14,6 @@ from pathlib import Path
 
 from pywfn import maths,base,config
 from pywfn.utils import printer
-from pywfn.writer import lutils
 from pywfn.spaceProp import wfnfunc,density
 
 class CubWriter:

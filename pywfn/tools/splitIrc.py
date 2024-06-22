@@ -4,60 +4,92 @@
 import re,os
 from pathlib import Path
 
-from pywfn.tools.fileCreater import Tool as  FileCreater
-from pywfn.data import Elements
+from pywfn.writer import GjfWriter
+from pywfn.data.elements import elements
 from pywfn.utils import printer
+from pywfn.base import Mol
+from pywfn.reader import LogReader,AnyReader
+from dataclasses import dataclass
+
+import numpy as np
+
+@dataclass
+class Block:
+    idx:int
+    num:int
+
+@dataclass
+class AtmCord:
+    sym:str
+    x:float
+    y:float
+    z:float
+
+@dataclass
+class MolCord:
+    atms:list[AtmCord]
 
 class Tool:
     def __init__(self,path:str) -> None:
         self.path=Path(path)
+        self.mol=Mol(LogReader(path))
         self.dirName=self.path.parent
-        self.baseName=self.path.name # 包含后缀的文件名
-        self.fileName=self.path.stem # 不包含后缀的文件名
-        folder=self.dirName / self.fileName
-        if not Path(folder).exists(): #判断文件夹是否存在
-            os.mkdir(folder)
+        name=self.path.name # 包含后缀的文件名
+        stem=self.path.stem # 不包含后缀的文件名
+        self.fold=self.dirName / f'IRCS_{stem}'
+        if not Path(self.fold).exists(): #判断文件夹是否存在
+            os.mkdir(self.fold)
         self.content=self.path.read_text(encoding='utf-8')
         self.lines=self.content.splitlines(keepends=False)
         if 'Standard orientation' in self.content:
             self.coordType='Standard orientation'
         else:
             self.coordType='Input orientation'
-        self.elements=Elements()
+        self.molCords:list[MolCord]=[]
+        self.xyzs=[]
+        self.syms=[]
+        self.tits=[]
+        self.mathc_titles()
+        self.match_coords()
     
-    def find_titles(self):
-        titleNums=[]
-        idx=0
+    def mathc_titles(self):
         for i,line in enumerate(self.lines): # 循环每一行
             if self.coordType in line: # 找到行坐标
-                titleNums.append((idx,i)) # 只要第一个,记录段落数和行数
-                idx+=1
-        return titleNums
+                self.tits.append(i)
     
-    def match_coords(self,titleNums:list[tuple[int]]):
+    def match_coords(self):
         s=r" +\d+ +(\d+) +\d+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)"
-        coords=[]
-        for idx,titleNum in titleNums:
-            coord=[]
-            for i in range(titleNum+5,len(self.lines)):
+        for tit in self.tits:
+            xyzs=[]
+            syms=[]
+            for i in range(tit+5,len(self.lines)):
                 line=self.lines[i]
-                if re.search(s,line) is not None:
-                    idx,x,y,z=re.search(s,line).groups()
-                    symbol=self.elements.get_element_by_idx(int(idx)).symbol
-                    coord.append([symbol,x,y,z])
-                else:
-                    break
-            coords.append(coord)
-        return coords
+                find=re.search(s,line)
+                if find is None:break
+                idx,x,y,z=find.groups()
+                x,y,z=float(x),float(y),float(z)
+                sym=elements[int(idx)].symbol
+                xyzs.append([x,y,z])
+                syms.append(sym)
+            xyzs=np.array(xyzs)
+            self.xyzs.append(xyzs)
+            self.syms.append(syms)
+        
+    def build_mol(self,i:int):
+        reader=AnyReader()
+        reader.coords=self.xyzs[i]
+        reader.symbols=self.syms[i]
+        mol=Mol(reader)
+        return mol
+            
+
 
     def split(self):
         """分割文件"""
         # 首先获取所有构象的坐标
-        titleNums=self.find_titles()
-        coords=self.match_coords(titleNums)
-        for i,coord in printer.track(enumerate(coords)):
-            path=os.path.join(self.dirName,self.fileName,f'f{i+1:0>2}.gjf')
-            fileCreater=FileCreater(path=path)
-            fileCreater.set_coord(coord)
-            fileCreater.set_chk(f'{i+1}')
-            fileCreater.save()
+        for i in range(len(self.syms)):
+            path=os.path.join(self.fold/f'f{i+1:0>2}.gjf')
+            mol=self.build_mol(i)
+            writer=GjfWriter(mol)
+            writer.chkPath=f'f{i+1:0>2}'
+            writer.save(path)

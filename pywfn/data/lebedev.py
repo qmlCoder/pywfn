@@ -50,7 +50,6 @@ def gen_oh(code:int,a:float,b:float,v:float):
             
     return xs,ys,zs,ws
 
-
 def LDfunc(paras):
     As=paras[:,0]
     Bs=paras[:,1]
@@ -65,7 +64,6 @@ def LDfunc(paras):
         x,y,z,w=gen_oh(C,A,B,V)
         xs+=x;ys+=y;zs+=z;ws+=w
     return np.array([xs,ys,zs,ws]).T
-
 
 def LD0006():
     paras=np.array([

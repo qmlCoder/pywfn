@@ -78,18 +78,20 @@ class Calculator:
             a,b,c,_=params
             normal=np.array([a,b,c])
             normal=normal/np.linalg.norm(normal)
-            vmena=(va+vb+vc)/3.0
-            angle=vector_angle(vmena,normal)
-            if angle<0.5:normal*=-1
+            
             if planer:
                 return np.array([normal,-normal])
             else:
-                vects=[
-                    normal,
-                    search_sp2Dir(normal.copy(),va,vb,vc),
-                    search_sp2Dir(normal.copy(),vb,va,vc),
-                    search_sp2Dir(normal.copy(),vc,va,vb),
-                ]
+                vmena=(va+vb+vc)/3.0
+                angle=vector_angle(vmena,normal)
+                if angle<0.5:normal*=-1
+                # vects=[
+                #     normal,
+                #     search_sp2Dir(normal.copy(),va,vb,vc),
+                #     search_sp2Dir(normal.copy(),vb,va,vc),
+                #     search_sp2Dir(normal.copy(),vc,va,vb),
+                # ]
+                vects=[normal]
                 return np.array(vects)
         
         raise ValueError("找不到可能的反应方向")

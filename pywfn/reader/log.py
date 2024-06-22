@@ -103,7 +103,7 @@ class LogReader(reader.Reader):
                     if not title.judge(line):continue
                     self.titles[key].line=j
                     self.conf[f'title_{key}']=j
-                    printer.log(f'搜索到标题,{key},j')
+                    # printer.log(f'搜索到标题,{key},j')
                     self.save_config()
                         # print(j,line)
         nWork=5

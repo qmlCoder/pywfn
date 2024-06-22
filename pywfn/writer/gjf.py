@@ -11,11 +11,12 @@ from pywfn.data import temps
 class GjfWriter:
     def __init__(self,mol:Mol):
         self.mol:Mol=mol
-        self.temp=temps.gjf
+        self.temp=temps.get('gjf')
         self.chkPath='chk'
         self.charge=0
         self.spin=1
         self.title=''
+        self.coord=self.get_coordStr()
         
     def get_coordStr(self):
         """生成坐标的字符串形式"""
@@ -41,7 +42,7 @@ class GjfWriter:
 
     def build(self)->str:
         self.search()
-        self.temp=self.temp.replace('<COORD>',self.get_coordStr())
+        self.temp=self.temp.replace('<COORD>',self.coord)
         self.temp=self.temp.replace('<CHARGE>',f'{self.charge}')
         self.temp=self.temp.replace('<SPIN>',f'{self.spin}')
         self.temp=self.temp.replace('<CHK>',self.chkPath)
@@ -56,4 +57,4 @@ class GjfWriter:
     def onShell(self):
         path=Path(self.mol.reader.path)
         path=(path.parent/f'{path.stem}.gjf')
-        self.save(path)
+        self.save(f'{path}')

@@ -152,7 +152,7 @@ class Reader:
         """
         raise ValueError("未继承的函数")
     
-    def load_fdata(self,name:str)->np.ndarray:
+    def load_fdata(self,name:str)->np.ndarray|None:
         """获取保存的数据"""
         path=Path(self.dfold)/name
         if not path.exists():return None

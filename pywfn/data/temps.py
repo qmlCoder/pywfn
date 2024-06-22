@@ -1,6 +1,7 @@
 """
 记录一些模板文件
 """
+from pathlib import Path
 
 gjf=\
 """%chk=<CHK>.chk
@@ -13,6 +14,7 @@ Title Card Required
 
 
 """
+
 xyz=\
 """<NATM>
 <TITLE>
@@ -142,7 +144,8 @@ pes=\
 </page>
 </CDXML>"""
 
-mol="""[TITLE]
+mol=\
+"""[TITLE]
 
 Created by pywfn
 [NATOM][NBOND]  0  0  0  0  0  0  0  0  0    0
@@ -150,3 +153,12 @@ Created by pywfn
 [BONDBLOCK]
 M  END
 """
+
+from pywfn import config
+
+def get(name:str):
+    get=config.get_config(f'temp.{name}',None)
+    if get is not None:
+        return Path(get).read_text()
+    else:
+        return eval(name)

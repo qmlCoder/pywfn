@@ -27,7 +27,7 @@ subroutine double_array(x, N) bind(C, name="double_array_")
     use iso_c_binding
     implicit none
 
-    integer(c_long), intent(in), value   :: N
+    integer(c_int), intent(in), value   :: N
     real(c_double), intent(inout)       :: x(N, N)
 
     x = exp(x)
@@ -37,7 +37,7 @@ end subroutine double_array
 subroutine grid_pos(Nx, Ny, Nz, pos) bind(C, name="grid_pos_")
     use iso_c_binding
     implicit none
-    integer(c_long), intent(in), value :: Nx, Ny, Nz
+    integer(c_int), intent(in), value :: Nx, Ny, Nz
     real(c_double), intent(out) ::  pos(Nx*Ny*Nz, 3)
     integer::i, j, k, l
     l = 1
@@ -55,7 +55,7 @@ end subroutine grid_pos
 subroutine same_array(row, col, pos) bind(C, name="same_array_")
     use iso_c_binding
     implicit none
-    integer(c_long), intent(in), value :: row, col
+    integer(c_int), intent(in), value :: row, col
     real(c_double), intent(out) ::  pos(row, col)
     integer::i, j
     do i = 1, row
@@ -65,17 +65,16 @@ subroutine same_array(row, col, pos) bind(C, name="same_array_")
     end do
 end subroutine same_array
 
-
 ! 都使用fortran了，就不要用向量化计算了(numpy得用(╯▔皿▔)╯)，享受逐元素计算的快乐吧
 subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
     ! 高斯指数，坐标数量，坐标值，坐标平方和，角动量分量，返回值
     ! 直接传入平方和防止重复计算，减少计算量
     use iso_c_binding
     implicit none
-    integer(c_long),intent(in),value::ngrid
+    integer(c_int),intent(in),value::ngrid
     real(c_double), intent(in) :: grids(3,ngrid)
     real(c_double),intent(in) :: coord(3) ! 原子坐标映射到基函数
-    integer(c_long), intent(in), value :: l,m,n
+    integer(c_int), intent(in), value :: l,m,n
     real(c_double), intent(in), value :: alp
     real(c_double), intent(inout) :: vals(ngrid)
 
@@ -84,7 +83,7 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算�
     real(c_double)::r2 ! 坐标平方
     real(c_double)::fac ! 双阶乘
     real(c_double)::facs(0:2)
-    integer(c_long)::ang ! 角动量
+    integer(c_int)::ang ! 角动量
     real(c_double)::x,y,z
     real(c_double)::val
     integer::i
@@ -115,12 +114,12 @@ subroutine cgf(cmax,nc,alps, coes,ngrid,grids,coord,l,m,n, wfn) bind(C, name="cg
     ! 收缩数量，高斯指数，收缩系数，角动量分量，点数量，点平方和，点坐标，波函数值
     use iso_c_binding
     implicit none
-    integer(c_long), intent(in), value::nc,cmax ! 收缩数量
+    integer(c_int), intent(in), value::nc,cmax ! 收缩数量
     real(c_double), intent(in) :: alps(cmax), coes(cmax)
-    integer(c_long),intent(in),value::ngrid
+    integer(c_int),intent(in),value::ngrid
     real(c_double), intent(in) :: grids(3,ngrid)
     real(c_double),intent(in) :: coord(3) ! 原子坐标映射到基函数
-    integer(c_long), intent(in), value ::  l,m,n
+    integer(c_int), intent(in), value ::  l,m,n
     real(c_double), intent(inout) ::  wfn(ngrid)
     real(c_double)::alp, coe, vals(ngrid)
     integer::i
@@ -140,22 +139,22 @@ end subroutine cgf
 ! 计算某点处所有原子轨道波函数加和
 subroutine obtWfn(ngrid,grids,nmat,cords,ncgs,cmax,oalps,ocoes,coefs,lmns,wfn) bind(C,name="obtwfn_")
     use iso_c_binding
-    integer(c_long),intent(in),value::ngrid
+    integer(c_int),intent(in),value::ngrid
     real(c_double), intent(in) :: grids(3,ngrid)
-    integer(c_long),intent(in),value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
-    integer(c_long),intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
+    integer(c_int),intent(in),value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
+    integer(c_int),intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
     real(c_double),intent(in) :: cords(3,nmat) ! 原子坐标映射到基函数
-    integer(c_long),intent(in),value :: cmax !最大收缩数量
+    integer(c_int),intent(in),value :: cmax !最大收缩数量
     real(c_double),intent(in) :: oalps(cmax,nmat)
     real(c_double),intent(in) :: ocoes(cmax,nmat)
     real(c_double),intent(in) :: coefs(nmat)
-    integer(c_long),intent(in) :: lmns(3,nmat) !角动量分量
+    integer(c_int),intent(in) :: lmns(3,nmat) !角动量分量
     real(c_double),intent(inout)::wfn(ngrid)
     
     real(c_double)::alps(cmax) ! 高斯指数
     real(c_double)::coes(cmax) ! 收缩系数
-    integer(c_long)::nc ! 每个原子轨道收缩的数量
-    integer(c_long)::l,m,n
+    integer(c_int)::nc ! 每个原子轨道收缩的数量
+    integer(c_int)::l,m,n
     real(c_double)::val(ngrid)
     real(c_double)::coord(3)
 
@@ -183,23 +182,23 @@ end subroutine obtWfn
 ! 计算某一点处的分子电子密度，轨道的电子密度直接就是波函数的平方
 subroutine molDens(ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,oalps,ocoes,lmns,dens) bind(C,name="moldens_")
     use iso_c_binding
-    integer(c_long),intent(in),value::ngrid
+    integer(c_int),intent(in),value::ngrid
     real(c_double), intent(in) :: grids(3,ngrid)
-    integer(c_long),intent(in),value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
+    integer(c_int),intent(in),value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
     real(c_double),intent(in) :: cords(3,nmat) ! 原子坐标映射到基函数
-    integer(c_long),intent(in),value :: nobt ! 占据轨道数量，稀疏矩阵的列数
+    integer(c_int),intent(in),value :: nobt ! 占据轨道数量，稀疏矩阵的列数
     real(c_double),intent(in) :: CM(nobt,nmat) ! 轨道系数矩阵
-    integer(c_long),intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
-    integer(c_long),intent(in),value :: cmax !最大收缩数量
+    integer(c_int),intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
+    integer(c_int),intent(in),value :: cmax !最大收缩数量
     real(c_double),intent(in) :: oalps(cmax,nmat)
     real(c_double),intent(in) :: ocoes(cmax,nmat)
-    integer(c_long),intent(in) :: lmns(3,nmat) !角动量分量
+    integer(c_int),intent(in) :: lmns(3,nmat) !角动量分量
     real(c_double),intent(inout)::dens(ngrid)
 
     ! real(c_double)::coefs(nmat),coef
     real(c_double) ::wfn(ngrid)
     real(c_double)::wfns(ngrid,nmat) ! 将每个原子轨道的波函数存储下来
-    integer(c_long)::l,m,n
+    integer(c_int)::l,m,n
     integer :: i,j
     ! 提前算出所有原子轨道的波函数并存储起来，分子轨道的波函数只是原子轨道波函数的线性组合
     do i=1,nmat
@@ -225,17 +224,17 @@ end subroutine molDens
 subroutine a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid,a2mWeit,total) bind(C,name="a2mWeight_")
     use iso_c_binding
     implicit none
-    integer(c_long), intent(in),value :: atm ! 第多少个原子
-    integer(c_long), intent(in),value :: nGrid ! 点的数量
+    integer(c_int), intent(in),value :: atm ! 第多少个原子
+    integer(c_int), intent(in),value :: nGrid ! 点的数量
     real(c_double), intent(in) :: atmGrid(3,nGrid)
     real(c_double), intent(in) :: atmWeit(nGrid)
-    integer(c_long), intent(in),value :: natm ! 原子数量
+    integer(c_int), intent(in),value :: natm ! 原子数量
     real(c_double), intent(in) :: atmPos(3,natm) ! 原子坐标
     real(c_double), intent(in) :: atmRad(natm) ! 原子半径
     real(c_double), intent(in) :: atmDis(natm,natm) ! 原子距离矩阵
     real(c_double), intent(out):: a2mGrid(3,nGrid) ! 修改后的坐标
     real(c_double), intent(out):: a2mWeit(nGrid) ! 原子权重
-    integer(c_long),intent(out)::total
+    integer(c_int),intent(out)::total
 
     real(c_double) :: S_u(natm,natm)
     real(c_double) :: pi(3),pj(3) ! 2个原子的坐标
@@ -299,8 +298,8 @@ end subroutine a2mWeight
 subroutine get_eleMat(nmat,nobt,CM,SM,NM) bind(c, name="get_eleMat_")
     use iso_c_binding
     implicit none
-    integer(c_long), intent(in),value :: nobt
-    integer(c_long), intent(in),value :: nmat
+    integer(c_int), intent(in),value :: nobt
+    integer(c_int), intent(in),value :: nmat
     real(c_double), intent(in) ::  CM(nobt,nmat) ! 系数矩阵
     real(c_double), intent(in) ::  SM(nmat,nmat) ! 重叠矩阵
     real(c_double), intent(out) ::  NM(nobt,nmat) ! 电子数量矩阵

@@ -24,7 +24,7 @@ def onShell(shell:"shell.Shell"):
     elif opt=='2': # 分隔IRC文件
         from pywfn.tools import splitIrc
         path=input('请输入文件路径：')
-        splitIrc.Tool().split()
+        splitIrc.Tool(path).split()
     elif opt=='3': # 分隔link任务
         from pywfn.tools import splitLink
         path=input('请输入文件路径：')
@@ -35,7 +35,7 @@ def onShell(shell:"shell.Shell"):
         print('(1:能量,2:坐标,3:频率):')
         msgStr=input('请输入需要保存的信息[*]')
         if msgStr:
-            msgs=parse_intList(msgs)
+            msgs=parse_intList(msgStr)
         else:
             msgs=[1,2,3]
         same=shell.input.Bool('是否保存到同一文件内？',default=True)

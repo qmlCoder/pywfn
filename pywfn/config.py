@@ -40,11 +40,9 @@ RENDER_CLOUD_BORDER=2
 
 BOHR_RADIUS=1.889
 
-TEMPLATE_PATH_GJF=get_config('TEMPLATE_PATH_GJF',None)
-TEMPLATE_PATH_SI=get_config('TEMPLATE_PATH_SI',None)
-
 SHOW_PRINT=False
 
 IF_CM_P=False # 是否使用投影轨道
 
-DATA_ROOT=Path(__file__).parent/'data'
+ROOT_DATA=Path(__file__).parent/'data'
+ROOT_LIBS=Path(__file__).parent/'libs'

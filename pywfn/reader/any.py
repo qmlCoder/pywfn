@@ -11,7 +11,7 @@ class AnyReader(reader.Reader):
         self.charge:int=0
         self.spin:int=1
         self.symbols:list[str]=[]
-        self.coords:np.ndarray=None
+        self.coords:np.ndarray
 
         for key,val in props.items(): # 根据传入的字典可以覆盖属性
             setattr(self,key,val)
@@ -19,7 +19,7 @@ class AnyReader(reader.Reader):
     def get_charge(self) -> int:
         return self.charge
     
-    def get_spin(self) -> Basis:
+    def get_spin(self) -> int:
         return self.spin
 
     def get_symbols(self) -> list[str]:

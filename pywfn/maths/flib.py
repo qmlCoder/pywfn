@@ -3,7 +3,7 @@
 """
 from typing import Any
 import ctypes as ct
-from ctypes import c_long,c_double,POINTER,byref
+from ctypes import c_int,c_double,POINTER,byref
 from pathlib import Path
 import numpy as np
 import os
@@ -16,8 +16,8 @@ def trans_dtype(paras:list):
     types=[]
     for para in paras:
         if type(para)==int:
-            targs.append(c_long(para))
-            types.append(c_long)
+            targs.append(c_int(para))
+            types.append(c_int)
         elif type(para)==float:
             targs.append(c_double(para))
             types.append(c_double)
@@ -29,18 +29,16 @@ def trans_dtype(paras:list):
                 types.append(POINTER(c_double))
             elif para.dtype in ['int32','int64']:
                 if para.dtype!=np.int32:para=para.astype(np.int32) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
-                targs.append(para.ctypes.data_as(POINTER(c_long)))
-                types.append(POINTER(c_long))
+                targs.append(para.ctypes.data_as(POINTER(c_int)))
+                types.append(POINTER(c_int))
             else:
                 raise TypeError("Unsupported type")
         else:
             raise TypeError("Unsupported type")
     return targs,types
 
-os.add_dll_directory(r"D:\program\mingw64\bin")
-
-path = str(Path(__file__).parent / "flib.dll")
-flib = ct.CDLL(path)
+from pywfn import config
+flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
 
 flib.add_.argtypes = [ct.c_double, ct.c_double, ct.POINTER(ct.c_double)]
 
@@ -64,7 +62,7 @@ def sum2(a: float):
 
 
 # 抄的例子，矩阵运算
-flib.double_array_.argtypes = [ct.POINTER(ct.c_double), ct.c_long]
+flib.double_array_.argtypes = [ct.POINTER(ct.c_double), ct.c_int]
 
 
 def double_array():
@@ -73,37 +71,37 @@ def double_array():
     x_ptr = x.ctypes.data_as(ct.POINTER(ct.c_double))
 
     # Call function
-    rint = flib.double_array_(x_ptr, ct.c_long(3))
+    rint = flib.double_array_(x_ptr, ct.c_int(3))
     return x
 
 
-flib.grid_pos_.argtypes = [ct.c_long, ct.c_long, ct.c_long, ct.POINTER(ct.c_double)]
+flib.grid_pos_.argtypes = [ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_double)]
 
 
 def grid_pos(Nx: int, Ny: int, Nz: int):
     pos = np.zeros((Nx * Ny * Nz, 3), order="F")
     pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
-    flib.grid_pos_(ct.c_long(Nx), ct.c_long(Ny), ct.c_long(Nz), pos_ptr)
+    flib.grid_pos_(ct.c_int(Nx), ct.c_int(Ny), ct.c_int(Nz), pos_ptr)
     return pos
 
 
-flib.same_array_.argtypes = [ct.c_long, ct.c_long, ct.POINTER(ct.c_double)]
+flib.same_array_.argtypes = [ct.c_int, ct.c_int, ct.POINTER(ct.c_double)]
 
 def same_array():
     row, col = 2, 3
     pos = np.array([[1, 2, 3], [4, 5, 6]], dtype=float, order="F")
 
     pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
-    flib.same_array_(ct.c_long(row), ct.c_long(col), pos_ptr)
+    flib.same_array_(ct.c_int(row), ct.c_int(col), pos_ptr)
     return pos
 
 
 flib.gtf_.argtypes = [
     c_double, # alp
-    c_long, # np
+    c_int, # np
     ct.POINTER(ct.c_double), # pos
     ct.POINTER(ct.c_double), # r2
-    ct.POINTER(ct.c_long), # lmn
+    ct.POINTER(ct.c_int), # lmn
     ct.POINTER(ct.c_double), # val
 ]
 
@@ -111,10 +109,10 @@ def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarr
     pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
     npos = pos.shape[0]
     R2_ptr = R2.ctypes.data_as(ct.POINTER(ct.c_double))
-    lmn_ptr = lmn.ctypes.data_as(ct.POINTER(ct.c_long))
+    lmn_ptr = lmn.ctypes.data_as(ct.POINTER(ct.c_int))
     wfn = np.zeros(npos)
     val_ptr = wfn.ctypes.data_as(ct.POINTER(ct.c_double))
-    flib.gtf_(c_double(exp), c_long(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
+    flib.gtf_(c_double(exp), c_int(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
     return wfn
 
 def molDens(
@@ -161,11 +159,11 @@ def a2mWeight(
 
     a2mGrid=np.zeros_like(atmGrid,dtype=ftype)
     a2mWeit=np.zeros_like(atmWeit,dtype=ftype)
-    total=c_long()
+    total=c_int()
     oparas,otypes=trans_dtype([a2mGrid,a2mWeit])
 
     # if flib.a2mWeight_.argtypes is None:
-    flib.a2mWeight_.argtypes=itypes+otypes+[POINTER(c_long)]
+    flib.a2mWeight_.argtypes=itypes+otypes+[POINTER(c_int)]
     flib.a2mWeight_(*(iparas+oparas+[byref(total)]))
     # print(f'{total=},{len(atmWeit)}')
     return a2mGrid[:total.value,:],a2mWeit[:total.value]

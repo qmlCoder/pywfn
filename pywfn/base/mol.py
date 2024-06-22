@@ -112,10 +112,10 @@ class Mol:
         nobt=len(occs)
         for i,s in enumerate(occs):
             if self.open:
-                if i<len(nobt)//2:
-                    s=f'α {s}'
+                if i<nobt//2:
+                    s=f'A {s}'
                 else:
-                    s=f'β {s}'
+                    s=f'B {s}'
             idx=i
             if self.open and i>=nobt//2:
                 idx=i-nobt//2

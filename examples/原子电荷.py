@@ -9,7 +9,7 @@ from pywfn.atomprop import charge
 
 # path = "D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
 path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4.log"
-path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
+# path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CH4\CH4_STO3.out"
 # path=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\cnhn\C6H6_1.log"
 # path=rf"D:\BaiduSyncdisk\gfile\elements\C.out"
 # path="D:\BaiduSyncdisk\gfile\elements\CO.out"

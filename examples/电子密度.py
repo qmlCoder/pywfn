@@ -53,8 +53,8 @@ molGrid,molWeit=denCaler.molGrid
 # dens=denCaler.molDens_atm(molGrid)
 # print(np.sum(dens*molWeit)) # 分子电子密度
 
-# dens=denCaler.molDens_lib(molGrid.copy())
-# print(np.sum(dens*molWeit)) # 分子电子密度
+dens=denCaler.molDens_lib(molGrid.copy())
+print(np.sum(dens*molWeit)) # 分子电子密度
 
 # grid,weit=gridCaler.dftGrid(1)
 
