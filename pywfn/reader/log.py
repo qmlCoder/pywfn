@@ -49,6 +49,7 @@ class Title:
 class LogReader(reader.Reader):
     def __init__(self, path:str,clear:bool=False) -> None:
         super().__init__(path,clear)
+        assert type(path)==str,'路径应该为字符串格式'
         assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
@@ -166,12 +167,18 @@ class LogReader(reader.Reader):
     def get_SM(self)->np.ndarray:
         return self.read_SM()
     
-    def get_charge(self) -> int:
-        charge,spin=self.read_multiy()
+    def get_charge(self) -> int|None:
+        read=self.read_multiy()
+        if read is None:
+            return None
+        charge,spin=read
         return charge
     
-    def get_spin(self)->int:
-        charge,spin=self.read_multiy()
+    def get_spin(self)->int|None:
+        read=self.read_multiy()
+        if read is None:
+            return None
+        charge,spin=read
         return spin
     
     def get_energy(self)->float:
@@ -196,21 +203,22 @@ class LogReader(reader.Reader):
         return keyWards
 
     @lru_cache
-    def read_coords(self)->tuple[list[str],np.ndarray]:
+    def read_coords(self)->tuple[list[str],np.ndarray]|None:
         '''读取原子坐标'''
         
         titleNum=self.titles['coords'].line
         assert titleNum!=-1,"没有坐标对应的行"
         if titleNum is None:
             printer.warn('没有读取到原子坐标')
-            return
+            return None
         s1=r' +\d+ +(\d+) +\d +(-?\d+.\d{6}) +(-?\d+.\d{6}) +(-?\d+.\d{6})'
         coords=[]
         symbols=[]
         for i in range(titleNum+5,self.lineNum):
             line=self.getline(i)
-            if re.search(s1, line) is not None:
-                res=list(re.search(s1, line).groups())
+            find=re.search(s1, line)
+            if find is not None:
+                res=list(find.groups())
                 atomID=int(res[0])
                 symbol=elements[atomID].symbol
                 coord=[float(each) for each in res[1:]]
@@ -220,9 +228,9 @@ class LogReader(reader.Reader):
                 return symbols,np.array(coords)*1.889
 
     @lru_cache
-    def read_multiy(self):
+    def read_multiy(self)->tuple[int,int]|None:
         """读取电荷和自选多重度"""
-        res=re.findall(f'Charge = +(-?\d) Multiplicity = (\d)',self.text)
+        res=re.findall(rf'Charge = +(-?\d) Multiplicity = (\d)',self.text)
         if res is None:
             printer.warn(f'{self.path} 没有读到电荷和自选多重度!')
         else:
@@ -237,7 +245,11 @@ class LogReader(reader.Reader):
             printer.warn('未读取到基组名')
             name='unll'
         else:
-            name=re.match(' Standard basis: (\S+) ',self.getline(titleNum)).group(1)
+            find=re.match(rf' Standard basis: (\S+) ',self.getline(titleNum))
+            if find is None:
+                name='null'
+            else:
+                name=find.group(1)
         return name
     
     @lru_cache
@@ -302,13 +314,14 @@ class LogReader(reader.Reader):
                 shell=0
                 continue
             else:
+                break
                 # 排序一下
-                basisDatas.sort(key=lambda b:(b.atmic,b.shl,b.ang))
-                return basisDatas
+        basisDatas.sort(key=lambda b:(b.atmic,b.shl,b.ang))
+        return basisDatas
         
     def read_summery(self):
         '''读取总结信息'''
-        summerys=re.findall(r' \d[\\||]\d[\S\s]*?@',self.content)
+        summerys=re.findall(r' \d[\\||]\d[\S\s]*?@',self.text)
         summery=summerys[-1]
         summery=''.join([each[1:] for each in summery.split('\n')])
         summeryList=summery.replace('\n','').replace('\\\\','||').split('||')

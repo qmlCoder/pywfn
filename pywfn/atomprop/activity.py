@@ -52,7 +52,7 @@ class Calculator:
         result[:,1]=engs[:,1]-engs[:,2]
         return engs
 
-    def valence(self)->list[float]:
+    def valence(self)->np.ndarray:
         """计算原子化合价"""
         assert len(self.mols)==1,"只能算一个分子"
         from pywfn.bondprop import bondOrder
@@ -112,6 +112,7 @@ class Calculator:
             if dirs is None:dirs=res[:,1:4]
             if idxs is None:idxs=res[:,0]
             vals.append(res[:,4])
+        assert dirs is not None,"方向计算出错"
         num=len(dirs)
         result=np.zeros(shape=(num,6))
         result[:,0]=idxs
@@ -119,7 +120,6 @@ class Calculator:
         result[:,4]=vals[0]-vals[1]
         result[:,5]=vals[1]-vals[2]
         return result
-    
     
     def onShell(self,shell:Shell):
         from pywfn.utils import printer
@@ -139,14 +139,14 @@ class Calculator:
                 opt=input('请输入电荷类型：1.mulliken; 2.lowdin')
                 if opt not in chrgMap.keys():continue
                 result=self.fukui()
-                for i,e,n in enumerate(result):
+                for i,(e,n) in enumerate(result):
                     print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
             elif opt=='2':
                 self.mols=shell.input.Moles(num=3)
                 opt=input('请输入电荷类型：1.mulliken; 2.lowdin')
                 if opt not in chrgMap.keys():continue
                 result=self.parr()
-                for i,e,n in enumerate(result):
+                for i,(e,n) in enumerate(result):
                     print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
             elif opt=='3':
                 self.mols=shell.input.Moles(num=3)
@@ -160,12 +160,17 @@ class Calculator:
                     print(f'{i+1:>3d} {val:>8.4f}')
             elif opt=='5': # 自由价
                 self.mols=shell.input.Moles(num=1)
-                result=self.freeValence()
-                for a,x,y,z,v in result:
-                    print(f'{a:>3d} {x:>8.4f} {y:>8.4f} {z:>8.4f} {v:>8.4f}')
+                atms=shell.input.Number(dtype=int,tip='输入原子编号:')
+                assert atms is not None,"输入错误"
+                for atm in atms:
+                    result=self.freeValence(int(atm))
+                    for a,x,y,z,v in result:
+                        print(f'{a:>3d} {x:>8.4f} {y:>8.4f} {z:>8.4f} {v:>8.4f}')
             elif opt=='6': # 方向fukui函数
                 self.mols=shell.input.Moles(num=3)
-                atms=shell.input.Number(tip='输入原子编号: ',dtype='int')
+                atms=shell.input.Number(tip='输入原子编号: ',dtype=int)
+                assert atms is not None,"输入错误"
+                atms=[int(atm) for atm in atms]
                 result=self.dirFukui(atms)
                 for i,val in enumerate(result):
                     print(f'{i+1:>3d} {val:>8.4f}')

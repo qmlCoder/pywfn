@@ -1,5 +1,5 @@
 import sys
-sys.path.append("D:\code\pywfn")
+sys.path.append(rf"D:\code\pywfn")
 
 from pywfn.base import Mol
 from pywfn.reader import LogReader
@@ -8,6 +8,7 @@ from pywfn.atomprop import activity
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\M4\M4_wfn"
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\NHC\BHC_t_wfn"
 root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\反极性卡宾\N2R_t_wfn"
+root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\CR3自由基\wfn\Ccl3_wfn"
 # root=rf"D:\BaiduSyncdisk\Articles\HFV\gfile\反极性卡宾\since4_s_wfn"
 
 pathn=rf"{root}-.log"
@@ -23,6 +24,7 @@ caler=activity.Calculator()
 caler.mols=[mol0]
 result=caler.freeValence(1)
 print(result)
+
 
 
 # results=[]

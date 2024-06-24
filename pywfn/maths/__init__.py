@@ -56,8 +56,6 @@ def vector_angle(a: np.ndarray, b: np.ndarray) -> float:  # 计算两向量之�
     计算两向量之间的夹角
     a:o->a
     b:o->b
-    acute:是否为钝角
-
     """
     la = np.linalg.norm(a)
     lb = np.linalg.norm(b)
@@ -72,23 +70,23 @@ def vector_angle(a: np.ndarray, b: np.ndarray) -> float:  # 计算两向量之�
     return angle
 
 
-def get_normalVector(p1, p2, p3, linear=False):
-    """
-    获取三点确定的平面的单位法向量
-    根据两个向量也可以确定法向量
-    """
-    vi = p3 - p2
-    vj = p1 - p2
-    n = np.cross(vi, vj)  # 法向量
-    if (
-        np.linalg.norm(n) == 0
-    ):  # 此时说明三个原子在一条直线上，是标准的线型分子，所以不存在法向量
-        return None
-    if vector_angle(vi, vj, trans=True) < 0.02 and linear:
-        return None
-    if vector_angle(n, config.BASE_VECTOR) > 0.5:
-        n *= -1
-    return n / np.linalg.norm(n)  # 返回单位向量
+# def get_normalVector(p1, p2, p3, linear=False):
+#     """
+#     获取三点确定的平面的单位法向量
+#     根据两个向量也可以确定法向量
+#     """
+#     vi = p3 - p2
+#     vj = p1 - p2
+#     n = np.cross(vi, vj)  # 法向量
+#     if (
+#         np.linalg.norm(n) == 0
+#     ):  # 此时说明三个原子在一条直线上，是标准的线型分子，所以不存在法向量
+#         return None
+#     if vector_angle(vi, vj, trans=True) < 0.02 and linear:
+#         return None
+#     if vector_angle(n, config.BASE_VECTOR) > 0.5:
+#         n *= -1
+#     return n / np.linalg.norm(n)  # 返回单位向量
 
 
 def linear_classify(points):  # 将向量分类转为表示角度的数值分类
@@ -139,42 +137,42 @@ def get_aroundPoints(p, step):  #
     return p + arounds * step
 
 
-def get_extraValue(atom: "base.Atom", obt: int, valueType="max"):
-    """
-    从指定位置开始,利用爬山算法寻找原子波函数极值
-    maxPos:[3,]
-    """
-    # p0=atom.coord.copy() # 起始点,p是原子坐标不变
-    # p=p0.copy()
-    p0 = np.array([0.0, 0.0, 0.0]).reshape(1, 3)
-    v0 = atom.get_wfnv(p0, obt)  # 计算原子坐标处的初始值
-    step = 0.1
-    while True:
-        aroundPs = get_aroundPoints(p0, step)  # aroundPs:(n,3)
-        aroundVs = atom.get_wfnv(aroundPs, obt)
-        if valueType == "max" and np.max(aroundVs) > v0:
-            maxID = np.argmax(aroundVs)  # 最大值的索引
-            p0 = aroundPs[maxID]  # 最大值坐标
-            v0 = aroundVs[maxID]  # 最大值
-        elif valueType == "min" and np.min(aroundVs) < v0:
-            minID = np.argmin(aroundVs)
-            p0 = aroundPs[minID]
-            v0 = aroundVs[minID]
-        else:
-            if step <= 1e-6:
-                return p0, v0  #
-            else:
-                step /= 10
+# def get_extraValue(atom: "base.Atom", obt: int, valueType="max"):
+#     """
+#     从指定位置开始,利用爬山算法寻找原子波函数极值
+#     maxPos:[3,]
+#     """
+#     # p0=atom.coord.copy() # 起始点,p是原子坐标不变
+#     # p=p0.copy()
+#     p0 = np.array([0.0, 0.0, 0.0]).reshape(1, 3)
+#     v0 = atom.get_wfnv(p0, obt)  # 计算原子坐标处的初始值
+#     step = 0.1
+#     while True:
+#         aroundPs = get_aroundPoints(p0, step)  # aroundPs:(n,3)
+#         aroundVs = atom.get_wfnv(aroundPs, obt)
+#         if valueType == "max" and np.max(aroundVs) > v0:
+#             maxID = np.argmax(aroundVs)  # 最大值的索引
+#             p0 = aroundPs[maxID]  # 最大值坐标
+#             v0 = aroundVs[maxID]  # 最大值
+#         elif valueType == "min" and np.min(aroundVs) < v0:
+#             minID = np.argmin(aroundVs)
+#             p0 = aroundPs[minID]
+#             v0 = aroundVs[minID]
+#         else:
+#             if step <= 1e-6:
+#                 return p0, v0  #
+#             else:
+#                 step /= 10
 
 
-def search_sp2(idx: int, mol: "base.Mol") -> int:
+def search_sp2(idx: int, mol: "base.Mol") -> int|None:
     """
     深度优先搜索方法寻找于指定原子相邻最近的sp2 C原子
     """
     atom = mol.atom(idx)
 
     searchd = [idx]  # 已经搜索过的
-    searchs = [a.idx for a in atom.neighbors]  # 将要搜索的
+    searchs = [a for a in atom.neighbors]  # 将要搜索的
 
     while len(searchs) > 0:
         idx = searchs.pop(0)  # 弹出第一个
@@ -182,7 +180,7 @@ def search_sp2(idx: int, mol: "base.Mol") -> int:
         if len(atom.neighbors) == 3:
             return idx
         searchn = [
-            a.idx for a in mol.atom(idx).neighbors if a.idx not in searchd
+            a for a in mol.atom(idx).neighbors if a not in searchd
         ]  # 新找到的原子的索引
         searchs += searchn
     printer.warn("没有找到sp2类型原子")

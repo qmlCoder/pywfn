@@ -17,7 +17,7 @@ for paths,dirnames,filenames in os.walk('pywfn'):
             sfiles.append(path)
         if Path(path).suffix in ['.dll']:
             sfiles.append(path)
-            tfiles.append(os.path.join('dlls',filename))
+            tfiles.append(os.path.join('libs',filename))
         if Path(path).suffix in ['.csv','.npy']:
             sfiles.append(path)
             tfiles.append(os.path.join('data',filename))

@@ -17,6 +17,7 @@ from pywfn import config
 from pywfn.utils import printer
 from pywfn import data
 from pywfn.base import Mol
+from pywfn import utils
 import numpy as np
 
 
@@ -60,7 +61,6 @@ class Shell:
                 case _:
                     printer.warn("命令不存在")
 
-
 class Inputer:
     def __init__(self, shell: Shell) -> None:
         self.shell = shell
@@ -71,7 +71,7 @@ class Inputer:
             sys.exit()
         return res
 
-    def Number(self, tip: str, dtype: str = "float", length: int = None) -> int | float:
+    def Number(self, tip: str, dtype: type = float, length: int|None = None) -> list[float]|None:
         """输入整数"""
 
         def split1(frg: str):
@@ -90,23 +90,16 @@ class Inputer:
                 if not re.match(r"^-?\d+[\.\d+]*([,，-]-?\d+[\.\d+]*)*$", opt):
                     printer.warn("格式不正确！！")
                     continue
-
                 frgs = re.split(r"[,，]", opt)
                 nums = []
                 for frg in frgs:
                     nums += split1(frg)
-                nums = [int(num) if dtype == "int" else float(num) for num in nums]
-                if length is None:
-                    return nums
-                else:
-                    if len(nums) != length:
-                        continue
-                    if length == 1:
-                        return nums[0]
-                    else:
-                        return nums
+                nums = [float(num) for num in nums]
+                if length is not None and len(nums)!=length:
+                    continue
+                return nums
 
-    def Vector(self, tip: str, norm: bool = False, must=False) -> np.ndarray:
+    def Vector(self, tip: str, norm: bool = False, must=False) -> np.ndarray|None:
         """
         输入向量
         tip:提示
@@ -148,7 +141,7 @@ class Inputer:
         if pathObj.is_file():  # 如果是文件
             if pathObj.suffix in types:
                 printer.info(f"共1个文件")
-                self.shell.paths += [path]
+                self.shell.paths += [pathObj]
             else:
                 printer.warn("不支持的文件类型")
         elif pathObj.is_dir():  # 如果是文件夹
@@ -159,13 +152,13 @@ class Inputer:
             printer.info(f"输入{len(paths)}个文件")
             self.shell.paths += paths
 
-    def Text(self) -> str:
+    def Text(self) -> tuple[str,str]|None:
         path = input("请输入文件: ")
         if not Path(path).exists():
             return None
         return path, Path(path).read_text()
 
-    def Moles(self,num:int=None) -> list[Mol]:
+    def Moles(self,num:int|None=None) -> list[Mol]:
         """
         获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
         """
@@ -175,15 +168,18 @@ class Inputer:
         for p,path in enumerate(paths):
             print(f'{p:>2} {path}')
         if num is None: # 要满足指定数量
-            idxs = self.Number("输入分子编号：", dtype="int")
+            idxs = self.Number("输入分子编号：", dtype=int)
+            assert idxs is not None,"输入错误"
         else:
             while True:
-                idxs = self.Number(f"输入{num}个分子：", dtype="int")
+                idxs = self.Number(f"输入{num}个分子：", dtype=int)
+                assert idxs is not None,"输入错误"
                 if len(idxs) == num:break
 
         mols = []
+        idxs=utils.l2i(idxs)
         for idx in idxs:
-            path = paths[idx]
+            path = f'{paths[idx]}'
             if path not in self.shell.mols.keys():
                 self.shell.mols[path] = Mol(get_reader(path))
             mols.append(self.shell.mols[path])

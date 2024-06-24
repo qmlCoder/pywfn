@@ -44,6 +44,9 @@ class Calculator:
             raise ValueError("no anyv")
         atom=self.mol.atom(atm)
         nebs=atom.neighbors
+        if len(nebs)==1:
+            dirs=np.array([self.normal(atm)])
+            return dirs
         if len(nebs)==2:
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
@@ -103,13 +106,21 @@ class Calculator:
         if 'normal' in atom._props.keys(): # 方便用户指定
             return atom._props['normal']
         nebs=atom.neighbors
-        if len(nebs)==1:
+        if len(nebs)==1: # 如果只连接一个原子
             neb=nebs[0]
             nebb=self.mol.atom(neb).neighbors
             if atom.symbol=='H': # H肯定没有法向量吧
                 return None
             elif len(nebb) in [2,3]:
-                return self.normal(neb)
+                nnorm=self.normal(neb)
+                assert nnorm is not None,"没有法向量"
+                bnorm=np.cross(nnorm,self.mol.atom(atm).coord-self.mol.atom(neb).coord)
+                bnorm/=np.linalg.norm(bnorm)
+                snorm=np.cross(nnorm,bnorm)
+                snorm/=np.linalg.norm(snorm)
+                if vector_angle(snorm,nnorm)>0.5:
+                    snorm*=-1
+                return nnorm
             else:
                 return None
         if len(nebs)==2:

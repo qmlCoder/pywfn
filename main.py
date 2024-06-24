@@ -1,6 +1,6 @@
 import os
 # os.add_dll_directory(rf"D:\program\mingw64\bin")
-os.add_dll_directory(rf"D:\code\pywfn\libs")
+
 
 from pathlib import Path
 from pywfn import config
@@ -11,7 +11,7 @@ config.ROOT_DATA=Path.cwd()/'data'
 config.ROOT_LIBS=Path.cwd()/'libs'
 print(f'{config.ROOT_DATA}')
 print(f'{config.ROOT_LIBS}')
-
+os.add_dll_directory(rf"{config.ROOT_LIBS}")
 if __name__=='__main__':
     from pywfn.shell import Shell
     Shell().homePage()

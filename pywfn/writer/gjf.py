@@ -22,7 +22,7 @@ class GjfWriter:
         """生成坐标的字符串形式"""
         coordStrs=[]
         for atom in self.mol.atoms:
-            x,y,z=atom.coord
+            x,y,z=atom.coord/config.BOHR_RADIUS
             s=atom.symbol
             coordStr=f'{s:>2}{x:>14.8f}{y:>14.8f}{z:>14.8f}'
             coordStrs.append(coordStr)

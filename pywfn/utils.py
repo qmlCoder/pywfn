@@ -150,7 +150,7 @@ class Printer:
         self.__call__(text)
     
     def multi(self,texts:list[str]):
-        self.__call__(text,style='')
+        # self.__call__(text,style='')
         for text in texts:
             self.console.print(text,end='')
         self.console.print('')
@@ -169,10 +169,10 @@ class Printer:
     
     def vector(self,tip:str,vector:np.ndarray):
         if not config.IF_SHELL:return
-        vector=[f'{v:.2f}' for v in vector]
-        vectorStr=','.join(vector)
+        nums=[f'{v:.2f}' for v in vector]
+        numStr=','.join(nums)
         self.console.print(tip,end='',style='#dee2e6')
-        self.console.print(vectorStr,style='#f59f00')
+        self.console.print(numStr,style='#f59f00')
     
     def options(self,title,opts:dict[str,str]):
         if not config.IF_SHELL:return
@@ -218,3 +218,10 @@ def vectStr(vector:None|np.ndarray,f=4):
     else:
         resStr=','.join([f'{v:>8.4f}' for v in vector])
         return f'({resStr})'
+    
+from typing import Any
+def l2i(nums:list[Any]):
+    return [int(num) for num in nums]
+
+def l2f(nums:list[Any]):
+    return [float(num) for num in nums]
