@@ -9,7 +9,6 @@ B=A*1.889
 
 import numpy as np
 import time
-from tqdm import tqdm
 from pathlib import Path
 
 from pywfn import maths,base,config
@@ -24,18 +23,21 @@ class CubWriter:
         self.atoms:list[int]=self.mol.atoms.indexs
         self.direct:np.ndarray=None
         self.floatNum=12
-        self.obts=self.mol.O_obts
+        na,nb=self.mol.eleNum
+        self.obts=[na-1]
+        if self.mol.open:
+            nbas=self.mol.CM.shape[0]
+            self.obts.append(nbas+nb-1)
         self.wfnCaler=wfnfunc.Calculator(mol)
         self.denCaler=density.Calculator(mol)
         self.CM=self.mol.CM
         self.ctype='wfn' # 计算的类型，波函数、电子密度
     
-    def init_file(self,name:str):
+    def init_file(self,path:str):
         self.title0='genetrate by pywfn'
         self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
-        path=Path(self.mol.reader.path)
         # obts=','.join((f'{e+1}' for e in self.obts))
-        self.filePath=(path.parent/f'{path.stem}_{name}.cub')
+        self.filePath=path
         self.file=open(self.filePath,mode='w')
         
     def get_gridPos(self):
@@ -46,7 +48,7 @@ class CubWriter:
         p1=self.mol.coords[atoms,:].max(axis=0)
         bord=self.border
         
-        (Nx,Ny,Nz),gridPos=maths.gridPos(p0-bord,p1+bord,self.step) #计算波函数时的坐标还是要使用原子单位的坐标
+        (Nx,Ny,Nz),gridPos=maths.gridPos(p0,p1,self.step,bord=bord) #计算波函数时的坐标还是要使用原子单位的坐标
         self.gridSize=(Nx,Ny,Nz)
         assert Nx*Ny*Nz==len(gridPos),"网格点数量不匹配"
         self.file.write(f'{self.title0}\n{self.title1} {len(gridPos)*len(self.obts)}\n')
@@ -96,16 +98,20 @@ class CubWriter:
                     continue
                 if index%6==0:self.file.write('\n')
     
-    def save(self,name):
-        self.init_file(name)
+    def save(self,path:str):
+        self.init_file(path)
         self.write_value()
         printer.res(f'导出文件至{self.filePath}')
         self.file.close()
 
     def onShell(self):
-        from pywfn.utils import parse_intList
-        atms=input('输入要导出的原子[*]')
-        if atms!='':self.atoms=parse_intList(atms)
-        step=input(f'输入格点步长[{self.step:>.2f}]')
-        if step!='':step=float(step)
-        self.save(self.mol.reader.fname)
+        name='开窍层' if self.mol.open else '闭壳层'
+        na,nb=self.mol.eleNum
+        print(f'该分子为{name},电子数量分别为{na},{nb}')
+        from pywfn.utils import parse_intList,parse_obtList
+        atms=input('输入需渲染的原子(默认所有原子): ')
+        if atms!='':self.atoms=parse_intList(atms,start=1)
+        obts=input('输入需渲染的轨道(默认HOMO轨道): ')
+        if obts!='':self.obts=parse_obtList(atms)
+        path=self.mol.reader.path
+        self.save(f'{path}.cub')

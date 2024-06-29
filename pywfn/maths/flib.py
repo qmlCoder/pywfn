@@ -38,6 +38,7 @@ def trans_dtype(paras:list):
     return targs,types
 
 from pywfn import config
+os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
 flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
 
 flib.add_.argtypes = [ct.c_double, ct.c_double, ct.POINTER(ct.c_double)]

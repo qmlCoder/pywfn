@@ -5,16 +5,28 @@ import numpy as np
 from pywfn import config
 
 
-def parse_intList(string)->list[int]:
+def parse_intList(string,start=0,offset=0)->list[int]:
     """将字符串解析为数字列表"""
     res = []
     for each in re.split(r',|，', string):
         content = each.split('-')
         if len(content) == 1:
-            res.append(int(each) - 1)
+            res.append(int(each) - 1 + start + offset)
         else:
-            res += [int(i) - 1 for i in range(int(content[0]), int(content[1]) + 1)]
+            res += [int(i) - 1 + start + offset for i in range(int(content[0]), int(content[1]) + 1)]
     return res
+
+def parse_obtList(string:str,nbas:int):
+    alps:list[str]=re.findall(r'a\d+',string)
+    bets:list[str]=re.findall(r'b\d+',string)
+    for alp in alps:
+        string=string.replace(alp,alp[1:])
+    for bet in bets:
+        fbet=f'{int(bet[1:])+nbas}'
+        string=string.replace(bet,fbet)
+    return parse_intList(string)
+    
+
 
 def get_vertical(v1,v2):
     '''获得垂直于两向量的单位向量'''

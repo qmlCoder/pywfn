@@ -158,9 +158,11 @@ class Inputer:
             return None
         return path, Path(path).read_text()
 
-    def Moles(self,num:int|None=None) -> list[Mol]:
+    def Moles(self,num:int|None=None,mtype:str='mol') -> list[Mol]|list[str]:
         """
         获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
+        num:分子的数量
+        mtype:返回路径还是分子类
         """
         paths = self.shell.paths
         printer.info(f"共{len(paths)}个文件:")
@@ -180,7 +182,11 @@ class Inputer:
         idxs=utils.l2i(idxs)
         for idx in idxs:
             path = f'{paths[idx]}'
-            if path not in self.shell.mols.keys():
-                self.shell.mols[path] = Mol(get_reader(path))
-            mols.append(self.shell.mols[path])
+            if mtype=='mol':
+                if path not in self.shell.mols.keys():
+                    self.shell.mols[path] = Mol(get_reader(path))
+                mols.append(self.shell.mols[path])
+            elif mtype=='path':
+                mols.append(path)
+        
         return mols

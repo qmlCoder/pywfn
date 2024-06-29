@@ -6,7 +6,6 @@
 信息到文件的步骤在shell层完成
 """
 
-
 from pywfn import shell
 from pywfn.utils import printer
 def onShell(shell:"shell.Shell"):
@@ -27,8 +26,9 @@ def onShell(shell:"shell.Shell"):
         splitIrc.Tool(path).split()
     elif opt=='3': # 分隔link任务
         from pywfn.tools import splitLink
-        path=input('请输入文件路径：')
-        splitLink.Tool(path).split()
+        paths=shell.input.Moles(mtype='path')
+        for path in paths:
+            splitLink.Tool(path).split()
     elif opt=='4': # 提取SI信息
         from pywfn.tools import extractSI
         from pywfn.utils import parse_intList

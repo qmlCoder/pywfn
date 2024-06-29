@@ -2,6 +2,7 @@
 from pathlib import Path
 import numpy as np
 import json
+import os
 
 configPath=Path.cwd()/'config.json'
 if not configPath.exists():
@@ -22,9 +23,9 @@ def get_config(key:str,value):
 def set_config(key:str,value):
     global configDict
     configDict[key]=value
-    configPath.write_text(json.dumps(configDict))
+    configPath.write_text(json.dumps(configDict,indent=1))
 
-BOND_LIMIT=get_config('BOND_LIMIT',1.8*1.889) # 判断量原子之间是否成键的长度限制
+BOND_LIMIT=get_config('bond.limit',1.8*1.889) # 判断量原子之间是否成键的长度限制
 IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell中的print冲突
 IF_SHELL=False # 是否在shell中执行
 
@@ -34,9 +35,9 @@ IF_ORBITAL_ORDER=False #是否计算键级中每个轨道的成分，尤其是ma
 
 RENDER_ATOM_RANGE=20000  # 原子轨道的渲染范围
 
-RENDER_CLOUD_STEP=0.2  # 渲染间隔
+RENDER_CLOUD_STEP=get_config('render.cloud.step',0.2)  # 导出cub文件时的步长
 
-RENDER_CLOUD_BORDER=2
+RENDER_CLOUD_BORDER=get_config('render.cloud.border',4.0) # 到处cub文件的边框
 
 BOHR_RADIUS=1.889
 
@@ -46,3 +47,4 @@ IF_CM_P=False # 是否使用投影轨道
 
 ROOT_DATA=Path(__file__).parent/'data'
 ROOT_LIBS=Path(__file__).parent/'libs'
+# os.add_dll_directory(rf"{ROOT_LIBS}") # 添加动态链接库目录

@@ -2,6 +2,7 @@ __pycache__
 .ipynb_checkpoints/
 .qt_for_python/
 /manager/storages
+out/
 venv
 *.pyc
 *.zip

@@ -32,7 +32,6 @@ from pywfn.utils import printer
 
 import numpy as np
 from functools import cached_property, lru_cache
-from tqdm import tqdm
 import multiprocessing as mp
 from multiprocessing.pool import AsyncResult
 import threading
@@ -256,6 +255,18 @@ class Mol:
             return angle/nm*np.pi
         else:
             raise ValueError("参数数量错误")
+    
+    @property
+    def eleNum(self)->tuple[int,int]:
+        """获取alpha,beta电子数"""
+        obts=self.O_obts
+        if self.open:
+            nbas=self.CM.shape[0]
+            na=sum([1 for o in obts if o<nbas])
+            nb=len(obts)-na
+            return na,nb
+        else:
+            return len(obts),len(obts)
 
     
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
