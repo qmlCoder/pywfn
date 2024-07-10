@@ -48,7 +48,7 @@ class CubWriter:
         p1=self.mol.coords[atoms,:].max(axis=0)
         bord=self.border
         
-        (Nx,Ny,Nz),gridPos=maths.gridPos(p0,p1,self.step,bord=bord) #计算波函数时的坐标还是要使用原子单位的坐标
+        (Nx,Ny,Nz),gridPos=maths.cubeGrid(p0,p1,self.step,bord=bord) #计算波函数时的坐标还是要使用原子单位的坐标
         self.gridSize=(Nx,Ny,Nz)
         assert Nx*Ny*Nz==len(gridPos),"网格点数量不匹配"
         self.file.write(f'{self.title0}\n{self.title1} {len(gridPos)*len(self.obts)}\n')
@@ -107,11 +107,12 @@ class CubWriter:
     def onShell(self):
         name='开窍层' if self.mol.open else '闭壳层'
         na,nb=self.mol.eleNum
-        print(f'该分子为{name},电子数量分别为{na},{nb}')
+        print(f'该分子为{name},alpha和beta电子数量分别为{na},{nb}')
         from pywfn.utils import parse_intList,parse_obtList
         atms=input('输入需渲染的原子(默认所有原子): ')
         if atms!='':self.atoms=parse_intList(atms,start=1)
-        obts=input('输入需渲染的轨道(默认HOMO轨道): ')
-        if obts!='':self.obts=parse_obtList(atms)
+        obts=input('输入需渲染的轨道(默认HOMO轨道),例如a10,b10: ')
+        nbas=self.mol.CM.shape[0]
+        if obts!='':self.obts=parse_obtList(obts,nbas)
         path=self.mol.reader.path
         self.save(f'{path}.cub')

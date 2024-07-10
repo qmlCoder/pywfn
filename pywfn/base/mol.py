@@ -252,7 +252,7 @@ class Mol:
             angle=maths.vector_angle(n2,n3)
             nm=np.dot(v21,n3) # 为了实现二面角的正负而引入
             nm/=np.linalg.norm(nm)
-            return angle/nm*np.pi
+            return float(angle*np.pi*nm)
         else:
             raise ValueError("参数数量错误")
     

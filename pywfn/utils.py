@@ -17,6 +17,9 @@ def parse_intList(string,start=0,offset=0)->list[int]:
     return res
 
 def parse_obtList(string:str,nbas:int):
+    """
+    将轨道字符转为正常字符
+    """
     alps:list[str]=re.findall(r'a\d+',string)
     bets:list[str]=re.findall(r'b\d+',string)
     for alp in alps:

@@ -237,6 +237,14 @@ class Atoms:
     def indexs(self)->list[int]:
         return [a.idx for a in self.atoms]
     
+    @property
+    def atms(self)->list[int]:
+        return [a.idx for a in self.atoms]
+    
+    @property
+    def natm(self)->int:
+        return len(self.atms)
+    
     @cached_property
     def LM(self):
         """原子之间的键长矩阵"""

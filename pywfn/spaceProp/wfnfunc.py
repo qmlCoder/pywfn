@@ -5,7 +5,7 @@
 原子的波函数
 """
 from pywfn.base import Mol
-from pywfn.maths import Gto
+from pywfn import maths
 import numpy as np
 
 from pywfn.data import sphGrid
@@ -75,3 +75,29 @@ class Calculator:
         wfn = self.mol.gto.cgf(exps, coes, lmn, R2, pos_)  # 空间坐标-以原子为中心的坐标
         
         return wfn
+    
+    def rectValue(self,cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float,atms:list[int],obt:int):
+        """生成图片文件"""
+        nx,ny,pos=maths.rectGrid(cent,norm,vx,sx,sy)
+        wfns=np.zeros(shape=len(pos))
+        nbas=self.mol.CM.shape[0]
+        obtAtms=self.mol.obtAtms
+        for i in range(nbas):
+            if obtAtms[i] not in atms:continue
+            coef=self.mol.CM[i,obt]
+            wfns+=self.atoWfn(i,pos)*coef
+        mat=wfns.reshape(nx,ny)
+        return mat
+    
+    def lineValue(self,p0:np.ndarray,p1:np.ndarray,atms:list[int],obt:int):
+        """获取一条直线上的数值"""
+        grid=maths.lineGrid(p0,p1)
+        wfns=np.zeros(shape=len(grid))
+        nbas=self.mol.CM.shape[0]
+        obtAtms=self.mol.obtAtms
+        for i in range(nbas):
+            if obtAtms[i] not in atms:continue
+            coef=self.mol.CM[i,obt]
+            wfn=self.atoWfn(i,grid)*coef
+            wfns+=wfn
+        return wfns

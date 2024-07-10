@@ -13,8 +13,8 @@ except:
 
 config.ROOT_DATA=Path.cwd()/'data'
 config.ROOT_LIBS=Path.cwd()/'libs'
-print(f'{config.ROOT_DATA}')
-print(f'{config.ROOT_LIBS}')
+# print(f'{config.ROOT_DATA}')
+# print(f'{config.ROOT_LIBS}')
 os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
 if __name__=='__main__':
     from pywfn.shell import Shell

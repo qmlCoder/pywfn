@@ -562,11 +562,11 @@ class LogReader(reader.Reader):
         searhNum=0
         engDict={e:0.0 for e in engList}
         lineNum=self.titles['engs'].line
-        # assert lineNum is not None,f"{self.path} 未读取到能量"
+        if lineNum is None:printer.log("{self.path} 未读取到能量")
         for i in range(lineNum,self.lineNum):
             line=self.getline(i)
             for each in engList:
-                res=re.search(r'{each}=\s+(-?\d+\.\d+)',line)
+                res=re.search(rf'{each}=\s+(-?\d+\.\d+)',line)
                 if res is not None:
                     re.findall(r'-?\d+\.\d+',line)
                     engDict[each]=float(res.groups()[0])

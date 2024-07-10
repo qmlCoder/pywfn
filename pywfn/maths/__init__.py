@@ -6,7 +6,7 @@ from pywfn.utils import printer
 from pywfn.maths.gto import Gto
 
 
-def gridPos(
+def cubeGrid(
     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
 ):
     """生成网格数据点,range:生成数据的范围
@@ -27,6 +27,47 @@ def gridPos(
                 pos.append([x, y, z])
 
     return (Nx, Ny, Nz), np.array(pos, dtype=np.float32)
+
+def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
+    """
+    在空间中创建一个矩形区域,方便导出二维图像
+    需要指定平面的法向量/z轴方向
+    再指定平面的x轴方向，根据x和z轴计算y轴方向
+    再根据z轴和y轴修复x轴方向
+    """
+    vz=norm.copy()
+    vz/=np.linalg.norm(vz)
+    vx/=np.linalg.norm(vx)
+    step=config.IMG_SPACE_STEP
+    dxs=np.linspace(0,sx,int(sx/step))
+    dys=np.linspace(0,sy,int(sy/step))
+    
+    nx=len(dxs)
+    ny=len(dys)
+    vy=np.cross(vx,vz)
+    vx=np.cross(vz,vy)
+    p0=cent-vx/2*sx-vy/2*sy
+    # print(p0,cent,vx,vy)
+    pos=[]
+    for dx in dxs:
+        for dy in dys:
+            pos.append(p0+vx*dx+vy*dy)
+            # print(x,y,z)
+    print(pos[0])
+    print(pos[-1])
+    return nx,ny,np.array(pos)
+
+def lineGrid(p0:np.ndarray,p1:np.ndarray):
+    """获取一条线上的空间坐标"""
+    vect=p1-p0
+    step=0.001
+    length=np.linalg.norm(vect)
+    count=int(length/step)
+    grid=[]
+    vect/=length
+    for i in np.linspace(0,length,count):
+        grid.append(p0+i*vect)
+    return np.array(grid)
 
 
 def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
@@ -61,13 +102,13 @@ def vector_angle(a: np.ndarray, b: np.ndarray) -> float:  # 计算两向量之�
     lb = np.linalg.norm(b)
     assert la * lb > 0, "向量长度不应为0"
 
-    value = np.dot(a, b) / (la * lb)  # 应介于(-1,1)之间
-    if value > 1:
-        value = 1
-    if value < -1:
-        value = -1
-    angle = np.arccos(value) / np.pi
-    return angle
+    cos = np.dot(a, b) / (la * lb)  # 应介于(-1,1)之间
+    if cos > 1:
+        cos = 1
+    if cos < -1:
+        cos = -1
+    angle = np.arccos(cos) / np.pi
+    return float(angle)
 
 
 # def get_normalVector(p1, p2, p3, linear=False):

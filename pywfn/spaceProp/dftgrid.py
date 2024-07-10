@@ -24,14 +24,9 @@ class Calculator:
             xi=np.cos(pi*i/(nrad+1))
             ri=R*(1.+xi)/(1.-xi)
             wi=2.*pi/(nrad+1)*R**3.*(1.+xi)**2.5/(1.-xi)**3.5
-            # xi=i/(nrad+1)
-            # ri=R*xi**2/(1.-xi)**2
-            # wi=2.*R**3/(nrad+1)*xi**5/(1.-xi)**7
-            # print(f'{i},{i/(nrad+1)},{xi:>10.4f},{ri:>10.4f},{wi:>10.4f}')
             if ri>15:continue
             rs.append(ri)
             ws.append(wi)
-        # print('ri',len(rs))
         rs=np.array(rs,dtype=np.float32)
         ws=np.array(ws,dtype=np.float32)*4.*pi
         return rs,ws
@@ -54,4 +49,36 @@ class Calculator:
         cords=np.array(cords,dtype=np.float32)
         weits=np.array(weits,dtype=np.float32)
         return cords,weits
-            
+    
+    def atmGrid(self,atm:int):
+        """单个原子的网格点坐标，以原子为中心"""
+        atmGrid,atmWeit=self.dftGrid(atm)
+        # atmGrid,atmWeit=sphGrid.grids,sphGrid.weits
+        atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3)
+        return atmGrid,atmWeit
+    
+    def a2mGrid(self,atm:int):
+        """将原子中心坐标映射到分子中，改变权重"""
+        from pywfn.maths import flib
+        atmGrid,atmWeit=self.atmGrid(atm)
+        nGrid=len(atmGrid)
+        natm=len(self.mol.atoms)
+        atmPos=self.mol.coords.copy() # 分子坐标
+        atmRad=np.array(self.mol.atoms.radius)
+        atmDis=self.mol.atoms.LM
+        a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
+        # print(np.isnan(a2mWeit))
+        assert True not in np.isnan(atmWeit),"不应该有nan"
+        return a2mGrid,a2mWeit
+    
+    def molGrid(self):
+        """整个分子的网格点坐标"""
+        molGrid=[]
+        molWeit=[]
+        for atom in self.mol.atoms:
+            a2mGrid,a2mWeit=self.a2mGrid(atom.idx)
+            molGrid.append(a2mGrid)
+            molWeit.append(a2mWeit)
+        molPos=np.vstack(molGrid)
+        molWei=np.concatenate(molWeit)
+        return molPos,molWei

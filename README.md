@@ -41,7 +41,7 @@ python main.py
 
 ```
 python -m nuitka --mingw64 --standalone --show-progress --output-dir=out main.py
-python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windows-icon-from-ico=./ico.ico main.py
+python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windows-icon-from-ico=./icon.ico main.py
 ```
 
 ## 物理量缩写
@@ -54,3 +54,5 @@ python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --windo
 ## 依赖的库
 - numpy
 - rich
+
+![](pywfn.png)

@@ -15,9 +15,6 @@ def get_config(key:str,value):
     if key not in configDict.keys():
         configDict[key]=value
         set_config(key,value)
-    elif configDict[key]!=value:
-        configDict[key]=value
-        set_config(key,value)
     return configDict[key]
 
 def set_config(key:str,value):
@@ -38,6 +35,8 @@ RENDER_ATOM_RANGE=20000  # 原子轨道的渲染范围
 RENDER_CLOUD_STEP=get_config('render.cloud.step',0.2)  # 导出cub文件时的步长
 
 RENDER_CLOUD_BORDER=get_config('render.cloud.border',4.0) # 到处cub文件的边框
+
+IMG_SPACE_STEP=get_config('img.space.step',0.1)
 
 BOHR_RADIUS=1.889
 

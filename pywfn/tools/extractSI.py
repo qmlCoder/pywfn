@@ -23,6 +23,7 @@ class Tool:
         self.template=temps.si
         self.selects:list[int]=[1,2,3]
         self.sameFile:bool=True
+        self.FILENAME:str=''
     
     def write_energy(self):
         engNums=self.reader.read_energys()
@@ -51,7 +52,7 @@ class Tool:
         else:
             printer.wrong('Match Frequencies Error')
 
-    def save(self):
+    def build(self):
         """
         导出分子的各种信息到txt文件
         1. 坐标 coord
@@ -70,8 +71,11 @@ class Tool:
             self.write_freq()
         else:
             self.template=self.template.replace('<FREQ>\n','')
-
+        
+    def save(self):
         path_=Path(self.reader.path)
+        if self.FILENAME=='':self.FILENAME=path_.stem
+        self.template=self.template.replace('<FILENAME>',self.FILENAME)
         if self.sameFile:
             path=f'{path_.parent}/SI.txt'
             mode='a'
@@ -79,10 +83,8 @@ class Tool:
         else:
             path=f'{path_.parent}/{path_.stem}_SI.txt'
             mode='w'
-        self.template=self.template.replace('<FILENAME>',path_.stem)
         with open(path,mode,encoding='utf-8') as f:
             f.write(self.template)
-
 
     def onShell(self):
         from pywfn.utils import parse_intList
