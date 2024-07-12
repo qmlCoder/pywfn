@@ -73,7 +73,7 @@ class Tool:
                     break
             xyzl.append(xyzs)
             syml.append(syms)
-        return syml,np.array(xyzl)
+        return syml,np.array(xyzl)*1.889
             
     def split(self):
         """分割文件"""
@@ -84,8 +84,10 @@ class Tool:
         syml,xyzl=self.match_coords(blocks,titleNums)
         return syml,xyzl
 
-    def save(self,path:str=None):
-        """保存文件"""
+    def save(self):
+        """
+        保存文件，可以保存到单个文件或多个文件
+        """
         syml,xyzl=self.split()
         gjfStrs=[]
         for i in range(len(syml)-1):
@@ -100,12 +102,12 @@ class Tool:
             writer.title=self.title
             gjfStr=writer.build()
             gjfStrs.append(gjfStr)
-        if path is None:
-            if not Path(self.fold).exists():os.mkdir(self.fold) # 创建文件夹
-            for i,gjfStr in enumerate(gjfStrs):
-                (self.fold/f's{i+1:0>2}.gjf').write_text(gjfStr,encoding='utf-8')
-        else:
-            Path(path).write_text('--Link1--\n\n'.join(gjfStrs),encoding='utf-8')
+
+        if not Path(self.fold).exists():os.mkdir(self.fold) # 创建文件夹
+        for i,gjfStr in enumerate(gjfStrs):
+            (self.fold/f's{i+1:0>2}.gjf').write_text(gjfStr,encoding='utf-8')
+        
+        printer.print("文件导出成功!!")
 
     def __call__(self) -> Any:
         self.blocks=self.split_raw()

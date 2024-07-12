@@ -3,7 +3,6 @@
 编辑每个键的颜色，原本的颜色就不要使用了，直接上新的颜色
 """
 
-import matplotlib.pyplot as plt
 from xml.etree import ElementTree
 from xml.etree.ElementTree import Element
 from dataclasses import dataclass

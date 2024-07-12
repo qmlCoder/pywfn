@@ -29,5 +29,7 @@ import shutil
 #     zf.write('main.py','main.py')
 
 
-os.system('python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --include-data-dir=pywfn/data=./data main.py')
-shutil.copytree('./pywfn/libs','./out/main.dist/libs')
+# os.system('python -m nuitka --mingw64 --standalone --show-progress --output-dir=out --include-data-dir=pywfn/data=./data main.py')
+os.system('python -m nuitka --mingw64 --standalone --show-progress --output-dir=out main.py')
+shutil.copytree('./data','./out/main.dist/data')
+shutil.copytree('./libs','./out/main.dist/libs')

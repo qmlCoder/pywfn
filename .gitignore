@@ -11,8 +11,9 @@ venv
 config.json
 log.txt
 *.cdxml
-test.f90
-test.ipynb
-test.py
+test.*
 dist
 pywfn.egg-info
+libs
+data
+\#

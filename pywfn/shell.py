@@ -23,8 +23,8 @@ import numpy as np
 
 class Shell:
     def __init__(self):
-        self.paths: list[Path] = []
-        self.mols: dict[str,Mol] = {} # 路径与分子的对应
+        self.paths: list[str] = []
+        self.mols: dict[str,Mol] = {} # 路径:分子的对应
         printer.ifShell = True
         printer.info(data.start)
         self.input = Inputer(self)
@@ -38,12 +38,12 @@ class Shell:
             "4": "导出文件",
         }
         while True:
+            opts["0"]=f"导入文件({len(self.paths)})"
             printer.options('首页', opts)
             opt = input("输入功能选项: ")
             match opt:
                 case "0":
-                    path=input('请输入文件路径: ')
-                    self.input.Files(path)
+                    self.input.Files()
                 case "1":
                     from pywfn import bondprop
                     bondprop.onShell(self)
@@ -70,11 +70,18 @@ class Inputer:
         if res == "q":
             sys.exit()
         return res
+    
+    def Float(self,tip:str,count:int=0)->list[float]:
+        """输入浮点数"""
+        while True:
+            numStr=input(tip)
+            if numStr=="":continue
+            nums=[float(e) for e in numStr.split(',')]
+            return nums
 
-    def Number(self, tip: str, dtype: type = float, length: int|None = None) -> list[float]|None:
+    def Integ(self,tip:str,count:int=0)->list[int]:
         """输入整数"""
-
-        def split1(frg: str):
+        def intSplit(frg: str):
             if "-" in frg:
                 num1, num2 = [int(e) for e in frg.split("-")]
                 assert num1 < num2, "数字1要大于数字2"
@@ -83,21 +90,18 @@ class Inputer:
                 return [frg]
 
         while True:
-            opt = input(tip)
-            if opt == "":
-                return None
-            else:
-                if not re.match(r"^-?\d+[\.\d+]*([,，-]-?\d+[\.\d+]*)*$", opt):
-                    printer.warn("格式不正确！！")
-                    continue
-                frgs = re.split(r"[,，]", opt)
-                nums = []
-                for frg in frgs:
-                    nums += split1(frg)
-                nums = [float(num) for num in nums]
-                if length is not None and len(nums)!=length:
-                    continue
-                return nums
+            numStr=input(tip)
+            if numStr=="":continue
+            frgs = numStr.split(',')
+            nums = []
+            for frg in frgs:
+                nums += intSplit(frg)
+            nums = [int(e) for e in nums]
+            if count!=0 and len(nums)!=count:
+                printer.warn(f"长度不符合要求,应该为{count}")
+                continue
+            return nums
+
 
     def Vector(self, tip: str, norm: bool = False, must=False) -> np.ndarray|None:
         """
@@ -135,58 +139,64 @@ class Inputer:
                 printer.warn("请输入正确选项!")
                 return Inputer.Bool(tip, default)
 
-    def Files(self, path:str):
+    def Files(self):
+        """
+        用户输入文件
+        """
+        path=input('请输入文件路径: ')
         types = [".log", ".out", ".fch", ".gjf"]  # 支持的文件类型
         pathObj = Path(path)
         if pathObj.is_file():  # 如果是文件
             if pathObj.suffix in types:
                 printer.info(f"共1个文件")
-                self.shell.paths += [pathObj]
+                self.shell.paths.append(path)
             else:
                 printer.warn("不支持的文件类型")
         elif pathObj.is_dir():  # 如果是文件夹
-            paths = []
+            count=0
             for each in pathObj.iterdir():  # 对文件夹中的每个文件进行循环
                 if each.suffix in types:  # 如果文件类型是支持的文件类型
-                    paths.append(each)
-            printer.info(f"输入{len(paths)}个文件")
-            self.shell.paths += paths
+                    self.shell.paths.append(f'{each}')
+                    count+=1
+            printer.info(f"输入{count}个文件")
 
-    def Text(self) -> tuple[str,str]|None:
-        path = input("请输入文件: ")
-        if not Path(path).exists():
-            return None
-        return path, Path(path).read_text()
-
-    def Moles(self,num:int|None=None,mtype:str='mol') -> list[Mol]|list[str]:
+    def Paths(self,count:int=0)->list[str]:
         """
-        获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
-        num:分子的数量
-        mtype:返回路径还是分子类
+        用户选择文件
+        count控制数量,如果count为0则没有限制
         """
         paths = self.shell.paths
         printer.info(f"共{len(paths)}个文件:")
         printer.bar()
         for p,path in enumerate(paths):
             print(f'{p:>2} {path}')
-        if num is None: # 要满足指定数量
-            idxs = self.Number("输入分子编号：", dtype=int)
-            assert idxs is not None,"输入错误"
-        else:
-            while True:
-                idxs = self.Number(f"输入{num}个分子：", dtype=int)
-                assert idxs is not None,"输入错误"
-                if len(idxs) == num:break
+
+        while True:
+            if len(paths)==0:
+                printer.warn("你还没有输入任何文件!!!")
+                self.Files()
+                continue
+            if len(paths)<count:
+                printer.warn(f"文件数量不够,至少需要{count}个")
+                self.Files()
+                continue
+            idxs = self.Integ(f"输入分子编号: ")
+            if len(idxs) == count:break
+            if count==0:break
+        return [paths[int(idx)] for idx in idxs]
+
+    def Moles(self,count:int=0) -> list[Mol]:
+        """
+        获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
+        num:分子的数量
+        mtype:返回路径还是分子类
+        """
+        paths=self.Paths(count)
 
         mols = []
-        idxs=utils.l2i(idxs)
-        for idx in idxs:
-            path = f'{paths[idx]}'
-            if mtype=='mol':
-                if path not in self.shell.mols.keys():
-                    self.shell.mols[path] = Mol(get_reader(path))
-                mols.append(self.shell.mols[path])
-            elif mtype=='path':
-                mols.append(path)
+        for path in paths:
+            if path not in self.shell.mols.keys():
+                self.shell.mols[path] = Mol(get_reader(path))
+            mols.append(self.shell.mols[path])
         
         return mols

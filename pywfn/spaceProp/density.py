@@ -13,12 +13,17 @@ from functools import cached_property,lru_cache
 from pywfn.spaceProp import dftgrid
 from pywfn import maths
 import numpy as np
-import matplotlib.pyplot as plt
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.wfnCaler=wfnfunc.Calculator(mol)
+        self.PM=self.mol.PM.copy()
+        self.grids:np.ndarray=None
+    
+    def set_grid(self,grids:np.ndarray):
+        self.grids=grids
+        self.wfnCaler.set_grid(grids)
     
     # @lru_cache
     # def a2mWeight_(self,atm:int):
@@ -77,73 +82,39 @@ class Calculator:
             dens+=wfn**2*self.mol.oE
         return dens
     
-    def molDens_atm(self,pos:np.ndarray):
-        """根据原子电子密度计算的分子密度"""
-        dens=np.zeros(len(pos))
-        for atom in self.mol.atoms:
-            dens+=self.atmDens(atom.idx,pos)
-        return dens
-    
-    def molDens_lib(self,pos:np.ndarray):
+    def molDens_lib(self):
         """使用Fortran库计算电子密度"""
         from pywfn.maths import flib
-        ngrid=len(pos)
-        grids=pos
+        ngrid=len(self.grids)
         nmat=self.mol.CM.shape[0]
         nobt=len(self.mol.O_obts)
         obts=self.mol.O_obts
-        atms=self.mol.obtAtms
-        atms=[atm-1 for atm in atms]
-        cords=self.mol.coords[atms,:]
 
         CM=self.mol.CM[:,obts].copy()
 
-        ncgs=[]
-        alpl=[]
-        coel=[]
-        for atom in self.mol.atoms:
-            result=self.mol.basis.matMap(atom.atomic)
-            ncgs+=result[0]
-            alpl+=result[1]
-            coel+=result[2]
-        cmax=max(ncgs)
-        nmat=len(ncgs)
-        alps=np.zeros(shape=(nmat,cmax))
-        coes=np.zeros(shape=(nmat,cmax))
-        
-        for i,c in enumerate(ncgs):
-            alps[i,:c]=alpl[i]
-            coes[i,:c]=coel[i]
-        syms=self.mol.obtSyms
-        lmns=[self.mol.basis.sym2lmn(sym) for sym in syms]
-        lmns=np.array(lmns,dtype=np.int64)
-        ncgs=np.array(ncgs,dtype=np.int64)
-        # print('ncgs',ncgs,ncgs.shape)
-        dens=flib.molDens(ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,alps,coes,lmns)
+        wfns=self.wfnCaler.atoWfns
+        dens=flib.molDens(ngrid,nmat,nobt,CM,wfns)
         return dens*self.mol.oE
         
-    def atmDens(self,atm:int,pos:np.ndarray):
+    def atmDens(self,atm:int,grids:np.ndarray):
         """计算原子电子密度，使用分子空间坐标"""
         nmat=self.mol.CM.shape[0]
         atom=self.mol.atom(atm)
-        dens=np.zeros(len(pos))
+        dens=np.zeros(len(grids))
         u,l = atom.obtBorder
+        self.wfnCaler.set_grid(grids)
         for i in range(u,l):
-            wfn_i=self.wfnCaler.atoWfn(i,pos)
+            wfn_i=self.wfnCaler.atoWfn(i)
             for j in range(nmat):
-                wfn_j=self.wfnCaler.atoWfn(j,pos)
-                dens+=wfn_i*wfn_j*self.mol.PM[i,j]
+                wfn_j=self.wfnCaler.atoWfn(j)
+                dens+=wfn_i*wfn_j*self.PM[i,j]
         return dens
-    
-    def weiSqrt(self,weights:np.ndarray):
-        """返回波函数的权重"""
-        unit=weights/np.linalg.norm(weights) # 正负
-        return np.sqrt(np.abs(weights))*unit
     
     def rectValue(self,cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
         """生成图片文件"""
-        nx,ny,pos=maths.rectGrid(cent,norm,vx,sx,sy)
-        dens=self.molDens_lib(pos)
+        nx,ny,grid=maths.rectGrid(cent,norm,vx,sx,sy)
+        self.set_grid(grid)
+        dens=self.molDens_lib()
         mat=dens.reshape(nx,ny)
         # plt.imshow(mat,cmap='Blues',vmin=0,vmax=1)
         # plt.savefig(f'density.jpg',bbox_inches='tight',pad_inches=0,dpi=300)
@@ -152,5 +123,6 @@ class Calculator:
     def lineValue(self,p0:np.ndarray,p1:np.ndarray):
         """获取一条直线上的数值"""
         grid=maths.lineGrid(p0,p1)
-        dens=self.molDens_lib(grid)
+        self.set_grid(grid)
+        dens=self.molDens_lib()
         return dens

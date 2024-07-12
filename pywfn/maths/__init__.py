@@ -69,6 +69,46 @@ def lineGrid(p0:np.ndarray,p1:np.ndarray):
         grid.append(p0+i*vect)
     return np.array(grid)
 
+def c2d_sph(xs,ys):
+    """
+    2D坐标转球型坐标
+    并不是所有的2D坐标都能转为球坐标
+    """
+    S=0.75
+    ts=[]
+    ps=[]
+    for i,y in enumerate(ys):
+        x=xs[i]
+        p=y
+        t=x/(np.cos(S*p))
+        if t> np.pi:continue
+        if t<-np.pi:continue
+        ts.append(t)
+        ps.append(p)
+    ts=np.array(ts)
+    ps=np.array(ps)
+    return ts,ps
+
+def sph_c3d(ts,ps,r=1):
+    """球型坐标转3D坐标"""
+    xs=np.cos(ps)*np.cos(ts)*r
+    ys=np.cos(ps)*np.sin(ts)*r
+    zs=np.sin(ps)*r
+    return xs,ys,zs
+
+def sph_c2d(ts,ps):
+    """球型坐标转2D坐标"""
+    S=0.75
+    xs=[]
+    ys=[]
+    for t,p in zip(ts,ps):
+        x=t*np.cos(p*S)
+        y=p
+        xs.append(x)
+        ys.append(y)
+    xs=np.array(xs)
+    ys=np.array(ys)
+    return xs,ys
 
 def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
     """

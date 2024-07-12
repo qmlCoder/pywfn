@@ -160,7 +160,7 @@ class Calculator:
                     print(f'{i+1:>3d} {val:>8.4f}')
             elif opt=='5': # 自由价
                 self.mols=shell.input.Moles(num=1)
-                atms=shell.input.Number(dtype=int,tip='输入原子编号:')
+                atms=shell.input.Integ(tip='输入原子编号: ')
                 assert atms is not None,"输入错误"
                 for atm in atms:
                     result=self.freeValence(int(atm))
@@ -168,7 +168,7 @@ class Calculator:
                         print(f'{a:>3d} {x:>8.4f} {y:>8.4f} {z:>8.4f} {v:>8.4f}')
             elif opt=='6': # 方向fukui函数
                 self.mols=shell.input.Moles(num=3)
-                atms=shell.input.Number(tip='输入原子编号: ',dtype=int)
+                atms=shell.input.Integ(tip='输入原子编号: ')
                 assert atms is not None,"输入错误"
                 atms=[int(atm) for atm in atms]
                 result=self.dirFukui(atms)

@@ -9,16 +9,15 @@ from pywfn.utils import printer
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.CM=mol.CM
+        self.CM=mol.CM.copy()
         self.NM:np.ndarray|None=None
     
-    def eleMat(self,CM:np.ndarray|None=None):
+    def eleMat(self):
         """计算电子分布矩阵"""
         # 使用法向量可以计算每个分子的pi电子分布
         from pywfn.maths import flib
-        if CM is None:CM=self.CM
-        SM=self.mol.SM
         
+        SM=self.mol.SM
         oE=self.mol.oE
         # row,col=CM.shape
         # NM=np.zeros(shape=(row,row,col))
@@ -28,10 +27,11 @@ class Calculator:
         #             # 起始系数为0的可以直接跳过
         #             NM[a,i,j]=CM[a,j]*CM[i,j]*SM[i,a]*oE
         # NM:np.ndarray=np.sum(NM,axis=1)[:,self.mol.O_obts] # 二维矩阵[n,occ]
-        nmat=CM.shape[0]
         obts=self.mol.O_obts
         nobt=len(obts)
-        NM=flib.get_NM(nmat,nobt,CM[:,obts].copy(),SM)*oE
+        CM=self.CM[:,obts]
+        nmat=CM.shape[0]
+        NM=flib.get_NM(nmat,nobt,CM,SM)*oE
         return NM
 
     

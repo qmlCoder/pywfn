@@ -116,22 +116,42 @@ def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarr
     flib.gtf_(c_double(exp), c_int(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
     return wfn
 
-def molDens(
-        ngrid:int,
-        grids:np.ndarray, # type: ignore
-        nmat:int,
-        cords:np.ndarray,
-        nobt:int,
-        CM:np.ndarray,
-        ncgs:np.ndarray, # 每一个原子轨道的基组收缩数量
-        cmax:int,
-        oalps:np.ndarray,
-        ocoes:np.ndarray,
-        lmns:np.ndarray
-):
+def cgf(cmax:int,nc:int,alps:np.ndarray,coes:np.ndarray,
+        ngrid:np.ndarray,grids:np.ndarray,coord:np.ndarray,l:int,m:int,n:int):
+    assert len(coord.shape)==1,"坐标的维度为1"
+    paras=[cmax,nc,alps,coes,ngrid,grids,coord,l,m,n]
+    iparas,itypes=trans_dtype(paras)
+
+    wfn=np.zeros(ngrid,dtype=ftype)
+    oparas,otypes=trans_dtype([wfn])
+
+    flib.cgf_.argtypes=itypes+otypes
+    fparas=iparas+oparas
+    flib.cgf_(*fparas)
+    return wfn
+
+Array=np.ndarray
+
+def cgfs(ngrid:int,grids:Array,nmat:int,cords:Array,cmax:int,ncgs:Array,alpl:Array,coel:Array,lmns:Array):
+    """
+    计算所有原子轨道波函数
+    """
+    paras=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns]
+    iparas,itypes=trans_dtype(paras)
+
+    wfns=np.zeros(shape=(nmat,ngrid),dtype=ftype)
+    oparas,otypes=trans_dtype([wfns])
+
+    flib.cgfs_.argtypes=itypes+otypes
+    fparas=iparas+oparas
+    flib.cgfs_(*fparas)
+
+    return wfns
+
+def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns:np.ndarray):
     """计算分子电子密度"""
     # print(grids[:3,:])
-    paras=[ngrid,grids,nmat,cords,nobt,CM,ncgs,cmax,oalps,ocoes,lmns]
+    paras=[ngrid,nmat,nobt,CM,wfns]
     iparas,itypes=trans_dtype(paras)
 
     dens=np.zeros(ngrid,dtype=ftype)
@@ -139,10 +159,10 @@ def molDens(
 
     flib.moldens_.argtypes=itypes+otypes
     fparas=iparas+oparas
-    # print(ncgs)
-    # print(lmns)
     flib.moldens_(*fparas)
     return dens
+
+# def atmDens()
 
 def a2mWeight(
         atm:int,
@@ -169,26 +189,16 @@ def a2mWeight(
     # print(f'{total=},{len(atmWeit)}')
     return a2mGrid[:total.value,:],a2mWeit[:total.value]
 
-def get_NM(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
+def eleMat(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     """计算电子数量矩阵"""
     assert CM.shape==(nmat,nobt),'CM.shape must be (nmat,nobt)'
     assert SM.shape==(nmat,nmat),'SM.shape must be (nmat,nmat)'
     paras=[nmat,nobt,CM,SM]
     iparas,itypes=trans_dtype(paras)
+    
     NM=np.zeros((nmat,nobt),dtype=ftype)
     oparas,otypes=trans_dtype([NM])
-    # if flib.get_NM_.argtypes is None:
-    ftypes=itypes+otypes
+    flib.eleMat_.argtypes=itypes+otypes
     fparas=iparas+oparas
-    # if flib.a2mWeight_.argtypes is None:
-    flib.get_eleMat_.argtypes=ftypes
-    flib.get_eleMat_(*fparas)
+    flib.eleMat_(*fparas)
     return NM
-
-if __name__=='__main__':
-    nmat=20
-    nobt=10
-    CM=np.random.rand(nmat,nobt)+1
-    SM=np.random.rand(nmat,nmat)+1
-    NM=get_NM(nmat,nobt,CM,SM)
-    print(NM)

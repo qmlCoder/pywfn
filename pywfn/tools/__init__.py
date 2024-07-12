@@ -8,40 +8,44 @@
 
 from pywfn import shell
 from pywfn.utils import printer
+
+from pathlib import Path
+cwd=Path.cwd()
+
 def onShell(shell:"shell.Shell"):
     printer.options('实用工具',{
-        '1':'分隔SCAN文件',
-        '2':'分隔IRC 文件',
-        '3':'分隔link任务',
-        '4':'提取 SI 信息',
+        '1':'分割SCAN 文件',
+        '2':'分割 IRC 文件',
+        '3':'分割link 任务',
+        '4':'拼接 gjf 文件',
+        '5':'提取  SI 信息',
+        
     })
     opt=input('请输入选项：')
-    if opt=='1': # 分隔SCAN文件
+    if opt=='1': # 分割SCAN文件
         from pywfn.tools import spiltScan
-        path=input('请输入文件路径：')
-        spiltScan.Tool(path).save()
-    elif opt=='2': # 分隔IRC文件
+        paths=shell.input.Paths()
+        for path in paths:
+            spiltScan.Tool(path).save()
+    elif opt=='2': # 分割IRC文件
         from pywfn.tools import splitIrc
-        path=input('请输入文件路径：')
-        splitIrc.Tool(path).split()
-    elif opt=='3': # 分隔link任务
+        paths=shell.input.Paths()
+        for path in paths:
+            splitIrc.Tool(path).split()
+    elif opt=='3': # 分割link任务
         from pywfn.tools import splitLink
-        paths=shell.input.Moles(mtype='path')
+        paths=shell.input.Paths()
         for path in paths:
             splitLink.Tool(path).split()
-    elif opt=='4': # 提取SI信息
+    elif opt=='4':
+        from pywfn.tools import joinGjf
+        paths=shell.input.Paths()
+        joinGjf.Tool(paths).save(f'{cwd}/join.gjf')
+    elif opt=='5': # 提取SI信息
         from pywfn.tools import extractSI
-        from pywfn.utils import parse_intList
-        print('(1:能量,2:坐标,3:频率):')
-        msgStr=input('请输入需要保存的信息[*]')
-        if msgStr:
-            msgs=parse_intList(msgStr)
-        else:
-            msgs=[1,2,3]
-        same=shell.input.Bool('是否保存到同一文件内？',default=True)
-        mols=shell.input.Moles()
-        for mol in mols:
-            tool=extractSI.Tool(mol)
-            tool.selects=msgs
-            tool.sameFile=same
-            tool.save()
+        paths=shell.input.Paths()
+        tool=extractSI.Tool(paths)
+        path0=Path(paths[0]) # 第一个分子
+        spath=path0.parent/'SI.txt' # 第一个文件所在的文件夹
+        tool.save(f'{spath}')
+            

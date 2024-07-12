@@ -191,14 +191,12 @@ class Printer:
     
     def options(self,title,opts:dict[str,str]):
         if not config.IF_SHELL:return
-        if title not in self.tables.keys():
-            table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
-            table.add_column('选项',justify="left")
-            table.add_column('功能',justify="left")
-            for idx,text in opts.items():
-                table.add_row(f'{idx: >2}. ',f'{text}')
-            self.tables[title]=table
-        table=self.tables[title]
+        table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
+        table.add_column('选项',justify="left")
+        table.add_column('功能',justify="left")
+        for idx,text in opts.items():
+            table.add_row(f'{idx: >2}. ',f'{text}')
+        print('')
         self.console.print(table)
     
     def track(self,seq:Sequence,tip:str='')->Iterable:

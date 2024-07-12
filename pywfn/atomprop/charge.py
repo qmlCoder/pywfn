@@ -70,11 +70,14 @@ class Calculator(AtomCaler):
         gridCaler=dftgrid.Calculator(self.mol)
         grid,weit=gridCaler.molGrid()
         densCaler=density.Calculator(self.mol)
+        PMo=densCaler.PM # 备份旧的PM
+        densCaler.PM=self.PM # 设为当前PM
         charges=np.zeros(len(self.mol.atoms))
         for a,atom in enumerate(self.mol.atoms):
             dens=densCaler.atmDens(atom.idx,grid)
             eleNum=np.sum(dens*weit)
             charges[a]=atom.atomic-eleNum
+        densCaler.PM=PMo # 恢复旧的PM
         return charges
     
     def hirshfeld(self)->np.ndarray:
@@ -86,6 +89,9 @@ class Calculator(AtomCaler):
         gridCaler=dftgrid.Calculator(self.mol)
         grid,weit=gridCaler.molGrid()
         densCaler=density.Calculator(self.mol)
+        densCaler.set_grid(grid)
+        PMo=densCaler.PM # 备份旧的PM
+        densCaler.PM=self.PM # 设为当前PM
         
         npos=len(grid)
         natm=self.mol.atoms.natm
@@ -100,8 +106,8 @@ class Calculator(AtomCaler):
 
         Ps=np.zeros(natm)
         Zs=np.zeros(natm)
-
-        mdens=densCaler.molDens_lib(grid)
+        
+        mdens=densCaler.molDens_lib()
 
         for a,atom in enumerate(self.mol.atoms): # 计算每一个原子的电荷
             radius=np.linalg.norm(grid-atom.coord,axis=1)
@@ -110,6 +116,7 @@ class Calculator(AtomCaler):
             Zs[a]=np.sum(fdens*weit) # 自由态下核电荷数
             Ps[a]=np.sum(Wa*mdens*weit) # 真实体系的电子布局
         chargs=Zs-Ps
+        densCaler.PM=PMo # 恢复旧的PM
         return chargs
     
     def dirElectron(self,chrg:Chrgs,atms:list[int],dirs:list[np.ndarray]|None=None)->np.ndarray:
@@ -151,6 +158,7 @@ class Calculator(AtomCaler):
         PMo=self.PM.copy() # 备份老的密度矩阵
         self.PM=PMp # 将密度矩阵替换为投影后的密度矩阵
         charges=self.charge(chrg)
+        # print(charges)
         result=[]
         for i,atm in enumerate(atms):
             if i not in idxs:continue
@@ -195,8 +203,8 @@ class Calculator(AtomCaler):
                 print(f'sum:{np.sum(charges)}')
 
             elif opt=='4': # hirshfeld电荷
-                chrgs=self.hirshfeld()
-                for i,val in enumerate(chrgs):
+                charges=self.hirshfeld()
+                for i,val in enumerate(charges):
                     print(f'{i+1:>3d}: {val:>8.4f}')
                 print(f'sum:{np.sum(charges)}')
 
@@ -210,6 +218,7 @@ class Calculator(AtomCaler):
                 elects=self.dirElectron(chrg,atms)
                 for a,x,y,z,v in elects:
                     print(f'{int(a):>3d}({x:>6.2f},{y:>6.2f},{z:>6.2f}):{v:>8.4f}')
+                # print(f'sum:{elects[:,-1].sum()}')
             
             elif opt=='6': # pi电子
                 print(chrgStr)
@@ -219,6 +228,7 @@ class Calculator(AtomCaler):
                 elects=self.piElectron(chrg)
                 for i,(idx,x,y,z,val) in enumerate(elects):
                     print(f'{i+1:>3d}:{val:>8.4f}')
+                print(f'sum:{elects[:,-1].sum()}')
 
             else:
                 break

@@ -36,6 +36,7 @@ from numpy import sqrt, ndarray
 from pywfn import base
 from pywfn.utils import printer
 from pywfn.data import Basis
+from pywfn.maths import flib
 
 π = np.pi
 e = np.e
@@ -57,97 +58,102 @@ class Gto:
         self.basis = mol.basis
         self.angs = [0, 1, 2, 3, 4]  # 默认全部绘制
 
-    def ato(self, pos: ndarray, atm: int, obts: list[int]):
-        """
-        计算原子的高斯型波函数数值
-        pos:坐标，以原子为中心
-        atm:原子
-        obt:轨道
-        """
-        assert len(pos.shape) == 2, f"pos的维度应该为2"
-        assert pos.shape[1] == 3, f"pos的形状应为[n,3]，当前为{pos.shape}"
-        R2 = np.sum(pos**2, axis=1)  # x^2+y^2+z^2
+    # def ato(self, grid: ndarray, atm: int, obts: list[int]):
+    #     """
+    #     计算原子的高斯型波函数数值
+    #     grid:格点，以原子为中心
+    #     atm:原子
+    #     obt:轨道
+    #     """
+    #     assert len(grid.shape) == 2, f"pos的维度应该为2"
+    #     assert grid.shape[1] == 3, f"pos的形状应为[n,3]，当前为{grid.shape}"
+    #     R2 = np.sum(grid**2, axis=1)  # x^2+y^2+z^2
 
-        atom = self.mol.atom(atm)
-        u, l = atom.obtBorder
+    #     atom = self.mol.atom(atm)
+    #     u, l = atom.obtBorder
 
-        atms = self.mol.obtAtms[u:l]
-        shls = self.mol.obtShls[u:l]
-        syms = self.mol.obtSyms[u:l]
-        lmns = [Basis.sym2lmn(sym) for sym in syms]
-        coef = self.mol.CM[u:l, obts]  # 二维矩阵
-        expl = []
-        coel = []
-        ncsl = []  # 记录每个收缩轨道的大小
-        for i in range(len(atms)):  # 该原子的行索引
-            lmn = lmns[i]
-            atm = atms[i]
-            shl = shls[i]
-            ang = sum(lmn)
-            basis = self.mol.basis.get(atom.atomic, shl, ang)
-            exps = [b.exp for b in basis]
-            coes = [b.coe for b in basis]
-            expl += exps
-            coel += coes
-            ncsl.append(len(exps))
-        wfns = Gto.agf(expl, coel, ncsl, lmns, R2, pos, coef, obts)
-        return wfns
+    #     atms = self.mol.obtAtms[u:l]
+    #     shls = self.mol.obtShls[u:l]
+    #     syms = self.mol.obtSyms[u:l]
+    #     lmns = [Basis.sym2lmn(sym) for sym in syms]
+    #     coef = self.mol.CM[u:l, obts]  # 二维矩阵
+    #     expl = []
+    #     coel = []
+    #     ncsl = []  # 记录每个收缩轨道的大小
+    #     for i in range(len(atms)):  # 该原子的行索引
+    #         lmn = lmns[i]
+    #         atm = atms[i]
+    #         shl = shls[i]
+    #         ang = sum(lmn)
+    #         basis = self.mol.basis.get(atom.atomic, shl, ang)
+    #         exps = [b.exp for b in basis]
+    #         coes = [b.coe for b in basis]
+    #         expl += exps
+    #         coel += coes
+    #         ncsl.append(len(exps))
+    #     wfns = self.agf(expl, coel, ncsl, lmns, R2, grid, coef, obts)
+    #     return wfns
 
-    @staticmethod
-    def agf(
-        expl: list[float],
-        coel: list[float],
-        ncsl: list[int],
-        lmns: list[int],
-        R2: np.ndarray,
-        pos: np.ndarray,
-        coef: np.ndarray,
-        obts: list[int],
-    ) -> np.ndarray:
-        nexp = len(expl)
-        j = 0
+    # def agf(
+    #     self,
+    #     expl: list[float],
+    #     coel: list[float],
+    #     ncsl: list[int],
+    #     lmns: list[int],
+    #     R2: np.ndarray,
+    #     pos: np.ndarray,
+    #     coef: np.ndarray,
+    #     obts: list[int],
+    # ) -> np.ndarray:
+    #     nexp = len(expl)
+    #     j = 0
         
-        wfns = np.zeros(len(pos), dtype=np.float32)
-        for i in range(len(lmns)):
-            nc = ncsl[i]  # 收缩大小
-            lmn = lmns[i]
-            coes = coel[j : j + nc]
-            exps = expl[j : j + nc]
-            j += nc
-            wfn = Gto.cgf(exps, coes, lmn, R2, pos) # 每一个原子轨道都是提前定义好的不变的
-            for obt in obts:
-                wfns += coef[i, obt] * wfn
-        return wfns
+    #     wfns = np.zeros(len(pos), dtype=np.float32)
+    #     for i in range(len(lmns)):
+    #         nc = ncsl[i]  # 收缩大小
+    #         lmn = lmns[i]
+    #         coes = coel[j : j + nc]
+    #         exps = expl[j : j + nc]
+    #         j += nc
+    #         wfn = self.cgf(exps, coes, lmn, R2, pos) # 每一个原子轨道都是提前定义好的不变的
+    #         for obt in obts:
+    #             wfns += coef[i, obt] * wfn
+    #     return wfns
+    
+    def cgf(self,exps: list[float],coes: list[float],lmn: list[int],grids: np.ndarray,coord:np.ndarray) -> np.ndarray:
+        # wfn = self.cgf_prot(exps,coes,lmn,grid)
+        wfn = self.cgf_fort(exps,coes,lmn,grids,coord)
+        return wfn
 
-    @staticmethod
-    def cgf(
-        exps: list[float],
-        coes: list[float],
-        lmn: list[int],
-        R2: np.ndarray,
-        pos: np.ndarray,
-    ) -> np.ndarray:
+    def cgf_prot(self,exps: list[float],coes: list[float],lmn: list[int],grid: np.ndarray,coord:np.ndarray) -> np.ndarray:
         """
         收缩高斯函数，线性组合之前的波函数
         pos:坐标[n,3]，以原子为中心
         c1*f1+c2*f2...
         """
-        # R2=np.sum(pos**2,axis=1)
-        # print('cgf',pos[0,:])
-        wfns = np.zeros(len(pos))
+        wfns = np.zeros(len(grid))
         for exp, coe in zip(exps, coes):
-            wfns += coe * Gto.gtf(exp, R2, pos, lmn)
-        # print('cgf', np.sum(wfns**2))
+            wfns += coe * self.gtf(exp, grid, lmn, coord)
+        return wfns
+    
+    def cgf_fort(self,exps: list[float],coes: list[float],lmn: list[int],grids: np.ndarray,coord:np.ndarray) -> np.ndarray:
+        """收缩基函数"""
+        cmax=len(exps)
+        nc=len(exps)
+        alps=np.array(exps)
+        coes=np.array(coes)
+        ngrid=grids.shape[0]
+        l,m,n=lmn
+        wfns=flib.cgf(cmax,nc,alps,coes,ngrid,grids,coord,l,m,n)
         return wfns
 
-    @staticmethod
-    def gtf(exp: float, R2: ndarray, pos: ndarray, lmn: list[int]) -> ndarray:
+    def gtf(self, exp: float, grids: ndarray, lmn: list[int], coord:np.ndarray) -> ndarray:
         """
         计算指定点gto函数的值
         exp:高斯指数
-        pos:坐标[n,3]，以原子为中心
-        R:坐标到原点距离平方
+        grids:格点[n,3]，以原子为中心
         lmn:角动量决定的x,y,z指数
+        coord:原子坐标
         """
         # i=0,(2i-1)=-1,(2i-1)!!=1
         # i=1,(2i-1)= 1,(2i-1)!!=1
@@ -155,13 +161,10 @@ class Gto:
         # print('gtf',pos[0,:])
         facs=[1,1,3] # n与阶乘的对应关系？
         l, m, n = lmn
-        x, y, z = pos.T
+        x, y, z = (grids-coord).T # 以原子坐标为中心
+        R2 = np.sum(grids**2, axis=1)  # x^2+y^2+z^2
         ang = sum(lmn)  # 角动量
         fac = facs[l] * facs[m] * facs[n]  # 双阶乘
         N = (2 * exp / π) ** (3 / 4) * np.sqrt((4 * exp) ** ang / fac)
-        # N = (2 * exp / π) ** (3 / 4) * np.sqrt((2 ** (2 * ang) * exp**ang) / fac)
         wfn = x**l * y**m * z**n * np.exp(-exp * R2) * N
-        # for i in range(1):
-        #     print('gtf',i,pos[i,:],R2[i],N,wfn[i])
-        # print('gtf',np.sum(wfn**2),fac,N,len(pos),exp)
         return wfn

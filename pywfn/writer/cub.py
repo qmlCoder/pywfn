@@ -20,7 +20,7 @@ class CubWriter:
         self.mol=mol
         self.step:float=config.RENDER_CLOUD_STEP
         self.border:float=config.RENDER_CLOUD_BORDER
-        self.atoms:list[int]=self.mol.atoms.indexs
+        self.atms:list[int]=self.mol.atoms.atms
         self.direct:np.ndarray=None
         self.floatNum=12
         na,nb=self.mol.eleNum
@@ -43,9 +43,9 @@ class CubWriter:
     def get_gridPos(self):
         """生成格点数据"""
         self.mol.bohr=False
-        atoms=[atom-1 for atom in self.atoms]
-        p0=self.mol.coords[atoms,:].min(axis=0)
-        p1=self.mol.coords[atoms,:].max(axis=0)
+        idxs=[atm-1 for atm in self.atms]
+        p0=self.mol.coords[idxs,:].min(axis=0)
+        p1=self.mol.coords[idxs,:].max(axis=0)
         bord=self.border
         
         (Nx,Ny,Nz),gridPos=maths.cubeGrid(p0,p1,self.step,bord=bord) #计算波函数时的坐标还是要使用原子单位的坐标
@@ -81,9 +81,12 @@ class CubWriter:
             if(i+1)%10==0:self.file.write('\n')
         if(i+1)%10!=0:self.file.write('\n')
         if self.ctype=='wfn':
-            allVals=[self.wfnCaler.obtWfn(obt,gridPos,atms=self.atoms,coefs=self.CM[:,obt]) for obt in obts]
+            self.wfnCaler.set_grid(gridPos)
+            self.wfnCaler.atms=self.atms
+            allVals=[self.wfnCaler.obtWfn(obt) for obt in obts]
         elif self.ctype=='den':
-            allVals=[self.denCaler.molDens_obt(gridPos,atms=self.atoms,CM=self.CM,obts=self.obts)]
+            self.denCaler.set_grid(gridPos)
+            allVals=[self.denCaler.molDens_lib()]
         lenVals=len(gridPos)
         index=0
         for i in printer.track(range(lenVals)): # 对每一个点进行循环

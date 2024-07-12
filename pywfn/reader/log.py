@@ -574,3 +574,14 @@ class LogReader(reader.Reader):
             if searhNum==len(engList):break
         engNums=[float(e) for e in engDict.values()]
         return engNums
+    
+    def read_freqs(self):
+        """读取频率"""
+        freqs=[]
+        find = re.findall(r'^\s+Frequencies\s--\s+(-?\d+\.\d+.+)$', self.text, flags=re.M)
+        if find is None:return freqs
+        for line in find:
+            finds=re.findall('-?\d+.\d+',line)
+            freqs+=[float(e) for e in finds]
+        return freqs
+        

@@ -59,8 +59,8 @@ class Reader:
         if not fold.exists():
             os.mkdir(f'{fold}')
         else:
-            foldTime=fold.stat().st_atime
-            fileTime=Path(path).stat().st_atime
+            foldTime=fold.stat().st_mtime
+            fileTime=Path(path).stat().st_mtime
             if fileTime>foldTime or clear: # 如果文件更新了
                 shutil.rmtree(f'{fold}')
                 os.mkdir(f'{fold}')
