@@ -91,7 +91,8 @@ class Inputer:
 
         while True:
             numStr=input(tip)
-            if numStr=="":continue
+            if numStr=="":
+                return []
             frgs = numStr.split(',')
             nums = []
             for frg in frgs:

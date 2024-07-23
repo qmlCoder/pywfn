@@ -19,6 +19,7 @@ def onShell(shell:"shell.Shell"):
         '3':'分割link 任务',
         '4':'拼接 gjf 文件',
         '5':'提取  SI 信息',
+        '6':'环心添加Bq原子'
         
     })
     opt=input('请输入选项：')
@@ -48,4 +49,9 @@ def onShell(shell:"shell.Shell"):
         path0=Path(paths[0]) # 第一个分子
         spath=path0.parent/'SI.txt' # 第一个文件所在的文件夹
         tool.save(f'{spath}')
-            
+    elif opt=='6':
+        from pywfn.tools import ringBq
+        printer.info('在gjf文件指定环的中心添加Bq原子，方便NICS计算')
+        mol=shell.input.Moles(count=1)[0]
+        tool=ringBq.Tool(mol)
+        tool.onShell(shell)

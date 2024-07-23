@@ -84,6 +84,7 @@ class Calculator:
             if normal is None:continue
             atms.append(atom.idx)
             dirs.append(normal)
+        
         PMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         result=self.mayer(PM=PMp)

@@ -43,6 +43,7 @@ class Calculator:
         for c,coef in enumerate(coefs):
             if c not in idxs:continue
             wfn+=coef*self.atoWfn(c)
+            # print(c,coef,self.atoWfn(c))
         return wfn
     
     def atoWfn(self,i:int):

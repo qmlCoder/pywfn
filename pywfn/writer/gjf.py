@@ -12,11 +12,11 @@ class GjfWriter:
     def __init__(self,mol:Mol):
         self.mol:Mol=mol
         self.temp=temps.get('gjf')
-        self.chkPath='chk'
-        self.charge=0
-        self.spin=1
-        self.title=''
-        self.coord=self.get_coordStr()
+        self.CHK='chk'
+        self.CHARGE=0
+        self.SPIN=1
+        self.TITLE=''
+        self.COORD=''
         
     def get_coordStr(self):
         """生成坐标的字符串形式"""
@@ -30,23 +30,24 @@ class GjfWriter:
     
     def search(self):
         """搜索需要的各种属性"""
+        self.COORD=self.get_coordStr()
         try:
-            self.charge=self.mol.reader.get_charge()
+            self.CHARGE=self.mol.reader.get_charge()
         except:
             pass
 
         try:
-            self.spin=self.mol.reader.get_spin()
+            self.SPIN=self.mol.reader.get_spin()
         except:
             pass
 
     def build(self)->str:
         self.search()
-        self.temp=self.temp.replace('<COORD>',self.coord)
-        self.temp=self.temp.replace('<CHARGE>',f'{self.charge}')
-        self.temp=self.temp.replace('<SPIN>',f'{self.spin}')
-        self.temp=self.temp.replace('<CHK>',self.chkPath)
-        self.temp=self.temp.replace('<TITLE>',self.title)
+        self.temp=self.temp.replace('<COORD>',self.COORD)
+        self.temp=self.temp.replace('<CHARGE>',f'{self.CHARGE}')
+        self.temp=self.temp.replace('<SPIN>',f'{self.SPIN}')
+        self.temp=self.temp.replace('<CHK>',self.CHK)
+        self.temp=self.temp.replace('<TITLE>',self.TITLE)
         return self.temp
 
     def save(self,path:str):

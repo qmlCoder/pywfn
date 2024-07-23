@@ -38,7 +38,7 @@ RENDER_CLOUD_BORDER=get_config('render.cloud.border',4.0) # 到处cub文件的�
 
 IMG_SPACE_STEP=get_config('img.space.step',0.1)
 
-BOHR_RADIUS=1.889
+BOHR_RADIUS=1/0.529177
 
 SHOW_PRINT=False
 

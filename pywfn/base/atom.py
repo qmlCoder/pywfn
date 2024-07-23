@@ -221,6 +221,7 @@ class Atoms:
         return f'Atoms:{len(self.atoms)}\n'+' '.join(atoms)
     
     def add(self,symbol:str,coord:np.ndarray):
+        assert coord.shape==(3,), '坐标必须是三维'
         atom=Atom(symbol,coord,len(self.atoms)+1,self.mol)
         self.atoms.append(atom)
     

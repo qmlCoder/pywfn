@@ -34,6 +34,7 @@ class Tool:
     def write_coords(self,temp:str,reader:LogReader):
         COORDS=[]
         syms,xyzs=reader.read_coords()
+        xyzs/=1.889
         for sym,(x,y,z) in zip(syms,xyzs):
             COORDS.append(f'{sym:<12}{x:16.8f}{y:16.8f}{z:16.8f}')
         temp=temp.replace('<COORD>','\n'.join(COORDS))

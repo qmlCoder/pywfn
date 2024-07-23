@@ -1,7 +1,5 @@
 __pycache__
 .ipynb_checkpoints/
-.qt_for_python/
-/manager/storages
 out/
 venv
 *.pyc
@@ -14,6 +12,6 @@ log.txt
 test.*
 dist
 pywfn.egg-info
-libs
-data
+/libs
+/data
 \#

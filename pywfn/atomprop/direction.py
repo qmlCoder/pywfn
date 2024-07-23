@@ -113,7 +113,7 @@ class Calculator:
                 return None
             elif len(nebb) in [2,3]:
                 nnorm=self.normal(neb)
-                assert nnorm is not None,"没有法向量"
+                assert nnorm is not None,f"原子{atm}没有法向量"
                 bnorm=np.cross(nnorm,self.mol.atom(atm).coord-self.mol.atom(neb).coord)
                 bnorm/=np.linalg.norm(bnorm)
                 snorm=np.cross(nnorm,bnorm)

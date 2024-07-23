@@ -54,18 +54,18 @@ import shutil
 class Reader:
     def __init__(self,path:str,clear:bool=False) -> None:
         self.path:str=path
-        fold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
+        dfold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
         # if fold.exists() and remake:
-        if not fold.exists():
-            os.mkdir(f'{fold}')
+        if not dfold.exists():
+            os.mkdir(f'{dfold}')
         else:
-            foldTime=fold.stat().st_mtime
+            foldTime=dfold.stat().st_mtime
             fileTime=Path(path).stat().st_mtime
             if fileTime>foldTime or clear: # 如果文件更新了
-                shutil.rmtree(f'{fold}')
-                os.mkdir(f'{fold}')
+                shutil.rmtree(f'{dfold}')
+                os.mkdir(f'{dfold}')
                 printer.info("清空数据缓存")
-        self.dfold=f'{fold}' # 数据存储路径
+        self.dfold=f'{dfold}' # 数据存储路径
     
     @cached_property
     def text(self)->str:

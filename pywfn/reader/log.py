@@ -225,7 +225,7 @@ class LogReader(reader.Reader):
                 symbols.append(symbol)
                 coords.append(coord)
             else:
-                return symbols,np.array(coords)*1.889
+                return symbols,np.array(coords)/0.529177 # 埃转为波尔
 
     @lru_cache
     def read_multiy(self)->tuple[int,int]|None:

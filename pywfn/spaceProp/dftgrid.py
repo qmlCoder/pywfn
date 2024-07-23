@@ -9,30 +9,35 @@ import numpy as np
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.Nrad=[30,45,60]
+        self.nrad=80
+        self.nsph=74
 
     def radGrid(self,atmic:int):
         pi=np.pi
-        nrad=self.Nrad[0]
-        nrad=80
         R=elements[atmic].radius
         # print(f'{R=}')
         if atmic!=1:R/=2.
         rs=[]
         ws=[]
-        for i in range(1,nrad+1):
-            xi=np.cos(pi*i/(nrad+1))
+        for i in range(1,self.nrad+1):
+            xi=np.cos(pi*i/(self.nrad+1))
             ri=R*(1.+xi)/(1.-xi)
-            wi=2.*pi/(nrad+1)*R**3.*(1.+xi)**2.5/(1.-xi)**3.5
+            wi=2.*pi/(self.nrad+1)*R**3.*(1.+xi)**2.5/(1.-xi)**3.5
             if ri>15:continue
             rs.append(ri)
             ws.append(wi)
         rs=np.array(rs,dtype=np.float32)
         ws=np.array(ws,dtype=np.float32)*4.*pi
+        print("原子径向格点",R)
+        for r,w in zip(rs,ws):
+            print(f'{r:>10.4f}{w:>10.4f}')
         return rs,ws
 
     def sphGrid(self):
-        result=lebedev.LD0074()
+        result=lebedev.LD0006()
+        # print("原子角度格点")
+        # for x,y,z,w in result:
+        #     print(f'{x:>10.4f}{y:>10.4f}{z:>10.4f}{w:>10.4f}')
         return result[:,:3],result[:,-1]
 
     def dftGrid(self,atm:int):
@@ -54,7 +59,7 @@ class Calculator:
         """单个原子的网格点坐标，以原子为中心"""
         atmGrid,atmWeit=self.dftGrid(atm)
         # atmGrid,atmWeit=sphGrid.grids,sphGrid.weits
-        atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3)
+        atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3) #移动到以原子为中心
         return atmGrid,atmWeit
     
     def a2mGrid(self,atm:int):
@@ -66,7 +71,9 @@ class Calculator:
         atmPos=self.mol.coords.copy() # 分子坐标
         atmRad=np.array(self.mol.atoms.radius)
         atmDis=self.mol.atoms.LM
+        # print(atmGrid)
         a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
+        # print(atmGrid)
         # print(np.isnan(a2mWeit))
         assert True not in np.isnan(atmWeit),"不应该有nan"
         return a2mGrid,a2mWeit
