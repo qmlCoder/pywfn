@@ -9,8 +9,8 @@ import numpy as np
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.nrad=80
-        self.nsph=74
+        self.nrad=74
+        self.nsph=30
 
     def radGrid(self,atmic:int):
         pi=np.pi
@@ -34,7 +34,11 @@ class Calculator:
         return rs,ws
 
     def sphGrid(self):
-        result=lebedev.LD0006()
+        match(self.nsph):
+            case 6: result=lebedev.LD0006()
+            case 14:result=lebedev.LD0014()
+            case 26:result=lebedev.LD0026()
+            case 74:result=lebedev.LD0074()
         # print("原子角度格点")
         # for x,y,z,w in result:
         #     print(f'{x:>10.4f}{y:>10.4f}{z:>10.4f}{w:>10.4f}')

@@ -52,25 +52,6 @@ class Calculator:
         pos,分子的空间坐标
         i:原子轨道指标
         """
-        # print('atoWfn',pos[0,:])
-        # atms = self.mol.obtAtms
-        # shls = self.mol.obtShls
-        # syms = self.mol.obtSyms
-        # lmns = [self.mol.basis.sym2lmn(sym) for sym in syms]
-        
-        # lmn = lmns[i]
-        # atm = atms[i]
-        # shl = shls[i]
-        # ang = sum(lmn)
-        # atmic = self.mol.atom(atm).atomic
-        # basis = self.mol.basis.get(atmic, shl, ang)
-        # exps = [b.exp for b in basis]
-        # coes = [b.coe for b in basis]
-        # coord=self.mol.atom(atm).coord
-        # # R2 = np.sum(pos_**2, axis=1)
-        # wfn = self.mol.gto.cgf(exps, coes, lmn, grids, coord)  # 空间坐标-以原子为中心的坐标
-
-        # wfns=self.atoWfns(grids)
         wfn=self.atoWfns[i,:]
         return wfn
     
@@ -142,24 +123,29 @@ class Calculator:
         计算球坐标映射为2d坐标的波函数
         返回二维矩阵
         """
-        S=0.75
-        nx,ny=1000,500
+        R=2.29/0.529177
+        nx=1000
+        ny=500
+        # 地图坐标
+        xr=np.linspace(-2*R*2**0.5,2*R*2**0.5,nx)
+        yr=np.linspace(-R*2**0.5,R*2**0.5,ny)
+        xs,ys=np.meshgrid(xr,yr)
+        xs=xs.flatten()
+        ys=ys.flatten()
+        # 经纬度
+        theta=np.arcsin(ys/(R*2**0.5))
+        lons=np.pi*xs/(2*R*2**0.5*np.cos(theta)) # 经度
+        lots=np.arcsin((2*theta+np.sin(2*theta))/np.pi) # 纬度
 
-        xr=np.linspace(-np.pi,np.pi,nx)    # x取值范围
-        yr=np.linspace(-np.pi/2,np.pi/2,ny)# y取值范围
-        xs,ys=meshgrid(xr,yr)
-        # 转换为球坐标
-        ps=ys
-        ts=xs/(np.cos(S*ys))
-        # 记下不符合角度范围的索引
-        idx=np.argwhere(np.logical_or(ts>np.pi,ts<-np.pi))
-        
-        # 生成3D笛卡尔坐标
+        # 三维空间坐标
         grids=np.zeros(shape=(nx*ny,3))
-        grids[:,1]=np.cos(ps)*np.cos(ts)*r 
-        grids[:,0]=np.cos(ps)*np.sin(ts)*r
-        grids[:,2]=np.sin(ps)*r
+        grids[:,1]=R*np.sin(lots) # y轴作为南北极
+
+        grids[:,0]=R*np.cos(lots)*np.cos(lons)
+        grids[:,2]=R*np.cos(lots)*np.sin(lons)
+        idx=np.argwhere(np.logical_or(lons>np.pi,lons<-np.pi)) # 不符合条件的角度找出来
         
+
         # 计算波函数值
         self.set_grid(grids)
         wfns=self.obtWfn(obt)

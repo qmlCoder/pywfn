@@ -16,7 +16,7 @@ class XyzWriter:
     def build(self):
         natm=len(self.mol.atoms)
         self.temp=self.temp.replace('<NATM>',f'{natm}')
-        self.temp=self.temp.replace('<title>',self.title)
+        self.temp=self.temp.replace('<TITLE>',self.title)
         
         coordStrs=[]
         for atom in self.mol.atoms:
@@ -24,7 +24,7 @@ class XyzWriter:
             sym=atom.symbol
             idx=elements[sym].charge
             coordStrs.append(f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')
-        self.temp=self.temp.replace('<coord>','\n'.join(coordStrs))
+        self.temp=self.temp.replace('<COORD>','\n'.join(coordStrs))
 
     def save(self,path:str):
         self.build()

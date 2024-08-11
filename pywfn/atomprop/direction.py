@@ -6,23 +6,61 @@
 """
 from pywfn.base import Mol
 from pywfn import maths
-from pywfn.maths import vector_angle,points_rotate
+from pywfn.maths import vector_angle,points_rotate,cubeGrid
 from pywfn import config
-
+import re
 import numpy as np
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def pObt(self)->np.ndarray|None:
+    def pOrbital(self)->np.ndarray|None:
         """计算p轨道的方向向量"""
         pass
 
-    def maxWfn(self)->np.ndarray|None:
-        """计算波函数最大值方向"""
-
-    def sphAro(self)->np.ndarray|None:
+    def maxWeave(self,atm:int,obt:int,sym:str)->np.ndarray|None:
+        """
+        计算原子波函数最大值方向
+        atm:原子
+        obt:分子轨道
+        sym:轨道的符号,正则表达式
+        """
+        from pywfn.spaceProp import wfnfunc
+        wfnCaler=wfnfunc.Calculator(self.mol)
+        step=0.01
+        delPos=np.array([
+            [+step,0,0],[-step,0,0],
+            [0,+step,0],[0,-step,0],
+            [0,0,+step],[0,0,-step]
+        ])
+        def get_vals(pos): # 计算周围一圈的波函数值
+            wfnCaler.set_grid(pos+delPos) # 设置网格
+            CM=self.mol.CM
+            nmat=CM.shape[0]
+            vals=np.zeros(6) # 只计算六个点的波函数值
+            for i in range(nmat):
+                if self.mol.obtAtms[i]!=atm:continue #不是指定的原子不算
+                if re.match(sym,self.mol.obtSyms[i]) is None:continue #符号不对不算
+                vals+=wfnCaler.atoWfn(i)*CM[i,obt] # 分子轨道=组合系数*原子轨道
+            return vals
+            
+        pos0=self.mol.atom(atm).coord
+        val0=-np.inf #起初为负无穷
+        for i in range(1000):
+            vals=get_vals(pos0)
+            maxIdx=np.argmax(vals) # 最大值所在的索引
+            maxVal=np.max(vals) # 最大值
+            if maxVal>val0:
+                val0=maxVal
+                pos0+=delPos[maxIdx]
+            elif step>1e-8:
+                step/=10
+            else:
+                break
+        return pos0-self.mol.atom(atm).coord
+        
+    def sphAround(self)->np.ndarray|None:
         """计算周围一圈的球形范围"""
         pass
 
@@ -109,9 +147,7 @@ class Calculator:
         if len(nebs)==1: # 如果只连接一个原子
             neb=nebs[0]
             nebb=self.mol.atom(neb).neighbors
-            if atom.symbol=='H': # H肯定没有法向量吧
-                return None
-            elif len(nebb) in [2,3]:
+            if len(nebb) in [2,3]:
                 nnorm=self.normal(neb)
                 assert nnorm is not None,f"原子{atm}没有法向量"
                 bnorm=np.cross(nnorm,self.mol.atom(atm).coord-self.mol.atom(neb).coord)
@@ -149,6 +185,17 @@ class Calculator:
             if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
             return normal
         return None
+
+    def coordSystem(self,atm:int,neb:int)->np.ndarray:
+        """
+        在原子之上建立一组基坐标系,每一列代表一组基坐标
+        """
+        vx=self.mol.atom(neb).coord-self.mol.atom(atm).coord
+        vx/=np.linalg.norm(vx)
+        vz=self.normal(atm)
+        vy=np.cross(vz,vx)
+        return np.array([vx,vy,vz]).T
+
 
 def search_sp2Dir(v0,v1,v2,v3):
     """找到与va夹角为90°，且与vb,vc夹角相同的向量

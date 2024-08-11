@@ -3,7 +3,7 @@ sys.path.append("D:\code\pywfn")
 
 from pywfn.base import Mol
 from pywfn.reader import LogReader
-from pywfn.bondprop import bondOrder
+from pywfn.bondprop import order
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -16,7 +16,7 @@ energys=[]
 for i in range(37):
     path=f'{root}/f{i+1:0>2}.log'
     mol=Mol(LogReader(path))
-    caler=bondOrder.Calculator(mol)
+    caler=order.Calculator(mol)
     # orders=caler.dirMayer([[1,5],[1,3],[3,8]])
     # print(orders.shape)
     # if orders.shape[0]==6:

@@ -238,3 +238,9 @@ def l2i(nums:list[Any]):
 
 def l2f(nums:list[Any]):
     return [float(num) for num in nums]
+
+import sys
+def err_stop(tip):
+    print(tip)
+    input("按任意键退出...")
+    sys.exit()

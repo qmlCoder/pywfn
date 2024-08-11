@@ -4,7 +4,7 @@ sys.path.append(rf"D:\code\pywfn")
 from pywfn.base import Mol
 from pywfn.reader import LogReader
 from pywfn.atomprop import activity
-from pywfn.bondprop import bondOrder
+from pywfn.bondprop import order
 from pywfn.atomprop import energy
 import numpy as np
 path0=rf"D:\gfile\ckh\M5.log"

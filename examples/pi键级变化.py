@@ -2,7 +2,7 @@ import sys
 sys.path.append(rf'D:\code\pywfn')
 from pywfn.base import Mol
 from pywfn.reader import LogReader
-from pywfn.bondprop import bondOrder
+from pywfn.bondprop import order
 
 import numpy as np
 
@@ -13,7 +13,7 @@ bonds=[]
 for i in range(37):
     path=f'{root}/f{i+1:0>2}.log'
     mol=Mol(reader=LogReader(path))
-    caler=bondOrder.Calculator(mol)
+    caler=order.Calculator(mol)
     orders=caler.piOrder()
     orderl=[]
     for a1,a2,val in orders:

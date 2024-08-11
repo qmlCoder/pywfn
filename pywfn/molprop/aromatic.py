@@ -4,13 +4,13 @@
 """
 from pywfn.base import Mol
 from pywfn.atomprop import charge
-from pywfn.bondprop import bondOrder
+from pywfn.bondprop import order
 import numpy as np
 
 class Calculator:
     def __init__(self, mol:Mol):
         self.mol = mol
-        self.caler=bondOrder.Calculator(mol)
+        self.caler=order.Calculator(mol)
     
     def calculate(self,ratio:float=0.5):
         result=self.caler.piOrder()

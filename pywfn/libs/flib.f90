@@ -104,7 +104,7 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算�
             val=x**l * y**m * z**n * exp(-alp*r2)*Nm
         end if
         vals(i) = val
-        
+        ! write(*,*)x,y,z,val
     end do
     
 end subroutine gtf
@@ -301,6 +301,7 @@ subroutine a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid
                 ! write(*,*)'jp',pj
                 ! write(*,*)'ri,rj',ri,rj
                 miu_ij=(ri-rj)/atmDis(j,i)
+                ! write(*,*)'miu_ij',g,i,j,miu_ij
                 chi=atmRad(i)/atmRad(j) !两原子半径之比
                 if (abs(chi-1)<1e-6) then
                     nu_ij=miu_ij
@@ -329,7 +330,8 @@ subroutine a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis,a2mGrid
         rat=wt(atm)/sum(wt)
         ! write(*,*)'atm,g,rat',atm,g,rat
         weit=atmWeit(g)*rat
-        if (abs(weit)>1e-7) then
+        ! if (abs(weit)>1e-7) then
+        if (.true.) then
             a2mWeit(g)=weit
             a2mGrid(:,g)=atmGrid(:,g)
             total=total+1

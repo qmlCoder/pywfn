@@ -12,6 +12,7 @@ class Calculator:
     def __init__(self) -> None:
         self.mols:list[Mol]=[]
 
+    # 福井函数
     def fukui(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的福井函数[n,2]"""
         assert len(self.mols)==3,"应该有三个分子"
@@ -26,6 +27,7 @@ class Calculator:
         dchg[:,1]=-(chgs[:,1]-chgs[:,2])
         return dchg
     
+    # parr函数
     def parr(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的parr函数[n,2]"""
         assert len(self.mols)==2,"应该有两个分子"
@@ -39,6 +41,7 @@ class Calculator:
         result[:,1]=spins[:,1]-spins[:,2]
         return spins
     
+    # 电子能差
     def engDiff(self):
         from pywfn.atomprop import energy
         cals=[energy.Calculator(mol) for mol in self.mols]
@@ -52,12 +55,12 @@ class Calculator:
         result[:,1]=engs[:,1]-engs[:,2]
         return engs
 
-    def valence(self)->np.ndarray:
+    # 化合价
+    def valence(self,mol:Mol|None=None)->np.ndarray:
         """计算原子化合价"""
-        assert len(self.mols)==1,"只能算一个分子"
-        from pywfn.bondprop import bondOrder
-        mol=self.mols[0]
-        caler=bondOrder.Calculator(mol)
+        from pywfn.bondprop import order
+        if mol is None:mol=self.mols[0]
+        caler=order.Calculator(mol)
         orders=caler.mayer()
         orderDict={}
         for a1,a2,order in orders:
@@ -74,13 +77,13 @@ class Calculator:
             result[a]=valence
         return result
 
-    def freeValence(self,atm:int):
+    # 自由价(方向化合价)
+    def freeValence(self,atm:int,mol=None):
         """计算指定原子的自由价[d,5](atm,x,y,z,val)"""
-        assert len(self.mols)==1,"只能算一个分子"
-        from pywfn.bondprop import bondOrder
+        from pywfn.bondprop import order
         from pywfn.atomprop import direction
-        mol=self.mols[0]
-        caler=bondOrder.Calculator(mol)
+        if mol==None:mol=self.mols[0]
+        caler=order.Calculator(mol)
         # STAND=1.6494
         STAND=3.0
         result=[]
@@ -93,10 +96,38 @@ class Calculator:
             result.append([atm,x,y,z,valence])
         return np.array(result)
 
-    def delFreeValence(self,atm:int):
+    # 亲核亲电自由价 v1
+    def neFreeValence_v1(self,atm:int):
         """计算自由价之差"""
-        pass
+        moln=self.mols[0]
+        mol0=self.mols[1]
+        molp=self.mols[2]
+        valn=self.freeValence(atm,moln)
+        val0=self.freeValence(atm,mol0)
+        valp=self.freeValence(atm,molp)
+        dirs=val0[:,:-1]
+        valsn=(valn[:,-1]-val0[:,-1]).reshape(-1,1)
+        valsp=(valp[:,-1]-val0[:,-1]).reshape(-1,1)
+        result=np.concatenate([dirs,valsn,valsp],axis=1)
+        return result
+    
+    # 亲核亲电自由价 v2
+    def neFreeValence_v2(self,atm:int):
+        """计算自由价之差"""
+        moln=self.mols[0]
+        mol0=self.mols[1]
+        molp=self.mols[2]
+        valn=self.freeValence(atm,moln)
+        val0=self.freeValence(atm,mol0)
+        valp=self.freeValence(atm,molp)
+        val:float=self.valence()[atm-1] # 原子化合价
+        dirs=val0[:,:-1]
+        valsn=(4-val+(valn[:,-1])-val0[:,-1]).reshape(-1,1)
+        valsp=(4-val+(val0[:,-1])-valp[:,-1]).reshape(-1,1)
+        result=np.concatenate([dirs,valsn,valsp],axis=1)
+        return result
 
+    # 计算方向福井函数
     def dirFukui(self,atms:list[int])->np.ndarray:
         """计算指定原子，指定方向的福井函数[n,6](atm,x,y,z,E,N)"""
         assert len(self.mols)==3,"需要三个分子"

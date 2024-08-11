@@ -8,6 +8,7 @@ from pywfn.utils import printer
 import numpy as np
 from itertools import product
 from pywfn import config
+from collections import defaultdict
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
@@ -64,7 +65,7 @@ class Calculator:
         result=[]
         
         for d in range(len(dirs)):
-            CMp=self.mol.projCM(obts,[atm],[dirs[d]],True,True,akeeps=nebs)
+            CMp=self.mol.projCM(obts,[atm],[dirs[d]],False,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
             orders=self.mayer(PM=PMp,bonds=bonds)
             x,y,z=dirs[d]
@@ -130,6 +131,61 @@ class Calculator:
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
         pass
+    
+    # 分解键级
+    def decomOrder(self,atms:list[int],keeps:dict):
+        """
+        键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
+        将原子轨道基函数的系数按照角动量进行分组
+        atm1,atm2:组成键的两个原子
+        keeps:每个角动量保留第几个系数，例如{1:[2]}代表p轨道只保留pz
+        """
+        import matplotlib.pyplot as plt
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(self.mol) # 方向计算器
+        # 计算出两个坐标系
+        atm1,atm2=atms
+        T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
+        T2=dirCaler.coordSystem(atm2,atm1)
+        Ts=(T1,T2)
+        # CM=self.mol.CM.copy()
+        CM=np.zeros_like(self.mol.CM)
+        nmat=CM.shape[0]
+
+        for o in self.mol.O_obts:
+            coefDict=defaultdict(list) #系数字典
+            for i in range(nmat):
+                iatm=self.mol.obtAtms[i]
+                ishl=self.mol.obtShls[i]
+                iang=self.mol.obtAngs[i]
+                key=(iatm,ishl,iang)
+                if iatm in atms:
+                    coefDict[key].append(self.mol.CM[i,o])
+                else:
+                    coefDict[key].append(0)
+
+            for key,val in coefDict.items():
+                iatm,ishl,iang=key
+                rcoefs=np.array(val)
+                if iatm in atms:
+                    tcoefs=decomOrbitals(Ts[atms.index(iatm)],rcoefs,keeps[iang])
+                    # print(iatm,ishl,iang,rcoefs,tcoefs)
+                else:
+                    tcoefs=rcoefs
+                assert len(rcoefs)==len(tcoefs),"长度对不上"
+                
+                coefDict[key]=tcoefs
+            values=list(coefDict.values())
+            CM[:,o]=np.concatenate(values)
+        # print(CM)
+        # fig,axs=plt.subplots(1,2)
+        # axs[0].matshow(self.mol.CM,vmin=-1,vmax=1)
+        # axs[1].matshow(CM,vmin=-1,vmax=1)
+        # plt.show()
+        PM=CM2PM(CM,self.mol.O_obts,self.mol.oE)
+        orders=self.mayer(PM)
+        # orders[:,-1]=np.sqrt(orders[:,-1])
+        return orders
 
     def onShell(self):
         while True:
@@ -162,3 +218,87 @@ class Calculator:
                 break
             else:
                 printer.warn('无效选项!')
+
+
+def gtf(cords,l,m,n)->np.ndarray:
+    x=cords[0,:]
+    y=cords[1,:]
+    z=cords[2,:]
+    r2=x**2+y**2+z**2
+    alp=2.0
+    facs=[1,1,3]
+    fac=facs[l]*facs[m]*facs[n]
+    ang=l+m+n
+    Nm=(2*alp/np.pi)**(3/4)*np.sqrt((4*alp)**ang/fac)
+    val=x**l * y**m * z**n * np.exp(-alp*r2)*Nm
+    return val
+
+
+def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list):
+    if len(coefs)==1:
+        return decomOrbitalS(T,coefs,keeps)
+    elif len(coefs)==3:
+        return decomOrbitalP(T,coefs,keeps)
+    elif len(coefs)==6:
+        return decomOrbitalD(T,coefs,keeps)
+    else:
+        printer.warn("不支持的数组长度")
+        return coefs
+
+def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list):
+    if keeps:
+        return coefs
+    else:
+        return np.array([0.])
+
+# 分解P轨道
+def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list):
+    npos=3
+    cords=np.random.rand(3,npos) #随机生成6个点
+    zs1=np.zeros(shape=(npos,3))
+    zs1[:,0]=gtf(cords,1,0,0)
+    zs1[:,1]=gtf(cords,0,1,0)
+    zs1[:,2]=gtf(cords,0,0,1)
+
+    zs2=np.zeros(shape=(npos,3))
+    zs2[:,0]=gtf(T@cords,1,0,0)
+    zs2[:,1]=gtf(T@cords,0,1,0)
+    zs2[:,2]=gtf(T@cords,0,0,1)
+
+    Mr=np.linalg.inv(zs2)@zs1
+    Mi=np.linalg.inv(Mr)
+    tcoefs=Mr@rcoefs
+    for i in range(3):
+        if i in keeps:continue
+        tcoefs[i]=0.0
+    fcoefs=Mi@tcoefs
+    return fcoefs
+
+# 分解D轨道
+def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
+    npos=6
+    cords=np.random.rand(3,npos) #随机生成6个点
+    zs1=np.zeros(shape=(npos,6))
+    zs1[:,0]=gtf(cords,2,0,0)
+    zs1[:,1]=gtf(cords,0,2,0)
+    zs1[:,2]=gtf(cords,0,0,2)
+    zs1[:,3]=gtf(cords,1,1,0)
+    zs1[:,4]=gtf(cords,1,0,1)
+    zs1[:,5]=gtf(cords,0,1,1)
+
+    zs2=np.zeros(shape=(npos,6))
+    zs2[:,0]=gtf(T@cords,2,0,0)
+    zs2[:,1]=gtf(T@cords,0,2,0)
+    zs2[:,2]=gtf(T@cords,0,0,2)
+    zs2[:,3]=gtf(T@cords,1,1,0)
+    zs2[:,4]=gtf(T@cords,1,0,1)
+    zs2[:,5]=gtf(T@cords,0,1,1)
+
+    Mr=np.linalg.inv(zs2)@zs1
+    Mi=np.linalg.inv(Mr)
+    tcoefs=Mr@rcoefs
+    for i in range(6):
+        if i in keeps:continue
+        tcoefs[i]=0.0
+    fcoefs=Mi@tcoefs
+    return fcoefs

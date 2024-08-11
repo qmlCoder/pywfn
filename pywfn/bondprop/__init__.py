@@ -13,12 +13,12 @@ class Caler:
         return f'{res}'
 
 def onShell(shell:Shell):
-    from pywfn.bondprop import bondOrder
+    from pywfn.bondprop import order
     printer.options('键の属性',{
       '1':'各种键级'
     })
     opt=input('请输入要计算的键属性:')
     if opt=='1':
         mols=shell.input.Moles()
-        caler=bondOrder.Calculator(mols[0])
+        caler=order.Calculator(mols[0])
         caler.onShell()

@@ -33,8 +33,8 @@ class Calculator(AtomCaler):
         # 将长方形的系数矩阵分为两个正方形分别计算
         PMa=CM2PM(self.mol.CM.copy(),a_occs,1)
         PMb=CM2PM(self.mol.CM.copy(),b_occs,1)
-        a_Ects=caler.calculate(chrg=chrg,PM=PMa)
-        b_Ects=caler.calculate(chrg=chrg,PM=PMb)
+        a_Ects=caler.charge(chrg=chrg,PM=PMa)
+        b_Ects=caler.charge(chrg=chrg,PM=PMb)
         # 恢复分子属性
         return -(a_Ects-b_Ects)
     

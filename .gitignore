@@ -15,3 +15,5 @@ pywfn.egg-info
 /libs
 /data
 \#
+*T.txt
+*M.txt

@@ -21,20 +21,25 @@ titleMatch='^(.{40}) {3}(.{1})(.{5})(.{12})$'
 class FchReader(reader.Reader):
     def __init__(self,path:str):
         super().__init__(path)
-        self.mol=base.Mol()
 
-        self.jobTitle:str=self.lines[0]
-        mathc2=re.match(r'(.{10})(.{30})(.{30})',self.lines[1]).groups()
+        self.jobTitle:str=self.getline(0)
+        
+        mathc2=re.match(r'(.{10})(.{30})(.{30})',self.getline(1)).groups()
         self.jobType,self.jobMethod,self.jobBasis=mathc2
         self.needs=[
-            'Atomic numbers',
-            'Current cartesian coordinates',
+            'Atomic numbers', # 原子种类
+            'Current cartesian coordinates', # 原子坐标
             'Shell to atom map',
             'Primitive exponents',
             'Contraction coefficients',
             'Alpha Orbital Energies',
             'Alpha MO coefficients',
-            'Mulliken Chrgs'
+            'Total Energy', # 分子能量
+            'Charge', # 分子电荷
+            'Multiplicity', # 自旋多重度
+            'Alpha MO coefficients',
+            'Beta MO coefficients',
+            'Mulliken Chrgs',
         ]
         self.titles:dict[str,int]={}
         self.marks=[
@@ -46,9 +51,11 @@ class FchReader(reader.Reader):
         ]
 
     def search_title(self):
-        """搜索标题行"""
+        """搜索需要的数据的标题所在的行"""
         patern=r'[A-Za-z -/]{40}.{3}[IRc]{1}.{5}[ \d]{12}'
-        for l,line in enumerate(self.lines):
+        lineNum=self.lineNum
+        for l in range(lineNum):
+            line=self.getline(l)
             if line[0]==' ':continue
             title=line[0:40].strip()
             if title not in self.needs:continue
@@ -56,7 +63,7 @@ class FchReader(reader.Reader):
             
     def parse_title(self,title:str):
         lineNum=self.titles[title]
-        line=self.lines[lineNum]
+        line=self.getline(lineNum)
         finds=[line[u:l] for u,l in self.marks]
         _,_,dtype,hasData,dataNum=finds
         dtype=dtype.strip()
@@ -64,7 +71,7 @@ class FchReader(reader.Reader):
         dataNum=int(dataNum)
         lineSpan=dataNum//6+(0 if dataNum%6==0 else 1)
         tpmap={'I':'\d+','R':'-?\d+.\d+'}
-        text='\n'.join(self.lines[lineNum+1:lineNum+1+lineSpan])
+        text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan))
         values=re.findall(tpmap[dtype],text)
         if dtype=='I':
             values=[int(v) for v in values]
@@ -76,18 +83,39 @@ class FchReader(reader.Reader):
         atomics=self.read_atoms()
         symbols=[elements[a].symbol for a in atomics]
         return symbols
-
-    def read_atoms(self):
-        values=self.parse_title('Atomic numbers')
-        print(values)
-        return values
-
+    
     def get_coords(self) -> np.ndarray:
         coords=self.read_coord()
         return coords
+    
+    def get_energy(self) -> float:
+        lineNum=self.titles['Total Energy']
+        line=self.getline(lineNum)
+        energy=float(line[45:71])
+        return energy
+    
+    def get_charge(self)->int:
+        lineNum=self.titles['Charge']
+        line=self.getline(lineNum)
+        charge=int(line[45:71])
+        return charge
+    
+    def get_spin(self)->int:
+        lineNum=self.titles['Multiplicity']
+        line=self.getline(lineNum)
+        charge=int(line[45:71])
+        return charge
+    
+    def get_CM(self) -> np.ndarray:
+        lineNum=self.titles['Alpha MO coefficients']
+        
+    def read_atoms(self):
+        values=self.parse_title('Atomic numbers')
+        return values
 
     def read_coord(self):
         values=self.parse_title('Current cartesian coordinates')
         values=np.array(values,dtype=np.float32).reshape(-1,3)/1.889726
-        print(values)
         return values
+    
+    

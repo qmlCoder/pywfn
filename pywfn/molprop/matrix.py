@@ -10,7 +10,7 @@ class Calculator:
         self.mol=mol
         self.CM=mol.CM.copy()
     
-    def eleMat(self)->np.ndarray:
+    def eleMat(self,CM:np.ndarray|None=None)->np.ndarray:
         """计算电子分布矩阵"""
         # 使用法向量可以计算每个分子的pi电子分布
         from pywfn.maths import flib
@@ -20,25 +20,30 @@ class Calculator:
         
         obts=self.mol.O_obts
         nobt=len(obts)
-        CM=self.mol.CM[:,obts].copy()
+        if CM is None:
+            CM=self.mol.CM[:,obts].copy()
+        else:
+            CM=CM[:,obts].copy()
         nmat,nobt=CM.shape
 
-        # NM=np.zeros(shape=(nmat,len(obts)))
-        # for b in range(nmat):
-        #     for j in range(nobt):
-        #         v=0.0
-        #         for i in range(nmat):
-        #             # 起始系数为0的可以直接跳过
-        #             v+=CM[b,j]*CM[i,j]*SM[i,b]*oE
-        #         NM[b,j]=v
-        # print(NM.sum())
-        # return NM # 二维矩阵[n,occ]
-
-        # print(CM[0,:])
         NM=flib.eleMat(nmat,nobt,CM,SM)*oE
         # print(NM.sum())
         return NM
     
+    def piEleMat(self):
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(self.mol)
+        dirs=[]
+        atms=[]
+        for i in range(len(self.mol.atoms)):
+            normal=dirCaler.normal(i+1)
+            dirs.append(normal)
+            atms.append(i+1)
+        obts=self.mol.O_obts
+        CMp=self.mol.projCM(obts,atms,dirs,False,False)
+        NM=self.eleMat(CMp)
+        return NM
+
     def engMat(self)->np.ndarray:
         """
         电子能量分布矩阵

@@ -4,7 +4,7 @@ sys.path.append("D:\code\pywfn")
 from pywfn.base import Mol
 from pywfn.reader import LogReader
 from pywfn.atomprop import activity
-from pywfn.bondprop import bondOrder
+from pywfn.bondprop import order
 
 import numpy as np
 
@@ -20,7 +20,7 @@ path=rf"D:\BaiduSyncdisk\gfile\scans\lianbenR\lianbenR_wfn.log"
 # path=rf"D:\BaiduSyncdisk\gfile\CnHn\C6H6.log"
 mol=Mol(reader=LogReader(path))
 
-caler=bondOrder.Calculator(mol)
+caler=order.Calculator(mol)
 
 # result=caler.boundMayer(7)
 # print(result)
