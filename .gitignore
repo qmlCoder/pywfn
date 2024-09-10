@@ -1,19 +1,28 @@
-__pycache__
+# 忽略的文件夹
+__pycache__/
 .ipynb_checkpoints/
-out/
-venv
+/out/
+/venv/
+/libs/
+/data/
+/#/
+
+# 忽略的文件类型
 *.pyc
 *.zip
 *.cfg
 *.psd
+*.cdxml
+*.cub
+*.mod
+*.7z
+
+# 忽略的文件
 config.json
 log.txt
-*.cdxml
 test.*
 dist
 pywfn.egg-info
-/libs
-/data
-\#
 *T.txt
 *M.txt
+protos/**/*.png

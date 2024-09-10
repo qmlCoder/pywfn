@@ -9,6 +9,7 @@ from pywfn import base
 from pywfn.data.elements import elements
 from pywfn import reader
 from collections import defaultdict
+import math
 
 class Title:
     def __init__(self,lineNum:int,dataNum:int,dataType:str,hasData:bool) -> None:
@@ -41,7 +42,7 @@ class FchReader(reader.Reader):
             'Beta MO coefficients',
             'Mulliken Chrgs',
         ]
-        self.titles:dict[str,int]={}
+        self.titles:dict[str,int]={k:0 for k in self.needs}
         self.marks=[
             [0,40],
             [40,43],
@@ -107,7 +108,21 @@ class FchReader(reader.Reader):
         return charge
     
     def get_CM(self) -> np.ndarray:
-        lineNum=self.titles['Alpha MO coefficients']
+        lineNumA=self.titles['Alpha MO coefficients']
+        lineNumB=self.titles['Beta MO coefficients']
+        lineA=self.getline(lineNumA)
+        nval=re.search('N= +(\d+)',lineA).groups()[0]
+        nval=int(nval)
+        nmat=int(nval**0.5)
+        nline=math.ceil(nval/5)
+        lines=self.getlines(lineNumA+1,lineNumA+1+nline)
+        vals=re.findall('-?\d+.\d+E[+-]\d+',''.join(lines))
+        CMa=np.array(vals,dtype=float).reshape(nmat,nmat).T
+        return CMa
+
+        
+        
+
         
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')

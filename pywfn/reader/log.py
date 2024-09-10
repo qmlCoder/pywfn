@@ -67,10 +67,15 @@ class LogReader(reader.Reader):
             'keyWards':Title(r'# .+',0),
         }
         
-        cpath=Path(f'{self.dfold}/log.json') # config path
-        if not cpath.exists():cpath.write_text('{}')
-        self.conf:dict=json.loads(cpath.read_text())
-        self.cpath=cpath
+        self.cpath=Path(f'{self.dfold}/log.json') # config path
+        if not self.cpath.exists():
+            self.cpath.write_text('{}')
+        jstxt=self.cpath.read_text()
+        try:
+            self.conf:dict=json.loads(jstxt) #如果文件格式损坏则重新生成空文件
+        except:
+            self.conf={}
+            self.cpath.write_text('{}')
         self.get_confTitle()
         self.search_title()
     
@@ -81,8 +86,11 @@ class LogReader(reader.Reader):
             if not f'title_{tip}' in keys:continue
             line=self.conf[f'title_{tip}']
             self.titles[tip].set_line(line)
+
     def save_config(self):
-        self.cpath.write_text(json.dumps(self.conf,indent=4))
+        with open(f"{self.cpath}",'w') as f:
+            jstxt=json.dumps(self.conf,indent=4)
+            f.write(jstxt)
     
     def search_title(self):
         """
@@ -104,9 +112,7 @@ class LogReader(reader.Reader):
                     if not title.judge(line):continue
                     self.titles[key].line=j
                     self.conf[f'title_{key}']=j
-                    # printer.log(f'搜索到标题,{key},j')
                     self.save_config()
-                        # print(j,line)
         nWork=5
         bsize=10_000
         with ThreadPoolExecutor(max_workers=nWork) as executor:

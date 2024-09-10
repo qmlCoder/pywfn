@@ -14,8 +14,16 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def mayer(self,PM=None,bonds=None)->np.ndarray:
-        """计算指定键的mayer键级，可以有多个"""
+    def mayer(self,PM:np.ndarray|None=None,bonds:list[list[int]]|None=None)->np.ndarray:
+        """计算mayer键级
+
+        Args:
+            PM (np.ndarray, optional): 密度矩阵，如不指定则使用分子默认密度矩阵
+            bonds (list[list[int]], optional): 可指定要计算的键，若不指定则使用所有键
+
+        Returns:
+            np.ndarray: 指定键的键级
+        """
         # 获取密度矩阵 P
         if PM is None:PM=self.mol.PM
         # 获取重叠矩阵
@@ -36,7 +44,14 @@ class Calculator:
         return order
     
     def dirMayer(self,bonds:list[list[int]])->np.ndarray:
-        """带有方向的Mayer键级[d,6](a1,a2,x,y,z,v)"""
+        """计算带有方向的Mayer键级
+
+        Args:
+            bonds (list[list[int]]): 通过二维整数列表指定要计算哪些键级
+
+        Returns:
+            np.ndarray: 返回数组形状为:[d,6](a1,a2,x,y,z,v),其中d为键级方向数量
+        """
         dirCaler=direction.Calculator(self.mol)
         obts=self.mol.O_obts
         result=[]
@@ -54,8 +69,13 @@ class Calculator:
         return np.array(result)
     
     def boundMayer(self,atm:int)->np.ndarray:
-        """
-        计算与指定愿原子相邻的键的束缚键级
+        """计算与指定原子相邻的键的束缚键级
+
+        Args:
+            atm (int): 指定原子编号
+
+        Returns:
+            np.ndarray: 束缚键级
         """
         dirCaler=direction.Calculator(self.mol)
         dirs=dirCaler.reaction(atm)
@@ -73,9 +93,11 @@ class Calculator:
                 result.append([a1,a2,x,y,z,val])
         return np.array(result)
     
-    def piOrder(self):
-        """
-        计算pi键级，每一个可能的π键计算出一个π键级
+    def piOrder(self)->np.ndarray:
+        """计算pi键键级，每个可能的pi键计算出一个键级
+
+        Returns:
+            np.ndarray: 返回ndarray数组
         """
         dirCaler=direction.Calculator(self.mol)
         atms=[]
@@ -95,7 +117,12 @@ class Calculator:
         result[:,-1]=orders
         return result
 
-    def hmo(self):
+    def hmo(self)->np.ndarray:
+        """计算休克尔分子轨道法的键级
+
+        Returns:
+            np.ndarray: HMO键级
+        """
         # 1.建立键连矩阵
         atms=self.mol.heavyAtoms
         natm=len(atms)
@@ -116,6 +143,7 @@ class Calculator:
         nele=int(len(atms)-self.mol.charge) #电子数量
         idxs=np.argsort(e)[:nele//2] # 占据轨道
         CM=C[:,idxs] # 每一列对应一个特征向量
+        
         # 3.构建键级矩阵
         result=[]
         OM=np.zeros_like(BM)
@@ -133,7 +161,7 @@ class Calculator:
         pass
     
     # 分解键级
-    def decomOrder(self,atms:list[int],keeps:dict):
+    def decomOrder(self,atms:list[int],keeps:dict[int,list[int]]):
         """
         键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
         将原子轨道基函数的系数按照角动量进行分组
@@ -220,10 +248,20 @@ class Calculator:
                 printer.warn('无效选项!')
 
 
-def gtf(cords,l,m,n)->np.ndarray:
+def gtf(cords:np.ndarray,lmn:tuple[int,int,int])->np.ndarray:
+    """计算高斯型波函数
+
+    Args:
+        cords (np.ndarray): 格点坐标
+        lmn (tuple[int,int,int]): 角动量分量
+
+    Returns:
+        np.ndarray: 波函数数值
+    """
     x=cords[0,:]
     y=cords[1,:]
     z=cords[2,:]
+    l,m,n=lmn
     r2=x**2+y**2+z**2
     alp=2.0
     facs=[1,1,3]
@@ -256,14 +294,14 @@ def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list):
     npos=3
     cords=np.random.rand(3,npos) #随机生成6个点
     zs1=np.zeros(shape=(npos,3))
-    zs1[:,0]=gtf(cords,1,0,0)
-    zs1[:,1]=gtf(cords,0,1,0)
-    zs1[:,2]=gtf(cords,0,0,1)
+    zs1[:,0]=gtf(cords,(1,0,0))
+    zs1[:,1]=gtf(cords,(0,1,0))
+    zs1[:,2]=gtf(cords,(0,0,1))
 
     zs2=np.zeros(shape=(npos,3))
-    zs2[:,0]=gtf(T@cords,1,0,0)
-    zs2[:,1]=gtf(T@cords,0,1,0)
-    zs2[:,2]=gtf(T@cords,0,0,1)
+    zs2[:,0]=gtf(T@cords,(1,0,0))
+    zs2[:,1]=gtf(T@cords,(0,1,0))
+    zs2[:,2]=gtf(T@cords,(0,0,1))
 
     Mr=np.linalg.inv(zs2)@zs1
     Mi=np.linalg.inv(Mr)
@@ -279,20 +317,20 @@ def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
     npos=6
     cords=np.random.rand(3,npos) #随机生成6个点
     zs1=np.zeros(shape=(npos,6))
-    zs1[:,0]=gtf(cords,2,0,0)
-    zs1[:,1]=gtf(cords,0,2,0)
-    zs1[:,2]=gtf(cords,0,0,2)
-    zs1[:,3]=gtf(cords,1,1,0)
-    zs1[:,4]=gtf(cords,1,0,1)
-    zs1[:,5]=gtf(cords,0,1,1)
+    zs1[:,0]=gtf(cords,(2,0,0))
+    zs1[:,1]=gtf(cords,(0,2,0))
+    zs1[:,2]=gtf(cords,(0,0,2))
+    zs1[:,3]=gtf(cords,(1,1,0))
+    zs1[:,4]=gtf(cords,(1,0,1))
+    zs1[:,5]=gtf(cords,(0,1,1))
 
     zs2=np.zeros(shape=(npos,6))
-    zs2[:,0]=gtf(T@cords,2,0,0)
-    zs2[:,1]=gtf(T@cords,0,2,0)
-    zs2[:,2]=gtf(T@cords,0,0,2)
-    zs2[:,3]=gtf(T@cords,1,1,0)
-    zs2[:,4]=gtf(T@cords,1,0,1)
-    zs2[:,5]=gtf(T@cords,0,1,1)
+    zs2[:,0]=gtf(T@cords,(2,0,0))
+    zs2[:,1]=gtf(T@cords,(0,2,0))
+    zs2[:,2]=gtf(T@cords,(0,0,2))
+    zs2[:,3]=gtf(T@cords,(1,1,0))
+    zs2[:,4]=gtf(T@cords,(1,0,1))
+    zs2[:,5]=gtf(T@cords,(0,1,1))
 
     Mr=np.linalg.inv(zs2)@zs1
     Mi=np.linalg.inv(Mr)

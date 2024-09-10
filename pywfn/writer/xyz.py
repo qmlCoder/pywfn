@@ -6,6 +6,7 @@ from pathlib import Path
 from pywfn.data.elements import elements
 from pywfn.utils import printer
 from pywfn.data import temps
+from pywfn import config
 
 class XyzWriter:
     def __init__(self,mol:"base.Mol") -> None:
@@ -20,7 +21,7 @@ class XyzWriter:
         
         coordStrs=[]
         for atom in self.mol.atoms:
-            x,y,z=atom.coord
+            x,y,z=atom.coord/config.BOHR_RADIUS
             sym=atom.symbol
             idx=elements[sym].charge
             coordStrs.append(f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')

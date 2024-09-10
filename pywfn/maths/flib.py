@@ -106,14 +106,17 @@ flib.gtf_.argtypes = [
     ct.POINTER(ct.c_double), # val
 ]
 
-def gtf(exp: float, pos: np.ndarray, R2:np.ndarray, lmn: np.ndarray) -> np.ndarray:
-    pos_ptr = pos.ctypes.data_as(ct.POINTER(ct.c_double))
-    npos = pos.shape[0]
-    R2_ptr = R2.ctypes.data_as(ct.POINTER(ct.c_double))
-    lmn_ptr = lmn.ctypes.data_as(ct.POINTER(ct.c_int))
-    wfn = np.zeros(npos)
-    val_ptr = wfn.ctypes.data_as(ct.POINTER(ct.c_double))
-    flib.gtf_(c_double(exp), c_int(npos), pos_ptr, R2_ptr, lmn_ptr, val_ptr)
+def gtf(alp: float,ngrid:int, grids: np.ndarray,coord:np.ndarray,l:int,m:int,n:int) -> np.ndarray:
+    assert len(coord.shape)==1,"坐标的维度为1"
+    paras=[alp,ngrid,grids,coord,l,m,n]
+    iparas,itypes=trans_dtype(paras)
+
+    wfn=np.zeros(ngrid,dtype=ftype)
+    oparas,otypes=trans_dtype([wfn])
+
+    flib.gtf_.argtypes=itypes+otypes
+    fparas=iparas+oparas
+    flib.gtf_(*fparas)
     return wfn
 
 def cgf(cmax:int,nc:int,alps:np.ndarray,coes:np.ndarray,

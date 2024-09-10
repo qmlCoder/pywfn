@@ -5,12 +5,13 @@ from pywfn.base import Mol
 from pywfn.data.elements import elements
 from pywfn.data import lebedev
 import numpy as np
+import sys
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.nrad=74
-        self.nsph=30
+        self.nsph=74
 
     def radGrid(self,atmic:int):
         pi=np.pi
@@ -28,17 +29,25 @@ class Calculator:
             ws.append(wi)
         rs=np.array(rs,dtype=np.float32)
         ws=np.array(ws,dtype=np.float32)*4.*pi
-        print("原子径向格点",R)
-        for r,w in zip(rs,ws):
-            print(f'{r:>10.4f}{w:>10.4f}')
+        # print("原子径向格点",R)
+        # for r,w in zip(rs,ws):
+        #     print(f'{r:>10.4f}{w:>10.4f}')
         return rs,ws
 
-    def sphGrid(self):
+    def sphGrid(self)->tuple[np.ndarray,np.ndarray]:
+        """计算lebdev球面格点
+
+        Returns:
+            tuple[np.ndarray,np.ndarray]: 格点坐标,格点权重
+        """
         match(self.nsph):
             case 6: result=lebedev.LD0006()
             case 14:result=lebedev.LD0014()
             case 26:result=lebedev.LD0026()
             case 74:result=lebedev.LD0074()
+            case _:
+                print("原子角度格点数量不匹配!!")
+                sys.exit(1)
         # print("原子角度格点")
         # for x,y,z,w in result:
         #     print(f'{x:>10.4f}{y:>10.4f}{z:>10.4f}{w:>10.4f}')

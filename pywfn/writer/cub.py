@@ -66,8 +66,16 @@ class CubWriter:
         for atom in self.mol.atoms:
             x,y,z=atom.coord
             self.file.write(f'{atom.atomic:>5}{atom.atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
+
+    def calc_values(self):
+        """
+        计算数值，计算和保存逻辑分开
+        """
     
     def write_value(self):
+        """
+        计算波函数值并写入文件
+        """
         obts=self.obts
         gridPos=self.get_gridPos()
         Nx,Ny,Nz=self.gridSize

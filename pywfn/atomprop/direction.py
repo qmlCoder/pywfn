@@ -187,13 +187,19 @@ class Calculator:
         return None
 
     def coordSystem(self,atm:int,neb:int)->np.ndarray:
+        """原子之上建立一组基坐标
+
+        Args:
+            atm (int): 要计算的原子索引
+            neb (int): 相邻的原子索引
+
+        Returns:
+            np.ndarray: 坐标系,每一列代表一组基坐标
         """
-        在原子之上建立一组基坐标系,每一列代表一组基坐标
-        """
-        vx=self.mol.atom(neb).coord-self.mol.atom(atm).coord
-        vx/=np.linalg.norm(vx)
+        vy=self.mol.atom(neb).coord-self.mol.atom(atm).coord
+        vy/=np.linalg.norm(vy)
         vz=self.normal(atm)
-        vy=np.cross(vz,vx)
+        vx=np.cross(vy,vz)
         return np.array([vx,vy,vz]).T
 
 
