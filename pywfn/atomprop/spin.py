@@ -18,7 +18,7 @@ class Calculator(AtomCaler):
         self.mol=mol
         self.logTip='mulliken 电子自旋分布:'
 
-    def calculate(self,chrg:Chrgs='mulliken')->np.ndarray:
+    def spins(self,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的自旋"""
         assert self.mol.open,'非开壳层分子无法计算自旋'
         obtNum=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
@@ -33,8 +33,10 @@ class Calculator(AtomCaler):
         # 将长方形的系数矩阵分为两个正方形分别计算
         PMa=CM2PM(self.mol.CM.copy(),a_occs,1)
         PMb=CM2PM(self.mol.CM.copy(),b_occs,1)
-        a_Ects=caler.charge(chrg=chrg,PM=PMa)
-        b_Ects=caler.charge(chrg=chrg,PM=PMb)
+        caler.PM=PMa
+        a_Ects=caler.charge(chrg)
+        caler.PM=PMb
+        b_Ects=caler.charge(chrg)
         # 恢复分子属性
         return -(a_Ects-b_Ects)
     

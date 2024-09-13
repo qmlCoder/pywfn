@@ -225,7 +225,7 @@ class Mol:
         return ''.join(names)
     
 
-    def params(self,atms:list[int])->float:
+    def params(self,atms:tuple[int])->float:
         """
         获取键长、键角、二面角
         """
@@ -267,6 +267,18 @@ class Mol:
             return na,nb
         else:
             return len(obts),len(obts)
+    
+    @cached_property
+    def DM(self):
+        """计算键长矩阵"""
+        natm=self.atoms.num
+        DM=np.zeros(shape=(natm,natm))
+        for i in range(natm):
+            for j in range(i,natm):
+                dis=self.params((i+1,j+1))
+                DM[i,j]=dis
+                DM[j,i]=dis
+        return DM
 
     
     def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]

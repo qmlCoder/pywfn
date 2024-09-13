@@ -26,3 +26,4 @@ pywfn.egg-info
 *T.txt
 *M.txt
 protos/**/*.png
+examples/*.py

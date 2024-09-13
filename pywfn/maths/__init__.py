@@ -52,9 +52,6 @@ def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
     for dx in dxs:
         for dy in dys:
             pos.append(p0+vx*dx+vy*dy)
-            # print(x,y,z)
-    print(pos[0])
-    print(pos[-1])
     return nx,ny,np.array(pos)
 
 def lineGrid(p0:np.ndarray,p1:np.ndarray):

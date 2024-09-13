@@ -31,16 +31,15 @@ class Calculator:
         nobt=len(obts)
         CM=self.CM[:,obts]
         nmat=CM.shape[0]
-        NM=flib.get_NM(nmat,nobt,CM,SM)*oE
+        NM=flib.eleMat(nmat,nobt,CM,SM)*oE
         return NM
 
     
-    def engMat(self,CM:np.ndarray|None=None)->np.ndarray:
+    def engMat(self)->np.ndarray:
         """
         电子能量分布矩阵
-        """
-        if CM is None:CM=self.CM
-        NM=self.eleMat(CM)
+        """ 
+        NM=self.eleMat()
         # NMo:np.ndarray=NM.sum(axis=0) # 每个轨道的电子数
         # for o,obt in enumerate(self.mol.O_obts):
         #     print(obt+1,NMo[o])

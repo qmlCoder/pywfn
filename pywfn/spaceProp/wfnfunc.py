@@ -30,9 +30,6 @@ class Calculator:
         """
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标
-        coefs：线性组合系数
-        atms：可以自定义原子
-        CM：可自定义系数矩阵
         """
         coefs=self.CM[:,obt] # 轨道系数
         idxs=[]
@@ -43,7 +40,6 @@ class Calculator:
         for c,coef in enumerate(coefs):
             if c not in idxs:continue
             wfn+=coef*self.atoWfn(c)
-            # print(c,coef,self.atoWfn(c))
         return wfn
     
     def atoWfn(self,i:int):
@@ -165,6 +161,13 @@ class Calculator:
             wfn=self.atoWfn(i,grid)*coef
             wfns+=wfn
         return wfns
+    
+    def rectValue(self):
+        grid=maths.rectGrid()
+        pass
+
+    def cubeValue(self):
+        pass
 
 def meshgrid(xr,yr):
     xs,ys=np.meshgrid(xr,yr)

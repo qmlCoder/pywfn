@@ -3,9 +3,11 @@
 """
 import numpy as np
 
-from pywfn.base import Atom
+from pywfn.base import Atom,Mol
 from pywfn.maths import vector_angle
 from pywfn.utils import printer
+from pywfn.maths.atom import get_sCont
+from pywfn.atomprop import direction
 
 def CM2PM(CM,orbital:list[int],oe:int)->np.ndarray:
     """
@@ -24,23 +26,27 @@ def CM2PMs(CM,orbital:list[int],oe:int):
     B=(CM[:,orbital].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算快多了
 
-def judgeOrbital(centerAtom:Atom,aroundAtom:Atom,orbital:int,normal)->int:
+def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,normal:np.ndarray)->int:
     """
     判断一个轨道是否为π轨道,几何方法
     centerAtom,aroundAtom:原子对象
     orbital:分子轨道序数
     normal:原子法向量[其实可以是任意方向]
     """
-    if aroundAtom.symbol=='H' or centerAtom.symbol=='H':
+    atom1=mol.atom(atm1)
+    atom2=mol.atom(atm2)
+    if atom1.symbol=='H' or atom2.symbol=='H':
         return 0
     # 1. 根据s轨道和p轨道的贡献
-    sContCenter=centerAtom.get_sCont(orbital)
-    sContAround=aroundAtom.get_sCont(orbital)
+    sContCenter=get_sCont(mol,atm1,obt)
+    sContAround=get_sCont(mol,atm1,obt)
     if sContCenter>0.01 or sContAround>0.01:
         return 0
     # 2. p轨道的方向要处在垂直分子平面方向
-    cenDir=centerAtom.get_obtWay(orbital) #中心原子的p轨道方向
-    aroDir=aroundAtom.get_obtWay(orbital)
+    dirCaler=direction.Calculator(mol)
+    cenDir=dirCaler.maxWeave(atm1,obt,'p')
+    aroDir=dirCaler.maxWeave(atm2,obt,'p')
+
     if cenDir is None or aroDir is None:
         return 0
     centerAngle=vector_angle(cenDir,normal)

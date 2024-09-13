@@ -2,17 +2,17 @@
 
 文档： https://www.xiaofei911.top/mkdocs/pywfn/
 
-## 功能
-![](./pywfn.png)
 
-## 安装
-1. 创建虚拟环境
+## 使用
+1. 安装依赖
 ```
-pip install pywfn
+numpy==2.1.1
+rich==13.8.0
+matplotlib==3.9.2
 ```
-2. 运行环境
+2. 运行程序
 ```
-pywfn
+python main.py
 ```
 
 
@@ -21,4 +21,5 @@ pywfn
 
 - 当程序作为模块的时候，不要打印信息，尽量少使用print
 
-测试一下更新功能
+## 功能
+![](./docs/pywfn_xmind.png)

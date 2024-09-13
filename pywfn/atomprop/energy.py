@@ -11,11 +11,13 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.caler=energy.Calculator(mol)
+        self.CM=self.mol.CM.copy()
     
-    def atmEngs(self,CM:np.ndarray|None=None)->np.ndarray:
+    def atmEngs(self)->np.ndarray:
         """计算每个原子对应的轨道能量，原子电子能"""
-        if CM is None:CM=self.mol.CM
-        EM=self.caler.engMat(CM) # 获取能量矩阵
+        self.caler.CM=self.CM
+        EM=self.caler.engMat() # 获取能量矩阵
+        
         atoms=self.mol.atoms
         engs=np.zeros(len(atoms))
         for a,atom in enumerate(self.mol.atoms):
@@ -36,8 +38,10 @@ class Calculator:
             atms.append(atom.idx)
             dirs.append(normal)
         CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
-        # print(CMp==self.mol.CM)
-        engs=self.atmEngs(CMp)
+        CMo=self.CM.copy()
+        self.CM=CMp.copy()
+        engs=self.atmEngs()
+        self.CM=CMo
         return engs
     
     def onShell(self):

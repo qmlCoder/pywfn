@@ -9,8 +9,16 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def verticals(self,atm1,atm2)->np.ndarray:
-        """计算垂直于键轴的方向"""
+    def verticals(self,atm1:int,atm2:int)->np.ndarray:
+        """计算垂直于键轴一圈的方向
+
+        Args:
+            atm1 (int): 原子1索引
+            atm2 (int): 原子2索引
+
+        Returns:
+            np.ndarray: 方向数组[35,3]
+        """
         bond=self.mol.bonds.get(atm1,atm2)
         bdir=bond.vector # 键轴向量
         anyv=np.random.rand(3) # 随机生成向量

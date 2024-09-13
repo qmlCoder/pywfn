@@ -145,11 +145,11 @@ subroutine cgfs(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,wfns) bind(C, na
     integer(c_int), intent(in),value :: ngrid,nmat,cmax
     real(c_double), intent(in) :: grids(3,ngrid)
     real(c_double), intent(in) :: cords(3,nmat)
-    real(c_double),intent(in) :: alpl(cmax,nmat)
-    real(c_double),intent(in) :: coel(cmax,nmat)
-    integer(c_int),intent(in) :: lmns(3,nmat) !角动量分量
-    integer(c_int),intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
-    real(c_double),intent(inout)::wfns(ngrid,nmat)
+    real(c_double), intent(in) :: alpl(cmax,nmat)
+    real(c_double), intent(in) :: coel(cmax,nmat)
+    integer(c_int), intent(in) :: lmns(3,nmat) !角动量分量
+    integer(c_int), intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
+    real(c_double), intent(inout)::wfns(ngrid,nmat)
 
     integer(c_int)::l,m,n
     integer(c_int)::nc

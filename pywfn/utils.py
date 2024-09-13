@@ -244,3 +244,16 @@ def err_stop(tip):
     print(tip)
     input("按任意键退出...")
     sys.exit()
+
+def chkArray(array:np.ndarray,shape:list[int|None]):
+    """对数组的形状进行检测
+
+    Args:
+        array (np.ndarray): 传入数组
+        shape (list[int]): 是否符合形状
+    """
+    if len(shape)!=len(array.shape):return False # 如果维度不同肯定就不符合了
+    for i in range(len(shape)):
+        if shape[i] is None:continue # 如果是None就不检测
+        if shape[i]!=array.shape[i]:return False # 如果形状不同就不符合
+    return True

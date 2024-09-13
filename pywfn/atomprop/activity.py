@@ -9,43 +9,53 @@ from pywfn.shell import Shell
 from pywfn.maths import CM2PM
 
 class Calculator:
-    def __init__(self) -> None:
-        self.mols:list[Mol]=[]
+    def __init__(self,mol:Mol) -> None:
+        self.mol=mol
 
     # 福井函数
-    def fukui(self,chrg:Chrgs='mulliken')->np.ndarray:
-        """计算所有原子的福井函数[n,2]"""
-        assert len(self.mols)==3,"应该有三个分子"
-        cals=[charge.Calculator(mol) for mol in self.mols]
-        natm=len(self.mols[0].atoms)
+    def fukui(self,molN:Mol,molP:Mol,chrg:Chrgs='mulliken')->np.ndarray:
+        """计算所有原子的福井函数
+
+        Args:
+            molN (Mol): 负电荷分子
+            molP (Mol): 正电荷分子
+            chrg (Chrgs, optional): 电荷类型. Defaults to 'mulliken'.
+
+        Returns:
+            np.ndarray: 福井函数[n,2]
+        """
+        mols=[molN,self.mol,molP]
+        cals=[charge.Calculator(mol) for mol in mols]
+        natm=self.mol.atoms.natm
         chgs=np.zeros(shape=(natm,3)) # 记录所有原子的电荷
         dchg=np.zeros(shape=(natm,2)) # 记录电荷差值
         for c,cal in enumerate(cals):
-            res=cal.calculate(chrg)
+            res=cal.charge(chrg)
             chgs[:,c]=res
         dchg[:,0]=-(chgs[:,0]-chgs[:,1])
         dchg[:,1]=-(chgs[:,1]-chgs[:,2])
         return dchg
     
     # parr函数
-    def parr(self,chrg:Chrgs='mulliken')->np.ndarray:
+    def parr(self,molN:Mol,molP:Mol,chrg:Chrgs='mulliken')->np.ndarray:
         """计算所有原子的parr函数[n,2]"""
-        assert len(self.mols)==2,"应该有两个分子"
-        cals=[spin.Calculator(mol) for mol in self.mols]
-        natm=len(self.mols[0].atoms)
+        mols=[molN,molP]
+        cals=[spin.Calculator(mol) for mol in mols]
+        natm=molN.atoms.natm
         spins=np.zeros(shape=(natm,3))
         for c,cal in enumerate(cals):
-            spins[:,c]=cal.calculate(chrg)
+            spins[:,c]=cal.spins(chrg)
         result=np.zeros(shape=(natm,2))
         result[:,0]=spins[:,0]-spins[:,1]
         result[:,1]=spins[:,1]-spins[:,2]
-        return spins
+        return result
     
     # 电子能差
-    def engDiff(self):
+    def engDiff(self,molN:Mol,molP:Mol):
         from pywfn.atomprop import energy
-        cals=[energy.Calculator(mol) for mol in self.mols]
-        natm=len(cals[0].mol.atoms)
+        mols=[molN,self.mol,molP]
+        cals=[energy.Calculator(mol) for mol in mols]
+        natm=self.mol.atoms.natm
         engs=np.zeros(shape=(natm,3))
         for c,cal in enumerate(cals):
             res=cal.atmEngs()
@@ -56,19 +66,19 @@ class Calculator:
         return engs
 
     # 化合价
-    def valence(self,mol:Mol|None=None)->np.ndarray:
+    def valence(self)->np.ndarray:
         """计算原子化合价"""
         from pywfn.bondprop import order
-        if mol is None:mol=self.mols[0]
-        caler=order.Calculator(mol)
+        caler=order.Calculator(self.mol)
         orders=caler.mayer()
+        natm=self.mol.atoms.natm
         orderDict={}
         for a1,a2,order in orders:
             a1,a2=int(a1),int(a2)
             key=f'{a1}-{a2}' if a1<a2 else f'{a2}-{a1}'
             orderDict[key]=order
-        result=np.zeros(len(mol.atoms))
-        for a,atom in enumerate(mol.atoms):
+        result=np.zeros(natm)
+        for a,atom in enumerate(self.mol.atoms):
             a1=atom.idx
             valence=0
             for a2 in atom.neighbors:
@@ -78,17 +88,23 @@ class Calculator:
         return result
 
     # 自由价(方向化合价)
-    def freeValence(self,atm:int,mol=None):
-        """计算指定原子的自由价[d,5](atm,x,y,z,val)"""
+    def freeValence(self,atm:int)->np.ndarray:
+        """计算指定原子的自由价，计算的分子可指定
+
+        Args:
+            atm (int): 原子索引
+            mol (Mol | None): 可指定的分子
+
+        Returns:
+            np.ndarray: 自由价[d,5](atm,x,y,z,val)
+        """
         from pywfn.bondprop import order
-        from pywfn.atomprop import direction
-        if mol==None:mol=self.mols[0]
-        caler=order.Calculator(mol)
+        caler=order.Calculator(self.mol)
         # STAND=1.6494
         STAND=3.0
         result=[]
         bmays=caler.boundMayer(atm)
-        nebs=mol.atom(atm).neighbors
+        nebs=self.mol.atom(atm).neighbors
         for i in range(0,len(bmays),len(nebs)):
             orders=bmays[i:i+len(nebs),-1]
             x,y,z=bmays[i,2:5]
@@ -97,14 +113,11 @@ class Calculator:
         return np.array(result)
 
     # 亲核亲电自由价 v1
-    def neFreeValence_v1(self,atm:int):
+    def neFreeValence_v1(self,atm:int,molN:Mol,molP:Mol):
         """计算自由价之差"""
-        moln=self.mols[0]
-        mol0=self.mols[1]
-        molp=self.mols[2]
-        valn=self.freeValence(atm,moln)
-        val0=self.freeValence(atm,mol0)
-        valp=self.freeValence(atm,molp)
+        mols=[molN,self.mol,molP]
+        cals=[Calculator(mol) for mol in mols]
+        valn,val0,valp=[cal.freeValence(atm) for cal in cals]
         dirs=val0[:,:-1]
         valsn=(valn[:,-1]-val0[:,-1]).reshape(-1,1)
         valsp=(valp[:,-1]-val0[:,-1]).reshape(-1,1)
@@ -112,14 +125,11 @@ class Calculator:
         return result
     
     # 亲核亲电自由价 v2
-    def neFreeValence_v2(self,atm:int):
+    def neFreeValence_v2(self,atm:int,molN:Mol,molP:Mol):
         """计算自由价之差"""
-        moln=self.mols[0]
-        mol0=self.mols[1]
-        molp=self.mols[2]
-        valn=self.freeValence(atm,moln)
-        val0=self.freeValence(atm,mol0)
-        valp=self.freeValence(atm,molp)
+        mols=[molN,self.mol,molP]
+        cals=[Calculator(mol) for mol in mols]
+        valn,val0,valp=[cal.freeValence(atm) for cal in cals]
         val:float=self.valence()[atm-1] # 原子化合价
         dirs=val0[:,:-1]
         valsn=(4-val+(valn[:,-1])-val0[:,-1]).reshape(-1,1)
@@ -128,18 +138,27 @@ class Calculator:
         return result
 
     # 计算方向福井函数
-    def dirFukui(self,atms:list[int])->np.ndarray:
-        """计算指定原子，指定方向的福井函数[n,6](atm,x,y,z,E,N)"""
-        assert len(self.mols)==3,"需要三个分子"
-        crgs=[mol.charge for mol in self.mols]
+    def dirFukui(self,atms:list[int],molN:Mol,molP:Mol)->np.ndarray:
+        """计算方向福井函数
+
+        Args:
+            atms (list[int]): 要计算的原子
+            molN (Mol): 多一个电子的分子
+            molP (Mol): 少一个电子的分子
+
+        Returns:
+            np.ndarray: 指定方向的福井函数[n,6](atm,x,y,z,E,N)
+        """
+        mols=[molN,self.mol,molP]
+        crgs=[mol.charge for mol in mols]
         assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
-        cals=[charge.Calculator(mol) for mol in self.mols]
+        cals=[charge.Calculator(mol) for mol in mols]
         
         vals:list[np.ndarray]=[]
         dirs=None
         idxs=None
         for cal in cals:
-            res=cal.dirCharge('mulliken',atms)
+            res=cal.dirElectron('mulliken',atms)
             if dirs is None:dirs=res[:,1:4]
             if idxs is None:idxs=res[:,0]
             vals.append(res[:,4])

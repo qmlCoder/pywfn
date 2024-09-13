@@ -45,7 +45,7 @@ class Calculator:
                 vals+=wfnCaler.atoWfn(i)*CM[i,obt] # 分子轨道=组合系数*原子轨道
             return vals
             
-        pos0=self.mol.atom(atm).coord
+        pos0=self.mol.atom(atm).coord.copy()
         val0=-np.inf #起初为负无穷
         for i in range(1000):
             vals=get_vals(pos0)
@@ -58,7 +58,9 @@ class Calculator:
                 step/=10
             else:
                 break
-        return pos0-self.mol.atom(atm).coord
+        direction=pos0-self.mol.atom(atm).coord
+        direction/=np.linalg.norm(direction)
+        return direction
         
     def sphAround(self)->np.ndarray|None:
         """计算周围一圈的球形范围"""
@@ -138,7 +140,14 @@ class Calculator:
         raise ValueError("找不到可能的反应方向")
     
     def normal(self,atm:int)->np.ndarray|None:
-        """计算原子的法向量"""
+        """计算原子的法向量
+
+        Args:
+            atm (int): 指定原子索引
+
+        Returns:
+            np.ndarray|None: 原子法向量，可能没有(None)
+        """
         
         atom=self.mol.atom(atm)
         if 'normal' in atom._props.keys(): # 方便用户指定
@@ -187,7 +196,10 @@ class Calculator:
         return None
 
     def coordSystem(self,atm:int,neb:int)->np.ndarray:
-        """原子之上建立一组基坐标
+        """原子之上建立一组基坐标\n
+        - y方向: atm -> beb\n
+        - z方向: atm的法向量\n
+        - x方向: y.z叉乘方向
 
         Args:
             atm (int): 要计算的原子索引

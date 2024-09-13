@@ -13,6 +13,7 @@ class XyzWriter:
         self.mol=mol
         self.title='generate by pywfn'
         self.temp=temps.xyz
+        self.atomForm='sym' # 打印原子的类型，元素符号[sym]或核电荷数[idx]
 
     def build(self):
         natm=len(self.mol.atoms)
@@ -23,8 +24,14 @@ class XyzWriter:
         for atom in self.mol.atoms:
             x,y,z=atom.coord/config.BOHR_RADIUS
             sym=atom.symbol
-            idx=elements[sym].charge
-            coordStrs.append(f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')
+            
+            if self.atomForm=='sym':
+                coordStrs.append(f' {sym:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')
+            elif self.atomForm=='idx':
+                idx=elements[sym].charge
+                coordStrs.append(f' {idx:<14}{x:>14.8f}{y:>14.8f}{z:>14.8f}')
+            else:
+                raise ValueError('atomForm must be sym or idx')
         self.temp=self.temp.replace('<COORD>','\n'.join(coordStrs))
 
     def save(self,path:str):

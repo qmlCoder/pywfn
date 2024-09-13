@@ -31,7 +31,6 @@ class Atom:
         self.layers:list[str]|None=None
         self._squareSum=None
         self._sContribution:dict={}
-        self.OC:np.ndarray|None=None
         self._props:dict={}
     
     @cached_property
@@ -47,11 +46,15 @@ class Atom:
         idxs=[i for i,idx in enumerate(self.mol.obtAtms) if idx==self.idx]
         return idxs[0],idxs[-1]+1 #因为最后一个元素不包含
     
-    @property
+    @cached_property
     def obtCoeffs(self):
         """获取该原子对应的系数"""
         u,l=self.obtBorder
         return self.mol.CM[u:l,:]
+    
+    @cached_property
+    def OC(self):
+        return self.obtCoeffs
 
     @cached_property
     def neighbors(self)->list[int]:
@@ -65,6 +68,8 @@ class Atom:
             if idx2==self.idx:
                 idxs.append(idx1)
         return [idx for idx in set(idxs)]
+
+    
     
 
     @lru_cache
@@ -151,7 +156,6 @@ class Atom:
     #             normal*=-1
     #     return normal
 
-
     # @lru_cache
     # def get_vertObt(self,idx1:int,idx2:int)->np.ndarray:
     #     """从HOMO轨道开始寻找垂直于键轴的轨道方向"""
@@ -187,24 +191,6 @@ class Atom:
     #         printer.warn(f'轨道{obt}无方向')
     #         return None
     #     return way/np.linalg.norm(way)
-
-    # def __repr__(self) -> str:
-    #     x,y,z=self.coord
-    #     return f'{self.idx} {self.symbol} ({x:.4f},{y:.4f},{z:.4f})'
-
-    # @lru_cache
-    # def get_sCont(self,orbital:int):
-    #     """获取某个原子轨道的贡献"""
-    #     s=self.OC[0,orbital]
-    #     contribution=s**2/self.mol.As[orbital]
-    #     return contribution
-
-    def get_direct(self):
-        """
-        获取反应方向
-        对于两个键的，为平面内夹角相同方向
-        
-        """
     
     def __repr__(self) -> str:
         return f'Atom:({self.symbol},{self.idx})'
@@ -226,21 +212,21 @@ class Atoms:
         self.atoms.append(atom)
     
     @property
-    def atomics(self)->list[int]:
-        return [a.atomic for a in self.atoms]
+    def atomics(self)->tuple[int]:
+        return tuple(a.atomic for a in self.atoms)
     
     @property
-    def symbols(self)->list[str]:
-        return [a.symbol for a in self.atoms]
+    def symbols(self)->tuple[str]:
+        return tuple(a.symbol for a in self.atoms)
     
     
     @property
-    def indexs(self)->list[int]:
-        return [a.idx for a in self.atoms]
+    def indexs(self)->tuple[int]:
+        return tuple(a.idx for a in self.atoms)
     
     @property
-    def atms(self)->list[int]:
-        return [a.idx for a in self.atoms]
+    def atms(self)->tuple[int]:
+        return tuple(a.idx for a in self.atoms)
     
     @property
     def natm(self)->int:

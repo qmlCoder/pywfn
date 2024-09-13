@@ -3,6 +3,7 @@ from pywfn.maths import vector_angle
 
 import numpy as np
 import re
+from itertools import product
 
 def dihedralAngle(mol:Mol,idxs:list[int]):
     """计算二面角"""
@@ -61,3 +62,32 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
             u,l=atom.obtBorder
             CMp[u:l]=mol.CM[u:l].copy()
     return CMp
+
+def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray]:
+    """求解休克尔分子轨道法
+
+    Args:
+        mol (Mol): 需要求解的分子
+
+    Returns:
+        tuple[np.ndarray,np.ndarray,np.ndarray]: 距离矩阵，能量，系数矩阵
+    """
+    # 1.建立键连矩阵
+    atms=mol.heavyAtoms
+    natm=len(atms)
+    BM=np.zeros(shape=(natm,natm)) # 键连矩阵
+    DM=np.zeros_like(BM) # 键长矩阵
+    for i,j in product(range(natm),range(natm)):
+        a1,a2=atms[i],atms[j]
+        if a1>=a2:continue
+        dist=mol.DM[i,j]
+        if dist>1.7*1.889:continue
+        BM[i,j]=1.0
+        BM[j,i]=1.0
+    # 2.求解
+    e,C=np.linalg.eig(BM) # 矩阵对角化
+    nele=int(len(atms)-mol.charge) #电子数量
+    idxs=np.argsort(e)[:nele//2] # 占据轨道
+    sC=C[:,idxs].copy() # 每一列对应一个特征向量
+    se=e[idxs].copy()
+    return DM,se,sC

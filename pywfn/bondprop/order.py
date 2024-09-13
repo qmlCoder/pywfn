@@ -4,18 +4,21 @@
 from pywfn.base import Mol
 from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
+from pywfn.maths.mol import hmo
 from pywfn.utils import printer
 import numpy as np
 from itertools import product
 from pywfn import config
 from collections import defaultdict
+from pywfn.bondprop import lutils
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
+    # mayer键级
     def mayer(self,PM:np.ndarray|None=None,bonds:list[list[int]]|None=None)->np.ndarray:
-        """计算mayer键级
+        """计算mayer键级，mayer键级是基础键级，很多方法的键级都是基于mayer键级计算出来的
 
         Args:
             PM (np.ndarray, optional): 密度矩阵，如不指定则使用分子默认密度矩阵
@@ -57,7 +60,6 @@ class Calculator:
         result=[]
         for a1,a2 in bonds:
             dirs=dirCaler.reaction(a1)
-            atms=[a1]*len(dirs)
             if a1>a2:a1,a2=a2,a1
             for d in range(len(dirs)):
                 CMp=self.mol.projCM(obts,[a1,a2],[dirs[d],dirs[d]],False,True)
@@ -93,8 +95,8 @@ class Calculator:
                 result.append([a1,a2,x,y,z,val])
         return np.array(result)
     
-    def piOrder(self)->np.ndarray:
-        """计算pi键键级，每个可能的pi键计算出一个键级
+    def pi_pocv(self)->np.ndarray:
+        """计算分子的所有pi键键级，每个可能的pi键计算出一个键级
 
         Returns:
             np.ndarray: 返回ndarray数组
@@ -117,36 +119,59 @@ class Calculator:
         result[:,-1]=orders
         return result
 
+    def pi_smo(self,atm1:int,atm2:int)->np.ndarray:
+        """根据分子轨道挑选法计算pi键级
+
+        Args:
+            atm1 (int): 键的第一个原子
+            atm2 (int): 键的第二个原子
+
+        Returns:
+            np.ndarray: pi键级
+        """
+        dirCaler=direction.Calculator(self.mol)
+        atom1=self.mol.atom(atm1)
+        atom2=self.mol.atom(atm2)
+        
+        normal=dirCaler.normal(atm1)
+
+        obts=self.mol.O_obts
+        CMs=np.zeros_like(self.mol.CM) # 拷贝一份，然后将不是π轨道的那些变成0
+
+        piObts=[]
+        for atom in [atom1,atom2]: # 修改每个原子对应的系数矩阵
+            if atom.symbol=='H':continue
+            a_1,a_2=atom.obtBorder
+            for orbital in obts:
+                judgeRes=lutils.judgeOrbital(self.mol,atm1,atm2,orbital,normal)
+                if judgeRes==0:continue # 如果是π轨道
+                CMs[a_1:a_2,orbital]=self.mol.CM[a_1:a_2,orbital]
+                piObts.append(orbital)
+        oe=self.mol.oE
+        PMs=lutils.CM2PM(CMs,obts,oe)
+        SM=self.mol.SM
+        PS=PMs@SM
+        
+        a1,a2=atom1.obtBorder
+        b1,b2=atom2.obtBorder
+        order=np.sum(PS[a1:a2,b1:b2]*PS[b1:b2,a1:a2])
+        piObts=set(piObts)
+        piObts=[self.mol.obtStrs[o] for o in piObts]
+        lutils.formPrint(contents=[piObts],eachLength=10)
+        return order
+
     def hmo(self)->np.ndarray:
         """计算休克尔分子轨道法的键级
 
         Returns:
             np.ndarray: HMO键级
         """
-        # 1.建立键连矩阵
         atms=self.mol.heavyAtoms
         natm=len(atms)
-        BM=np.zeros(shape=(natm,natm)) # 键连矩阵
-        DM=np.zeros_like(BM) # 键长矩阵
-        for i,j in product(range(natm),range(natm)):
-            a1,a2=atms[i],atms[j]
-            if a1>=a2:continue
-            bond=self.mol.atom(a1).coord-self.mol.atom(a2).coord
-            dist=np.linalg.norm(bond)
-            DM[i,j]=dist
-            DM[j,i]=dist
-            if dist>1.7*1.889:continue
-            BM[i,j]=1.0
-            BM[j,i]=1.0
-        # 2.求解
-        e,C=np.linalg.eig(BM) # 矩阵对角化
-        nele=int(len(atms)-self.mol.charge) #电子数量
-        idxs=np.argsort(e)[:nele//2] # 占据轨道
-        CM=C[:,idxs] # 每一列对应一个特征向量
-        
+        DM,e,CM=hmo(self.mol)
         # 3.构建键级矩阵
         result=[]
-        OM=np.zeros_like(BM)
+        OM=np.zeros_like(DM)
         for i,j in product(range(natm),range(natm)):
             order=np.sum(CM[i,:]*CM[j,:])*2
             OM[i,j]=order
@@ -161,7 +186,7 @@ class Calculator:
         pass
     
     # 分解键级
-    def decomOrder(self,atms:list[int],keeps:dict[int,list[int]]):
+    def decompose(self,atms:tuple[int,int]):
         """
         键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
         将原子轨道基函数的系数按照角动量进行分组
@@ -175,45 +200,79 @@ class Calculator:
         atm1,atm2=atms
         T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
         T2=dirCaler.coordSystem(atm2,atm1)
-        Ts=(T1,T2)
-        # CM=self.mol.CM.copy()
-        CM=np.zeros_like(self.mol.CM)
-        nmat=CM.shape[0]
+        # T2[:,1]*=-1
+        # print('T1\n',T1)
+        # print('T2\n',T2)
+        T2=T1
+        # T2[:,1]*=-1
+        Ts=(T1.T,T2.T)
 
-        for o in self.mol.O_obts:
-            coefDict=defaultdict(list) #系数字典
-            for i in range(nmat):
-                iatm=self.mol.obtAtms[i]
-                ishl=self.mol.obtShls[i]
-                iang=self.mol.obtAngs[i]
-                key=(iatm,ishl,iang)
-                if iatm in atms:
-                    coefDict[key].append(self.mol.CM[i,o])
-                else:
-                    coefDict[key].append(0)
+        CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
+        nmat=CMt.shape[0]
+        sig_keeps={
+            0:[0], #s
+            1:[1], #px,py,pz
+            2:[]  #xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
 
-            for key,val in coefDict.items():
-                iatm,ishl,iang=key
-                rcoefs=np.array(val)
-                if iatm in atms:
-                    tcoefs=decomOrbitals(Ts[atms.index(iatm)],rcoefs,keeps[iang])
-                    # print(iatm,ishl,iang,rcoefs,tcoefs)
-                else:
-                    tcoefs=rcoefs
-                assert len(rcoefs)==len(tcoefs),"长度对不上"
-                
-                coefDict[key]=tcoefs
-            values=list(coefDict.values())
-            CM[:,o]=np.concatenate(values)
-        # print(CM)
-        # fig,axs=plt.subplots(1,2)
-        # axs[0].matshow(self.mol.CM,vmin=-1,vmax=1)
-        # axs[1].matshow(CM,vmin=-1,vmax=1)
-        # plt.show()
-        PM=CM2PM(CM,self.mol.O_obts,self.mol.oE)
-        orders=self.mayer(PM)
-        # orders[:,-1]=np.sqrt(orders[:,-1])
-        return orders
+        sig_keeps={
+            0:[0], #s
+            1:[1], #px,py,pz
+            2:[1]  #xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
+
+        piz_keeps={
+            0:[], 
+            1:[2], 
+            2:[2,5]  #xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
+
+        pix_keeps={
+            0:[], 
+            1:[0], 
+            2:[0,3]  #xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
+        det_keeps={
+            0:[], #s
+            1:[], #px,py,pz
+            2:[4] #xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
+        keepList=[sig_keeps,piz_keeps,pix_keeps,det_keeps]
+        nameList=['sigma','pi_z','pi_x','delta']
+        # keeps=pi_skeeps
+        orders=[]
+        for k,keeps in enumerate(keepList):
+            # if k!=1:continue
+            for o in self.mol.O_obts:
+                coefDict=defaultdict(list) #系数字典
+                for i in range(nmat):
+                    iatm=self.mol.obtAtms[i]
+                    ishl=self.mol.obtShls[i]
+                    iang=self.mol.obtAngs[i]
+                    key=(iatm,ishl,iang)
+                    if iatm in atms:
+                        coefDict[key].append(self.mol.CM[i,o])
+                    else:
+                        coefDict[key].append(0)
+
+                for key,val in coefDict.items():
+                    iatm,ishl,iang=key
+                    rcoefs=np.array(val)
+                    if iatm in atms:
+                        tcoefs=decomOrbitals(Ts[atms.index(iatm)],rcoefs,keeps[iang])
+                    else:
+                        tcoefs=rcoefs
+                    assert len(rcoefs)==len(tcoefs),"长度对不上"
+                    
+                    coefDict[key]=tcoefs
+                values=list(coefDict.values())
+                CMt[:,o]=np.concatenate(values)
+            PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
+            results=self.mayer(PMt,[atms])
+            results[:,-1]=results[:,-1]**0.5
+            orders.append(results[:,-1])
+            # print(f'{nameList[k]:<8}键级',results)
+        return np.array(orders)
 
     def onShell(self):
         while True:
@@ -248,20 +307,10 @@ class Calculator:
                 printer.warn('无效选项!')
 
 
-def gtf(cords:np.ndarray,lmn:tuple[int,int,int])->np.ndarray:
-    """计算高斯型波函数
-
-    Args:
-        cords (np.ndarray): 格点坐标
-        lmn (tuple[int,int,int]): 角动量分量
-
-    Returns:
-        np.ndarray: 波函数数值
-    """
+def gtf(cords,l,m,n)->np.ndarray:
     x=cords[0,:]
     y=cords[1,:]
     z=cords[2,:]
-    l,m,n=lmn
     r2=x**2+y**2+z**2
     alp=2.0
     facs=[1,1,3]
@@ -280,36 +329,51 @@ def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list):
     elif len(coefs)==6:
         return decomOrbitalD(T,coefs,keeps)
     else:
-        printer.warn("不支持的数组长度")
         return coefs
 
-def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list):
+def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list[int]):
     if keeps:
         return coefs
     else:
         return np.array([0.])
 
 # 分解P轨道
-def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list):
+def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int])->np.ndarray:
+    """分解P轨道
+
+    Args:
+        T (np.ndarray): 基坐标，每一行代表一个方向
+        rcoefs (np.ndarray): 原始函数空间的基函数系数
+        keeps (list[int]): 保留的角动量
+
+    Returns:
+        np.ndarray: 分解之后的轨道系数
+    """
     npos=3
-    cords=np.random.rand(3,npos) #随机生成6个点
+    cords=np.random.rand(3,npos) #随机生成3个点
     zs1=np.zeros(shape=(npos,3))
-    zs1[:,0]=gtf(cords,(1,0,0))
-    zs1[:,1]=gtf(cords,(0,1,0))
-    zs1[:,2]=gtf(cords,(0,0,1))
+    zs1[:,0]=gtf(cords,1,0,0)
+    zs1[:,1]=gtf(cords,0,1,0)
+    zs1[:,2]=gtf(cords,0,0,1)
 
     zs2=np.zeros(shape=(npos,3))
-    zs2[:,0]=gtf(T@cords,(1,0,0))
-    zs2[:,1]=gtf(T@cords,(0,1,0))
-    zs2[:,2]=gtf(T@cords,(0,0,1))
+    zs2[:,0]=gtf(T@cords,1,0,0)
+    zs2[:,1]=gtf(T@cords,0,1,0)
+    zs2[:,2]=gtf(T@cords,0,0,1)
+
+    # Mt=(np.linalg.inv(zs2)@zs1)
 
     Mr=np.linalg.inv(zs2)@zs1
     Mi=np.linalg.inv(Mr)
-    tcoefs=Mr@rcoefs
+    # print(rcoefs)
+    tcoefs=Mr@rcoefs # 根据函数空间基组1下的系数获取函数空间基组2下的系数
+    # print(tcoefs)
     for i in range(3):
         if i in keeps:continue
         tcoefs[i]=0.0
-    fcoefs=Mi@tcoefs
+    fcoefs=Mi@tcoefs # 根据修改后的函数空间基组2下的系数得到函数空间基组1下的系数
+    # print(tcoefs)
+    # print(fcoefs)
     return fcoefs
 
 # 分解D轨道
@@ -317,20 +381,20 @@ def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
     npos=6
     cords=np.random.rand(3,npos) #随机生成6个点
     zs1=np.zeros(shape=(npos,6))
-    zs1[:,0]=gtf(cords,(2,0,0))
-    zs1[:,1]=gtf(cords,(0,2,0))
-    zs1[:,2]=gtf(cords,(0,0,2))
-    zs1[:,3]=gtf(cords,(1,1,0))
-    zs1[:,4]=gtf(cords,(1,0,1))
-    zs1[:,5]=gtf(cords,(0,1,1))
+    zs1[:,0]=gtf(cords,2,0,0)
+    zs1[:,1]=gtf(cords,0,2,0)
+    zs1[:,2]=gtf(cords,0,0,2)
+    zs1[:,3]=gtf(cords,1,1,0)
+    zs1[:,4]=gtf(cords,1,0,1)
+    zs1[:,5]=gtf(cords,0,1,1)
 
     zs2=np.zeros(shape=(npos,6))
-    zs2[:,0]=gtf(T@cords,(2,0,0))
-    zs2[:,1]=gtf(T@cords,(0,2,0))
-    zs2[:,2]=gtf(T@cords,(0,0,2))
-    zs2[:,3]=gtf(T@cords,(1,1,0))
-    zs2[:,4]=gtf(T@cords,(1,0,1))
-    zs2[:,5]=gtf(T@cords,(0,1,1))
+    zs2[:,0]=gtf(T@cords,2,0,0)
+    zs2[:,1]=gtf(T@cords,0,2,0)
+    zs2[:,2]=gtf(T@cords,0,0,2)
+    zs2[:,3]=gtf(T@cords,1,1,0)
+    zs2[:,4]=gtf(T@cords,1,0,1)
+    zs2[:,5]=gtf(T@cords,0,1,1)
 
     Mr=np.linalg.inv(zs2)@zs1
     Mi=np.linalg.inv(Mr)

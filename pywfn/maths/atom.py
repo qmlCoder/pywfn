@@ -1,6 +1,7 @@
 import numpy as np
 
 from pywfn import base
+from pywfn.base import Mol,Atom
 
 def pola2cart(r,t,p):
     """极坐标转直角坐标，半径，仰角，转角"""
@@ -54,3 +55,11 @@ def get_direct(atom:"base.Atom"):
                 return point0
             else:
                 stepSize/=2
+
+
+def get_sCont(mol:Mol,atm:int,obt:int):
+    """获取某个原子轨道的贡献"""
+    atom=mol.atom(atm)
+    s=atom.OC[0,obt]**2
+    As=np.sum(mol.CM**2,axis=0)[obt]
+    return s/As

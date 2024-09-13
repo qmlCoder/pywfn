@@ -16,9 +16,17 @@ class Calculator(AtomCaler):
         self.logTip:str=''
         self.mol=mol
         self.chrg:Chrgs='mulliken'
-        self.PM=self.mol.PM.copy()
+        self.PM=self.mol.PM.copy() # 计算时使用的密度矩阵
         
     def charge(self,chrg:Chrgs)->np.ndarray:
+        """计算四种基础电荷之一
+
+        Args:
+            chrg (Chrgs): 电荷类型
+
+        Returns:
+            np.ndarray: 原子电荷
+        """
         if chrg=='mulliken':
             return self.mulliken()
         elif chrg=='lowdin':
@@ -27,6 +35,8 @@ class Calculator(AtomCaler):
             return self.sapce()
         elif chrg=='hirshfeld':
             return self.hirshfeld()
+        else:
+            raise ValueError('unknown charge type')
     
     def mulliken(self)->np.ndarray:
         """
@@ -121,7 +131,7 @@ class Calculator(AtomCaler):
     
     def dirElectron(self,chrg:Chrgs,atms:list[int],dirs:list[np.ndarray]|None=None)->np.ndarray:
         """计算不同方向的电子[n,5](atm,x,y,z,val)"""
-        fatms,fdirs=fit_dirs(self.mol,atms,dirs)
+        fatms,fdirs=fit_dirs(self.mol,atms,dirs) # 矫正原子索引和方向，使数量相等
         assert len(fatms)==len(fdirs),"原子与方向数量要相同"
         result=np.zeros(shape=(len(fdirs),5))
         obts=self.mol.O_obts
@@ -134,8 +144,8 @@ class Calculator(AtomCaler):
             PMp=CM2PM(CMp,obts,self.mol.oE)
             self.PM=PMp # 修改密度矩阵
 
-            val=self.charge(chrg)
-            x,y,z=fdir
+            val=self.charge(chrg)[fatm-1]
+            x,y,z=fdir.tolist()
             result[d]=[fatm,x,y,z,atom.atomic-val]
         self.PM=PMo # 恢复旧的密度矩阵
         return result
