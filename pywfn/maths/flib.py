@@ -36,7 +36,9 @@ def trans_dtype(paras:list):
             ftypes.append(c_double)
         elif type(para)==np.ndarray:
             if para.dtype in ['int32','int64']:
-                if para.dtype!=itype:para=para.astype(itype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
+                if para.dtype!=itype:
+                    para=para.astype(itype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
+                # print(para.dtype)
                 fparas.append(para.ctypes.data_as(POINTER(c_int)))
                 ftypes.append(POINTER(c_int))
             elif para.dtype in ['float32','float64']:
@@ -57,15 +59,27 @@ def call_flib(func:str,ipts:list,outs:list):
         ipts (list): 输入参数
         outs (list): 输出参数
     """
+    # print(func)
     iparas,itypes=trans_dtype(ipts)
     oparas,otypes=trans_dtype(outs)
-    flib[func].argtypes=itypes+otypes # 指定函数参数的类型
+    ftypes=itypes+otypes
+    flib[func].argtypes=ftypes # 指定函数参数的类型
     fparas=iparas+oparas  # 指定函数参数的值
     flib[func](*fparas)
 
 from pywfn import config
-os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
-flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
+print('动态链接库目录',config.ROOT_LIBS)
+if os.name=='nt': # Windows系统
+    print('当前系统:windows')
+    os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
+    flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
+elif os.name=='posix': # Linux系统
+    print('当前系统:linux')
+    os.environ['LD_LIBRARY_PATH'] = rf"{config.ROOT_LIBS}" + os.environ.get('LD_LIBRARY_PATH', '')
+    flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.so')
+else:
+    raise OSError("Unsupported OS")
+call_flib('info_',[],[])
 
 def grid_pos(Nx: int, Ny: int, Nz: int)->np.ndarray:
     """生成格点数据
@@ -128,14 +142,8 @@ def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns:np.ndarray):
     """计算分子电子密度"""
     # print(grids[:3,:])
     paras=[ngrid,nmat,nobt,CM,wfns]
-    iparas,itypes=trans_dtype(paras)
-
     dens=np.zeros(ngrid,dtype=ftype)
-    oparas,otypes=trans_dtype([dens])
-
-    flib.moldens_.argtypes=itypes+otypes
-    fparas=iparas+oparas
-    flib.moldens_(*fparas)
+    call_flib('moldens_',paras,[dens])
     return dens
 
 # def atmDens()
@@ -191,3 +199,30 @@ def eleMat(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     fparas=iparas+oparas
     flib.eleMat_(*fparas)
     return NM
+
+def nucPotential(cords:Array,nucs:Array,xyzs:Array):
+    """计算势能"""
+    assert chkArray(cords,(None,3)),"形状不匹配"
+    assert chkArray(nucs,(None,)),"形状不匹配"
+    assert chkArray(xyzs,(None,3)),"形状不匹配"
+    ncord=cords.shape[0]
+    natm=len(nucs)
+    paras=[ncord,cords,natm,nucs,xyzs]
+    
+    vals=np.zeros(ncord,dtype=ftype)
+    call_flib('nucPotential_',paras,[vals])
+
+    return vals
+
+def elePotential(cords:Array,grids:Array,weits:Array,dens:Array):
+    """计算势能"""
+    assert chkArray(cords,(None,3)),"形状不匹配"
+    assert chkArray(grids,(None,3)),"形状不匹配"
+    assert chkArray(weits,(None,)),"形状不匹配"
+    assert chkArray(dens,(None,)),"形状不匹配"
+    ncord=cords.shape[0]
+    ngrid=grids.shape[0]
+    paras=[ncord,cords,ngrid,grids,weits,dens]
+    vals=np.zeros(ncord,dtype=ftype)
+    call_flib('elePotential_',paras,[vals])
+    return vals

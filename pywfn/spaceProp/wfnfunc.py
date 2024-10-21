@@ -8,6 +8,8 @@ from pywfn.base import Mol
 from pywfn import maths
 import numpy as np
 from pywfn.maths import flib
+from pywfn.maths import cubeGrid
+from pywfn.spaceProp import lutils
 
 from pywfn.data import sphGrid
 weight = sphGrid.gridData[:, -1]
@@ -31,6 +33,7 @@ class Calculator:
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标
         """
+        assert self.grids is not None,"没有设置格点数据"
         coefs=self.CM[:,obt] # 轨道系数
         idxs=[]
         for atm in self.atms:
@@ -99,8 +102,6 @@ class Calculator:
             self.wfns=flib.cgfs(ngrid,self.grids,nmat,coords,cmax,ncgs,expa,coea,lmns)
         return self.wfns
         
-
-
     def rectValue(self,cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float,atms:list[int],obt:int):
         """生成图片文件"""
         nx,ny,pos=maths.rectGrid(cent,norm,vx,sx,sy)
@@ -166,8 +167,20 @@ class Calculator:
         grid=maths.rectGrid()
         pass
 
-    def cubeValue(self):
-        pass
+    def cubeValue(self,vtype:str,obt:int|None=None,atm:int|None=None):
+        p0,p1=lutils.get_molBorder(self.mol) # 获取分子边界
+        shape,grid=cubeGrid(p0,p1,0.1,1)# 生成网格坐标
+        self.set_grid(grid)
+        if vtype=='obtwfn':
+            assert obt is not None,"需要制定轨道编号"
+            wfns=self.obtWfn(obt).reshape(*shape)
+        elif vtype=='atowfn':
+            assert atm is not None,"需要指定原子编号"
+            wfns=self.atoWfn(atm).reshape(*shape)
+        else:
+            raise ValueError("vtype只能是obtwfn或atowfn")
+        return wfns
+        
 
 def meshgrid(xr,yr):
     xs,ys=np.meshgrid(xr,yr)

@@ -2,21 +2,20 @@
 计算分子轨道内每个原子的能量
 """
 from pywfn.base import Mol
-from pywfn.molprop import energy
 from pywfn.atomprop import lutils
 from pywfn.utils import printer
+from pywfn.maths.mol import projCM,engMat,piEleMat,eleMat
 import numpy as np
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.caler=energy.Calculator(mol)
         self.CM=self.mol.CM.copy()
     
     def atmEngs(self)->np.ndarray:
         """计算每个原子对应的轨道能量，原子电子能"""
-        self.caler.CM=self.CM
-        EM=self.caler.engMat() # 获取能量矩阵
+        NM=eleMat(self.mol) # 电子分布矩阵
+        EM=engMat(self.mol,NM) # 获取能量矩阵
         
         atoms=self.mol.atoms
         engs=np.zeros(len(atoms))
@@ -28,20 +27,14 @@ class Calculator:
     
     def atmPiEngs(self):
         """计算投影后系数矩阵算出的能量，原子pi电子能"""
-        from pywfn.atomprop import direction
-        dirCaler=direction.Calculator(self.mol)
-        atms=[]
-        dirs=[]
-        for atom in self.mol.atoms:
-            normal=dirCaler.normal(atom.idx) # 原子的法向量
-            if normal is None:continue
-            atms.append(atom.idx)
-            dirs.append(normal)
-        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
-        CMo=self.CM.copy()
-        self.CM=CMp.copy()
-        engs=self.atmEngs()
-        self.CM=CMo
+        NM=piEleMat(self.mol) # 获取能量矩阵
+        EM=engMat(self.mol,NM)
+        atoms=self.mol.atoms
+        engs=np.zeros(len(atoms))
+        for a,atom in enumerate(self.mol.atoms):
+            u,l=atom.obtBorder
+            atomEng=EM[u:l,:].sum()
+            engs[a]=atomEng
         return engs
     
     def onShell(self):

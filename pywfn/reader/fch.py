@@ -50,6 +50,7 @@ class FchReader(reader.Reader):
             [45,50],
             [50,62]
         ]
+        self.search_title()
 
     def search_title(self):
         """搜索需要的数据的标题所在的行"""
@@ -72,7 +73,7 @@ class FchReader(reader.Reader):
         dataNum=int(dataNum)
         lineSpan=dataNum//6+(0 if dataNum%6==0 else 1)
         tpmap={'I':'\d+','R':'-?\d+.\d+'}
-        text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan))
+        text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan+1))
         values=re.findall(tpmap[dtype],text)
         if dtype=='I':
             values=[int(v) for v in values]
@@ -110,19 +111,21 @@ class FchReader(reader.Reader):
     def get_CM(self) -> np.ndarray:
         lineNumA=self.titles['Alpha MO coefficients']
         lineNumB=self.titles['Beta MO coefficients']
-        lineA=self.getline(lineNumA)
-        nval=re.search('N= +(\d+)',lineA).groups()[0]
-        nval=int(nval)
-        nmat=int(nval**0.5)
-        nline=math.ceil(nval/5)
-        lines=self.getlines(lineNumA+1,lineNumA+1+nline)
-        vals=re.findall('-?\d+.\d+E[+-]\d+',''.join(lines))
-        CMa=np.array(vals,dtype=float).reshape(nmat,nmat).T
-        return CMa
-
-        
-        
-
+        CMs=[]
+        for lineNum in [lineNumA,lineNumB]:
+            if lineNum==0:continue
+            line=self.getline(lineNum)
+            # print(line)
+            find=re.search('N= +(\d+)',line).groups()
+            if find is None:return None
+            nval=int(find[0])
+            nmat=int(nval**0.5)
+            nline=math.ceil(nval/5)
+            lines=self.getlines(lineNumA+1,lineNumA+1+nline)
+            vals=re.findall('-?\d+.\d+E[+-]\d+',''.join(lines))
+            CM=np.array(vals,dtype=float).reshape(nmat,nmat).T
+            CMs.append(CM)
+        return np.concatenate(CMs,axis=0)
         
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')

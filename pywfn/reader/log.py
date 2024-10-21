@@ -22,6 +22,7 @@ from pywfn import reader
 from typing import Callable
 import linecache
 import textwrap
+import time
 
 class Title:
     def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
@@ -41,6 +42,10 @@ class Title:
             return self.mark in line
         elif self.jtype==2:
             return line==self.mark
+    
+    def set_lnum(self,lnum:int):
+        if lnum>=self.line:
+            self.line=lnum
 
     
     def __repr__(self) -> str:
@@ -50,7 +55,7 @@ class LogReader(reader.Reader):
     def __init__(self, path:str,clear:bool=False) -> None:
         super().__init__(path,clear)
         assert type(path)==str,'路径应该为字符串格式'
-        assert path[-4:] in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
+        assert Path(path).suffix in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
         self.titles={ #记录每一个title所在的行数
             'coords':Title(r'(Input orientation|Standard orientation)',0,True),
@@ -66,9 +71,10 @@ class LogReader(reader.Reader):
             'engs':Title(r'Zero-point correction',1),
             'keyWards':Title(r'# .+',0),
         }
-        
-        self.cpath=Path(f'{self.dfold}/log.json') # config path
-        if not self.cpath.exists():
+        self.conf={}
+        self.cpath=Path(f'{self.dfold}/log.json') # config path 配置文件，减小第二次使用搜索时间的消耗
+
+        if not self.cpath.exists(): # 如果配置文件不存在则创建配置文件
             self.cpath.write_text('{}')
         jstxt=self.cpath.read_text()
         try:
@@ -80,14 +86,14 @@ class LogReader(reader.Reader):
         self.search_title()
     
     def get_confTitle(self):
-        """从配置文件中回去标题所在的行"""
+        """从配置文件中获取标题所在的行"""
         keys=self.conf.keys()
         for tip in self.titles.keys():
             if not f'title_{tip}' in keys:continue
             line=self.conf[f'title_{tip}']
             self.titles[tip].set_line(line)
 
-    def save_config(self):
+    def save_config(self): # 保存配置文件
         with open(f"{self.cpath}",'w') as f:
             jstxt=json.dumps(self.conf,indent=4)
             f.write(jstxt)
@@ -100,6 +106,7 @@ class LogReader(reader.Reader):
         from concurrent.futures._base import Future
         # 所有标题所在的行
         def sear_group(start:int): #每一个搜索的线程
+            # print(f'search_group:{start}')
             keys=list(self.titles.keys()) # 总的key
             keys=[key for key in keys if self.titles[key].line==-1] # 需要搜索的key
             if len(keys)==0:return
@@ -110,9 +117,11 @@ class LogReader(reader.Reader):
                     title:Title=self.titles[key]
                     if title.line!=-1 and title.multi==False:continue
                     if not title.judge(line):continue
-                    self.titles[key].line=j
-                    self.conf[f'title_{key}']=j
-                    self.save_config()
+                    self.titles[key].set_lnum(j)
+                    if j>=self.titles[key].line:
+                        self.titles[key].line=j
+                        self.conf[f'title_{key}']=j
+                        self.save_config()
         nWork=5
         bsize=10_000
         with ThreadPoolExecutor(max_workers=nWork) as executor:
@@ -232,6 +241,7 @@ class LogReader(reader.Reader):
                 coords.append(coord)
             else:
                 return symbols,np.array(coords)/0.529177 # 埃转为波尔
+        raise AssertionError('没有读取到原子坐标')
 
     @lru_cache
     def read_multiy(self)->tuple[int,int]|None:

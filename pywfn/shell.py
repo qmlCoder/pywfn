@@ -12,12 +12,9 @@ from pathlib import Path
 import re, sys
 
 from pywfn.reader import get_reader
-from pywfn import tools
-from pywfn import config
 from pywfn.utils import printer
 from pywfn import data
 from pywfn.base import Mol
-from pywfn import utils
 import numpy as np
 
 
@@ -36,6 +33,7 @@ class Shell:
             "2": "原子性质",
             "3": "实用工具",
             "4": "导出文件",
+            "5": "化学函数"
         }
         while True:
             opts["0"]=f"导入文件({len(self.paths)})"
@@ -56,6 +54,9 @@ class Shell:
                 case "4":
                     from pywfn import writer
                     writer.onShell(self)
+                case "5":
+                    from pywfn import chems
+                    chems.onShell()
                 case 'q':
                     break
                 case _:

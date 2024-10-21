@@ -25,6 +25,7 @@ def set_config(key:str,value):
 BOND_LIMIT=get_config('bond.limit',1.8*1.889) # 判断量原子之间是否成键的长度限制
 IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell中的print冲突
 IF_SHELL=False # 是否在shell中执行
+IF_BUFF=get_config('if_buff',True) # 是否生成缓存
 
 BASE_VECTOR=np.array([0,0,1]) # 标准向量，求原子法向量和轨道方向的时候要与该向量夹角小于90°
 
@@ -43,7 +44,10 @@ BOHR_RADIUS=1/0.529177
 SHOW_PRINT=False
 
 IF_CM_P=False # 是否使用投影轨道
+IF_BUFF=get_config('if_buff',True) # 是否生成缓存
 
 ROOT_DATA=Path(__file__).parent/'data'
 ROOT_LIBS=Path(__file__).parent/'libs'
+GJF_TITLE=get_config('gjf.title','b3lyp/6-31g(d) pop=full gfinput iop(3/33=1)')
+
 # os.add_dll_directory(rf"{ROOT_LIBS}") # 添加动态链接库目录

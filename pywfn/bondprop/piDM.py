@@ -10,6 +10,7 @@ import numpy as np
 from pywfn import maths
 from pywfn.bondprop import Caler
 from pywfn.utils import printer
+from pywfn.maths.mol import projCM
 
 class Calculator(Caler):
     def __init__(self,mol:Mol) -> None:
@@ -80,7 +81,7 @@ class Calculator(Caler):
         b_1,b_2=atom2.obtBorder
         atoms=[idx1,idx2]
         vects=[norm]*len(atoms)
-        CM_=self.mol.projCM(atoms,obts,vects,zero=self.zero,keep=self.keep)
+        CM_=projCM(self.mol,atoms,obts,vects,zero=self.zero,keep=self.keep)
 
         oe=self.mol.oE
         SM=self.mol.SM

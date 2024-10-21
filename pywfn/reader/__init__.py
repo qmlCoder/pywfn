@@ -16,9 +16,6 @@ from pathlib import Path
 # 定义所有reader的基类
 # 基类中定义各种属性的读取函数，再在子类中覆盖
 
-
-
-
 """
 定义所有读取类的基类
 默认读取的所有信息返回为空
@@ -42,6 +39,7 @@ from pathlib import Path
 """
 from pywfn import base
 from pywfn import data
+from pywfn import config
 import numpy as np
 from pathlib import Path
 from functools import cached_property
@@ -56,14 +54,14 @@ class Reader:
         self.path:str=path
         dfold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
         # if fold.exists() and remake:
-        if not dfold.exists():
+        if not dfold.exists() and config.IF_BUFF:
             os.mkdir(f'{dfold}')
         else:
-            foldTime=dfold.stat().st_mtime
-            fileTime=Path(path).stat().st_mtime
+            foldTime=dfold.stat().st_mtime # 文件夹创建的时间
+            fileTime=Path(path).stat().st_mtime #文件创建的时间
             if fileTime>foldTime or clear: # 如果文件更新了
-                shutil.rmtree(f'{dfold}')
-                os.mkdir(f'{dfold}')
+                shutil.rmtree(f'{dfold}') # 删除文件夹
+                os.mkdir(f'{dfold}') # 重新创建
                 printer.info("清空数据缓存")
         self.dfold=f'{dfold}' # 数据存储路径
     

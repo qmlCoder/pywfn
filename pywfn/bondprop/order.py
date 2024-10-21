@@ -4,8 +4,9 @@
 from pywfn.base import Mol
 from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
-from pywfn.maths.mol import hmo
+from pywfn.maths.mol import hmo,projCM
 from pywfn.utils import printer
+
 import numpy as np
 from itertools import product
 from pywfn import config
@@ -62,7 +63,7 @@ class Calculator:
             dirs=dirCaler.reaction(a1)
             if a1>a2:a1,a2=a2,a1
             for d in range(len(dirs)):
-                CMp=self.mol.projCM(obts,[a1,a2],[dirs[d],dirs[d]],False,True)
+                CMp=projCM(self.mol,obts,[a1,a2],[dirs[d],dirs[d]],False,True)
                 PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
                 a1_,a2_,order=self.mayer(PM=PMp,bonds=[[a1,a2]]).flatten()
                 assert a1==a1_ and a2==a2_,"原子不对应"
@@ -87,7 +88,7 @@ class Calculator:
         result=[]
         
         for d in range(len(dirs)):
-            CMp=self.mol.projCM(obts,[atm],[dirs[d]],False,True,akeeps=nebs)
+            CMp=projCM(self.mol,obts,[atm],[dirs[d]],False,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
             orders=self.mayer(PM=PMp,bonds=bonds)
             x,y,z=dirs[d]
@@ -110,7 +111,7 @@ class Calculator:
             atms.append(atom.idx)
             dirs.append(normal)
         
-        PMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False)
+        PMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         result=self.mayer(PM=PMp)
         orders=result[:,-1]
@@ -279,8 +280,9 @@ class Calculator:
             printer.options('键级计算',{
                 '1':'mayer键级',
                 '2':'方向mayer键级',
-                '3':'pi键级',
-                '4':'HMO键级',
+                '3':'pi键级(POCV)',
+                '4':'pi键级(SMO)',
+                '5':'HMO键级',
             })
             opt=input('请输入序号选择要计算的键级：')
             if opt=='1':
@@ -294,10 +296,14 @@ class Calculator:
                 for a1,a2,x,y,z,val in result:
                     print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
             elif opt=='3':
-                orders=self.piOrder()
+                orders=self.pi_pocv()
                 for a1,a2,val in orders:
                     print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
             elif opt=='4':
+                orders=self.pi_smo()
+                for a1,a2,val in orders:
+                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+            elif opt=='5':
                 orders=self.hmo()
                 for a1,a2,val in orders:
                     print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')

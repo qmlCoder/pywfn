@@ -13,10 +13,10 @@ class GjfWriter:
         self.mol:Mol=mol
         self.temp=temps.get('gjf')
         self.CHK='chk'
-        self.CHARGE=0
-        self.SPIN=1
-        self.TITLE=''
-        self.COORD=''
+        self.CHARGE=self.mol.charge
+        self.SPIN=self.mol.spin
+        self.TITLE=config.GJF_TITLE
+        self.COORD=self.get_coordStr()
         
     def get_coordStr(self):
         """生成坐标的字符串形式"""
@@ -28,21 +28,8 @@ class GjfWriter:
             coordStrs.append(coordStr)
         return '\n'.join(coordStrs)
     
-    def search(self):
-        """搜索需要的各种属性"""
-        self.COORD=self.get_coordStr()
-        try:
-            self.CHARGE=self.mol.reader.get_charge()
-        except:
-            pass
-
-        try:
-            self.SPIN=self.mol.reader.get_spin()
-        except:
-            pass
-
     def build(self)->str:
-        self.search()
+        assert self.TITLE!='','请设置标题'
         self.temp=self.temp.replace('<COORD>',self.COORD)
         self.temp=self.temp.replace('<CHARGE>',f'{self.CHARGE}')
         self.temp=self.temp.replace('<SPIN>',f'{self.SPIN}')

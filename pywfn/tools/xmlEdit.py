@@ -34,7 +34,8 @@ class Tool:
         """
         keys=list(paras.keys())
         edges=self.root.findall('.//b')
-        cidx=10
+        cidx=len(self.colorTable.findall('color'))+2
+        print(cidx)
         for edge in edges:
             B=edge.attrib['B']
             E=edge.attrib['E']
@@ -42,12 +43,12 @@ class Tool:
             key1=f'{E}-{B}'
             if key0 in keys:
                 r,g,b=paras[key0]
-                self.colorTable.append(Element('color',{'r':str(r),'g':str(g),'b':str(b)}))
+                self.colorTable.append(Element('color',{'r':f'{r:.4f}','g':f'{g:.4f}','b':f'{b:.4f}'}))
                 edge.set('color',str(cidx))
                 cidx+=1
             elif key1 in keys:
                 r,g,b=paras[key1]
-                self.colorTable.append(Element('color',{'r':str(r),'g':str(g),'b':str(b)}))
+                self.colorTable.append(Element('color',{'r':f'{r:.4f}','g':f'{g:.4f}','b':f'{b:.4f}'}))
                 edge.set('color',str(cidx))
                 cidx+=1
     

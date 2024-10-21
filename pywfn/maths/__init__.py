@@ -16,6 +16,9 @@ def cubeGrid(
     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
     x0, y0, z0 = p0 - bord
     x1, y1, z1 = p1 + bord
+    assert x0 < x1 , "x输入的坐标范围错误"
+    assert y0 < y1 , "x输入的坐标范围错误"
+    assert z0 < z1 , "x输入的坐标范围错误"
     pos = []
     xs = np.arange(x0, x1, step)
     ys = np.arange(y0, y1, step)
@@ -320,3 +323,17 @@ def get_distance_to_plane(params: list[float], pos: np.ndarray) -> float:
     x, y, z = pos
     distan = np.abs(a * x + b * y + c * z + d) / np.sqrt(a**2 + b**2 + c**2)
     return distan
+
+def value2color(value:float,vmin:float,vmax:float,cmin:np.ndarray,cmax:np.ndarray):
+    """将数值映射为颜色
+
+    Args:
+        value (float): 数值
+        vmin (float): 数值下限
+        vmax (float): 数值上限
+        cmin (np.ndarray): 下限颜色
+        cmax (np.ndarray): 上限颜色
+    """
+    k=(value-vmin)/(vmax-vmin)
+    color=cmin+k*(cmax-cmin)
+    return color

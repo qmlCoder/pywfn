@@ -50,6 +50,14 @@ class Calculator:
         result[:,1]=spins[:,1]-spins[:,2]
         return result
     
+    def dual(self,molN:Mol,molP:Mol,chrg:Chrgs='mulliken')->np.ndarray:
+        """计算凝聚双描述符
+        """
+        mols=[molN,self.mol,molP]
+        cals=[charge.Calculator(mol) for mol in mols]
+        vals=[cal.charge(chrg) for cal in cals]
+        return vals[1]*2-vals[0]-vals[2]
+    
     # 电子能差
     def engDiff(self,molN:Mol,molP:Mol):
         from pywfn.atomprop import energy

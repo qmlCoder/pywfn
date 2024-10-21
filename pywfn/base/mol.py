@@ -38,6 +38,7 @@ import threading
 from typing import Callable
 import collections
 import re
+import copy
 
 class Props(dict):
     def __init__(self) -> None:
@@ -61,7 +62,7 @@ class Mol:
         self._atoms:Atoms=Atoms(self)
         self._bonds:Bonds=Bonds(self)
         self.reader:"reader.Reader"=reader
-        self.props=Props()
+        self.props:Props=Props()
         self.bohr:bool=False # 是否使用波尔坐标
     
     @cached_property
@@ -280,52 +281,8 @@ class Mol:
                 DM[j,i]=dis
         return DM
 
-    
-    def projCM(self,obts:list[int],atms:list[int],dirs:list[np.ndarray]
-               ,akeep:bool,lkeep:bool,akeeps=None,keeps:str|None=None)->np.ndarray:
-        """
-        获取投影后的系数矩阵
-        atms:需要投影的原子
-        obts:需要投影的轨道
-        dirs:投影到的方向 atms和dirs的长度必须相同
-        akeep:其它原子系数是否保留 keep other atoms
-        lkeep:其它价层系数是否保留 keep other layer
-        akeeps:额外保留的原子，不进行投影但是保留
-        lkeeps:额外保留的轨道，可以使用正则表达式匹配
-        """
-        assert isinstance(dirs,list),"方向向量需为列表"
-        assert len(atms)==len(dirs),"原子和方向数量不同"
-        if akeep:
-            CMp=np.copy(self.CM)
-        else:
-            CMp=np.zeros_like(self.CM,dtype=np.float32) #新的系数矩阵
-            
-        for a,(atom,vect) in enumerate(zip(atms,dirs)):
-            atom=self.atom(atom)
-            nebNum=len(atom.neighbors)
-            u,l=atom.obtBorder
-            syms=self.obtSyms[u:l]
-            
-            pIdx=[i for i,s in enumerate(syms) if 'P' in s]
-            if len(pIdx)==0:continue # 没有p轨道则跳过
-            for o,obt in enumerate(obts):
-                if lkeep:
-                    Co=self.CM.copy()[u:l,obt]
-                else:
-                    Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
-                if keeps is not None: # 其它保留的层
-                    idxs=[i for i,s in enumerate(syms) if re.match(keeps,s)]
-                    Cos=atom.obtCoeffs.copy()[idxs,obt]
-                    Co[idxs]=Cos
-                Cop=atom.get_pProj(vect,obt)
-                Co[pIdx]=np.concatenate(Cop)
-                CMp[u:l,obt]=Co.copy()
-        if akeeps is not None: # 保留一些指定的原子的系数
-            for a in akeeps:
-                atom=self.atom(a)
-                u,l=atom.obtBorder
-                CMp[u:l]=self.CM[u:l]
-        return CMp
-
     def __repr__(self):
         return f'atom number: {len(self.atoms)}'
+    
+    def clone(self):
+        return copy.deepcopy(self)

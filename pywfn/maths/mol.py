@@ -40,9 +40,9 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
         atom=mol.atom(atom)
         nebNum=len(atom.neighbors)
         u,l=atom.obtBorder
-        syms=mol.obtSyms[u:l]
+        syms=mol.obtSyms[u:l] #该原子的轨道符号
         
-        pIdx=[i for i,s in enumerate(syms) if 'P' in s]
+        pIdx=[i for i,s in enumerate(syms) if 'P' in s] # p轨道的索引
         if len(pIdx)==0:continue # 没有p轨道则跳过
         for o,obt in enumerate(obts):
             if lkeep:
@@ -54,7 +54,9 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
                 Cos=atom.obtCoeffs[idxs,obt].copy()
                 Co[idxs]=Cos
             Cop=atom.get_pProj(vect,obt)
-            Co[pIdx]=np.concatenate(Cop)
+            Cop=np.concatenate(Cop)
+            if len(Cop)>6:Cop[:3]=0 # 只要价层轨道
+            Co[pIdx]=Cop
             CMp[u:l,obt]=Co.copy()
     if akeeps is not None: # 保留一些指定的原子的系数
         for a in akeeps:
@@ -73,8 +75,8 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray]:
         tuple[np.ndarray,np.ndarray,np.ndarray]: 距离矩阵，能量，系数矩阵
     """
     # 1.建立键连矩阵
-    atms=mol.heavyAtoms
-    natm=len(atms)
+    atms=mol.heavyAtoms # 重原子列表
+    natm=len(atms) # 重原子数量
     BM=np.zeros(shape=(natm,natm)) # 键连矩阵
     DM=np.zeros_like(BM) # 键长矩阵
     for i,j in product(range(natm),range(natm)):
@@ -91,3 +93,43 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray]:
     sC=C[:,idxs].copy() # 每一列对应一个特征向量
     se=e[idxs].copy()
     return DM,se,sC
+
+def eleMat(mol:Mol)->np.ndarray:
+    """计算与分子轨道系数矩阵对应的电子分布矩阵"""
+    # 使用法向量可以计算每个分子的pi电子分布
+    from pywfn.maths import flib
+    obts=mol.O_obts
+
+    nobt=len(obts)
+    CM=mol.CM[:,obts].copy()
+    nmat,nobt=CM.shape
+    NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
+    return NM
+
+def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
+    """
+    电子能量分布矩阵
+    """
+    obts=mol.O_obts
+    obtEngs=np.array(mol.obtEngs).reshape(1,-1)[:,obts]
+    EM=NM*obtEngs
+    return EM
+
+def piEleMat(mol:Mol)->np.ndarray:
+    """计算与分子轨道系数矩阵对应的pi电子分布矩阵"""
+    from pywfn.atomprop import direction
+    dirCaler=direction.Calculator(mol)
+    dirs=[]
+    atms=[]
+    for i in range(mol.atoms.natm):
+        normal=dirCaler.normal(i+1)
+        if normal is None:continue
+        dirs.append(normal)
+        atms.append(i+1)
+    obts=mol.O_obts
+    CMp=projCM(mol,obts,atms,dirs,False,False)
+    molP=mol.clone()
+    molP.props.set('CM',CMp)
+    NM=eleMat(molP)
+    del molP
+    return NM

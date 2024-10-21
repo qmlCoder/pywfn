@@ -8,6 +8,7 @@ from pywfn.spaceProp import density,dftgrid
 from pywfn import maths
 from typing import Literal
 from pywfn.maths import CM2PM
+from pywfn.maths.mol import projCM
 
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
@@ -140,7 +141,7 @@ class Calculator(AtomCaler):
             fatm=fatms[d]
             fdir=fdirs[d]
             atom=self.mol.atom(fatm)
-            CMp=self.mol.projCM(obts,[fatm],[fdir],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
+            CMp=projCM(self.mol,obts,[fatm],[fdir],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
             PMp=CM2PM(CMp,obts,self.mol.oE)
             self.PM=PMp # 修改密度矩阵
 
@@ -163,7 +164,7 @@ class Calculator(AtomCaler):
             atms.append(atom.idx)
             dirs.append(normal)
             idxs.append(idx)
-        CMp=self.mol.projCM(self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
+        CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
         PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
         PMo=self.PM.copy() # 备份老的密度矩阵
         self.PM=PMp # 将密度矩阵替换为投影后的密度矩阵

@@ -13,6 +13,7 @@ if Path('pywfn').exists():
         for name in files:
             if Path(name).suffix in ['.pyc','.py']:continue
             shutil.copyfile(f'{root}/{name}',f'data/{name}')
+            
     for root,dirs,files in os.walk(f'{cwd}/pywfn/libs'):
         for name in files:
             if Path(name).suffix in ['.f90','.mod','.o']:continue
@@ -23,7 +24,7 @@ config.ROOT_DATA=Path.cwd()/'data'
 config.ROOT_LIBS=Path.cwd()/'libs'
 # print(f'{config.ROOT_DATA}')
 # print(f'{config.ROOT_LIBS}')
-os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
+# os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
 if __name__=='__main__':
     from pywfn.shell import Shell
     Shell().homePage()

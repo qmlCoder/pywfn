@@ -128,12 +128,6 @@ class Calculator:
                 vmena=(va+vb+vc)/3.0
                 angle=vector_angle(vmena,normal)
                 if angle<0.5:normal*=-1
-                # vects=[
-                #     normal,
-                #     search_sp2Dir(normal.copy(),va,vb,vc),
-                #     search_sp2Dir(normal.copy(),vb,va,vc),
-                #     search_sp2Dir(normal.copy(),vc,va,vb),
-                # ]
                 vects=[normal]
                 return np.array(vects)
         
@@ -196,9 +190,9 @@ class Calculator:
         return None
 
     def coordSystem(self,atm:int,neb:int)->np.ndarray:
-        """原子之上建立一组基坐标\n
-        - y方向: atm -> beb\n
-        - z方向: atm的法向量\n
+        """原子之上建立一组基坐标
+        - y方向: atm -> beb
+        - z方向: atm的法向量
         - x方向: y.z叉乘方向
 
         Args:

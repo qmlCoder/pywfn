@@ -4,6 +4,10 @@ module flib
     use iso_c_binding
 contains
 
+subroutine info() bind(c, name='info_')
+    write(*,*)'Hello from Fortran'
+end subroutine info
+
 subroutine add(x, y, res) bind(c, name='add_')
     use iso_c_binding
     implicit none
@@ -365,5 +369,48 @@ subroutine eleMat(nmat,nobt,CM,SM,NM) bind(c, name="eleMat_")
     end do
         
 end subroutine eleMat
+
+subroutine nucPotential(ncord, cords, natm, nucs, xyzs, vals) bind(c, name="nucPotential_")!计算原子势
+    integer(c_int), intent(in),value :: ncord !要计算的点的数量
+    real(c_double), intent(out) ::  cords(3,ncord) !要计算的点的坐标
+    integer(c_int), intent(in),value :: natm !原子数量
+    integer(c_int), intent(in) :: nucs(natm) !原子核电荷
+    real(c_double), intent(in) :: xyzs(3,natm) !原子坐标
+    real(c_double), intent(out) :: vals(ncord) !要计算的点的势能值
+    integer::i,j
+    real(c_double)::dist !原子与格点之间的距离
+    do i=1,ncord
+        do j=1,natm
+            dist=sqrt(dot_product(xyzs(:,j)-cords(:,i),xyzs(:,j)-cords(:,i))) !原子与格点之间的距离
+            if (dist<1e-6) continue
+            vals(i)=vals(i)+nucs(j)/dist
+        end do
+    end do
+end subroutine nucPotential
+
+subroutine elePotential(ncord,cords,ngrid, grids, weits, dens, vals) bind(c, name="elePotential_")!计算电子势
+    integer(c_int), intent(in),value :: ncord !要计算的点的数量
+    real(c_double), intent(in) ::  cords(3,ncord) !要计算的点的坐标
+    integer(c_int), intent(in),value :: ngrid !dft格点的数量
+    real(c_double), intent(in) ::  grids(3,ngrid) !dft格点
+    real(c_double), intent(in) :: weits(ngrid) !格点权重
+    real(c_double), intent(in) :: dens(ngrid) !电子密度
+    
+    real(c_double), intent(out) :: vals(ncord) !要计算的点的势能值
+    integer::i,j
+    real(c_double)::dists(ngrid) !坐标与格点之间的距离矩阵
+    real(c_double)::wdens(ngrid)
+
+    wdens=dens*weits !计算格点对应的电子密度x权重，减少计算量
+    do i=1,ncord
+        do j=1,ngrid
+            dists(j)=sum((grids(:,j)-cords(:,i))**2)**0.5 ! 计算当前坐标点与所有格点之间的距离
+        end do
+        where (dists < 1e-6)
+            dists = 1e-6
+        end where
+        vals(i)=sum(wdens/dists)
+    end do
+end subroutine elePotential
 
 end module flib

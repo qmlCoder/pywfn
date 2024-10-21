@@ -19,7 +19,8 @@ def onShell(shell:"shell.Shell"):
         '3':'分割link 任务',
         '4':'拼接 gjf 文件',
         '5':'提取  SI 信息',
-        '6':'环心添加Bq原子'
+        '6':'环心添加Bq原子',
+        '7':'加/减gjf电子数'
         
     })
     opt=input('请输入选项：')
@@ -55,3 +56,19 @@ def onShell(shell:"shell.Shell"):
         mol=shell.input.Moles(count=1)[0]
         tool=ringBq.Tool(mol)
         tool.onShell(shell)
+    elif opt=='7':
+        from pywfn.tools import editGjf
+        mols=shell.input.Moles()
+        nele=input('输入加减电子数: ')
+        nele=int(nele)
+        if nele>0:
+            sufx='p'
+        elif nele<0:
+            sufx='n'
+        else:
+            raise ValueError('加减电子数不能为0')
+        for mol in mols:
+            tool=editGjf.Tool(mol)
+            tool.addEle(nele)
+            path=Path(mol.reader.path)
+            tool.save(f'{path.parent}/{path.stem}_{sufx}.gjf')
