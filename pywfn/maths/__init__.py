@@ -51,11 +51,12 @@ def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
     vx=np.cross(vz,vy)
     p0=cent-vx/2*sx-vy/2*sy
     # print(p0,cent,vx,vy)
-    pos=[]
+    grid=[]
     for dx in dxs:
         for dy in dys:
-            pos.append(p0+vx*dx+vy*dy)
-    return nx,ny,np.array(pos)
+            grid.append(p0+vx*dx+vy*dy)
+    return (nx,ny),np.array(grid)
+
 
 def lineGrid(p0:np.ndarray,p1:np.ndarray):
     """获取一条线上的空间坐标"""

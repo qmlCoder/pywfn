@@ -14,6 +14,7 @@ import numpy as np
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
+        self.noNorms=[] # 已经计算过的原子法向量
 
     def pOrbital(self)->np.ndarray|None:
         """计算p轨道的方向向量"""
@@ -66,7 +67,7 @@ class Calculator:
         """计算周围一圈的球形范围"""
         pass
 
-    def reaction(self,atm:int)->np.ndarray:
+    def reactions(self,atm:int)->np.ndarray:
         """ reaction around
         计算原子可能的反应方向 以原子为中心的向量
 
@@ -87,7 +88,7 @@ class Calculator:
         if len(nebs)==1:
             dirs=np.array([self.normal(atm)])
             return dirs
-        if len(nebs)==2:
+        if len(nebs)==2: # 两个原子的时候，代表卡宾C原子，在整个区域内分布
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
             vb=self.mol.atom(ib).coord-atom.coord
@@ -96,21 +97,30 @@ class Calculator:
             vm=(va+vb)/2.0 # 中间向量
 
             angle=vector_angle(va,vb) # 两向量之间的夹角
-            linear=abs(1-angle)<1e-1 # 是否为线性
-            cent=atom.coord
-            axis=va-vb # 要保证旋转
+            linear=abs(1-angle)<2e-2 # 是否为线性
+            cent=atom.coord # 旋转中心，原子所在坐标
+            # print('线性:',linear,abs(1-angle))
+            
             if linear:
+                axis=va-vb # 旋转轴
                 anyv=get_anyv(axis) # 保证相同分子每次计算结果都一致
                 cros=np.cross(axis,anyv) # 计算垂直于键轴和任意向量的向量
+                cros/=np.linalg.norm(cros)
                 angs=np.linspace(0,np.pi*2,35,endpoint=False)
+                points=(cent+cros).reshape(-1,3)
+                dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
+                dirs=np.concatenate(dirs,axis=0)
             else:
                 cros=np.cross(va,vb) # 垂直于va和vb的向量
                 angs=np.linspace(0,np.pi,19,endpoint=True)
-            cros/=np.linalg.norm(cros)
-            points=(cent+cros).reshape(-1,3)
-            dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
-            dirs=np.concatenate(dirs,axis=0)
-            if vector_angle(vm,dirs[9])>0.5:dirs*=-1
+                cros/=np.linalg.norm(cros)
+                points=(cent+cros).reshape(-1,3)
+                dirs=[]
+                for axis in (va,va-vb,-vb):
+                    print(points)
+                    dirs+=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
+                dirs=np.concatenate(dirs,axis=0)
+                if vector_angle(va+vb,dirs[28])<0.5:dirs*=-1
             return dirs
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord for n in nebs]
@@ -142,26 +152,30 @@ class Calculator:
         Returns:
             np.ndarray|None: 原子法向量，可能没有(None)
         """
+        def deep_search(atm:int):
+            atom=self.mol.atom(atm)
+            searchd=[atm] # 已经搜索的原子
+            searchs=atom.neighbors # 将要搜索的原子
+            while len(searchs)>0:
+                idx=searchs.pop(0)
+                searchd.append(idx)
+                atom=self.mol.atom(idx)
+                norm=self.normal(idx)
+                if norm is not None:
+                    # print(idx,norm)
+                    return idx,norm
+                for each in atom.neighbors:
+                    if each in searchd:continue
+                    searchs.append(each)
+            return None
         
         atom=self.mol.atom(atm)
         if 'normal' in atom._props.keys(): # 方便用户指定
             return atom._props['normal']
         nebs=atom.neighbors
         if len(nebs)==1: # 如果只连接一个原子
-            neb=nebs[0]
-            nebb=self.mol.atom(neb).neighbors
-            if len(nebb) in [2,3]:
-                nnorm=self.normal(neb)
-                assert nnorm is not None,f"原子{atm}没有法向量"
-                bnorm=np.cross(nnorm,self.mol.atom(atm).coord-self.mol.atom(neb).coord)
-                bnorm/=np.linalg.norm(bnorm)
-                snorm=np.cross(nnorm,bnorm)
-                snorm/=np.linalg.norm(snorm)
-                if vector_angle(snorm,nnorm)>0.5:
-                    snorm*=-1
-                return nnorm
-            else:
-                return None
+            idx,normal=deep_search(atm)
+            return normal
         if len(nebs)==2:
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
@@ -169,13 +183,16 @@ class Calculator:
             angle=vector_angle(va,vb)
             linear=abs(1-angle)<1e-1
             if linear:
-                return None
+                idx,normal=deep_search(atm)
+                atom._props['normal']=normal
+                return normal
             else:
                 va/=np.linalg.norm(va)
                 vb/=np.linalg.norm(vb)
                 normal=np.cross(va,vb)
                 normal/=np.linalg.norm(normal)
                 if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
+                atom._props['normal']=normal
                 return normal
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord.copy() for n in nebs]
@@ -186,6 +203,7 @@ class Calculator:
             normal=np.cross(vab,vac)
             normal/=np.linalg.norm(normal)
             if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
+            atom._props['normal']=normal
             return normal
         return None
 

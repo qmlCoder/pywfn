@@ -41,7 +41,8 @@ def onShell(shell:Shell):
         caler.onShell()
     elif opt=='4':
         from pywfn.atomprop import activity
-        caler=activity.Calculator()
+        mol=shell.input.Moles(tip='输入要计算活性的分子',num=1)[0]
+        caler=activity.Calculator(mol)
         caler.onShell(shell)
     else:
         return

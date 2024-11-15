@@ -31,9 +31,10 @@ class Shell:
             "0": "导入文件",
             "1": "键の性质",
             "2": "原子性质",
-            "3": "实用工具",
-            "4": "导出文件",
-            "5": "化学函数"
+            "3": "分子性质",
+            "4": "实用工具",
+            "5": "导出文件",
+            "6": "化学函数"
         }
         while True:
             opts["0"]=f"导入文件({len(self.paths)})"
@@ -49,12 +50,15 @@ class Shell:
                     from pywfn import atomprop
                     atomprop.onShell(self)
                 case "3":
+                    from pywfn import molprop
+                    molprop.onShell(self)
+                case "4":
                     from pywfn import tools
                     tools.onShell(self)
-                case "4":
+                case "5":
                     from pywfn import writer
                     writer.onShell(self)
-                case "5":
+                case "6":
                     from pywfn import chems
                     chems.onShell()
                 case 'q':
@@ -179,22 +183,27 @@ class Inputer:
                 self.Files()
                 continue
             if len(paths)<count:
-                printer.warn(f"文件数量不够,至少需要{count}个")
+                printer.warn(f"当前文件数量不够,至少需要{count}个")
                 self.Files()
                 continue
             idxs = self.Integ(f"输入分子编号: ")
-            if len(idxs) == count:break
+            if len(idxs) != count:
+                printer.warn(f"需要输入{count}个数字,当前{len(idxs)}个")
+            else:
+                break
             if count==0:break
         return [paths[int(idx)] for idx in idxs]
 
-    def Moles(self,count:int=0) -> list[Mol]:
+    def Moles(self,tip:str='',num:int=0) -> list[Mol]:
         """
         获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
         num:分子的数量
         mtype:返回路径还是分子类
         """
-        paths=self.Paths(count)
-
+        if tip!='':print(f'{tip}')
+        if num!=0:print(f'请输入{num}个分子')
+        paths=self.Paths(num)
+        
         mols = []
         for path in paths:
             if path not in self.shell.mols.keys():

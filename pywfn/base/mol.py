@@ -73,12 +73,12 @@ class Mol:
     def gto(self)->"maths.Gto":
         return maths.Gto(self)
 
-    @cached_property
+    @property
     def charge(self)->int:
         charge=self.props.get('charge',self.reader.get_charge)
         return charge
     
-    @cached_property
+    @property
     def spin(self)->int:
         spin=self.props.get('spin',self.reader.get_spin)
         return spin
@@ -176,7 +176,7 @@ class Mol:
         """第一次调用是生成键,第二次调用时直接返回,秒啊"""
         return self.bonds.get(idx1,idx2)
 
-    @cached_property
+    @property
     def coords(self)->np.ndarray:
         """返回原子坐标矩阵[n,3]"""
         coords=[atom.coord for atom in self.atoms]
@@ -224,6 +224,12 @@ class Mol:
         counts = collections.Counter(symbols)
         names=[f'{k}{v}' for k,v in counts.items()]
         return ''.join(names)
+    
+    @property
+    def molBorder(self):
+        p0=self.coords.min(axis=0)
+        p1=self.coords.max(axis=0)
+        return p0,p1
     
 
     def params(self,atms:tuple[int])->float:
@@ -282,7 +288,20 @@ class Mol:
         return DM
 
     def __repr__(self):
-        return f'atom number: {len(self.atoms)}'
+        atmDict={}
+        for atom in self.atoms:
+            if atom.symbol not in atmDict:
+                atmDict[atom.symbol]=1
+            else:
+                atmDict[atom.symbol]+=1
+        atmList=[(k,v) for k,v in atmDict.items()]
+        # print('排序前',atmList)
+        atmList.sort(key=lambda x:x[1],reverse=True)
+        # print('排序后',atmList)
+        name=''.join([f'{k}{v}' for k,v in atmList])
+        natm=self.atoms.num
+        nele=sum(self.eleNum)
+        return f'<{name},{natm},{nele},{self.charge},{self.spin}>'
     
     def clone(self):
         return copy.deepcopy(self)

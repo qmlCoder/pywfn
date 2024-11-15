@@ -17,6 +17,7 @@ class Calculator(AtomCaler):
         self.logTip:str=''
         self.mol=mol
         self.chrg:Chrgs='mulliken'
+        self.form:str='charge' # 输出格式，电子数或电荷数
         self.PM=self.mol.PM.copy() # 计算时使用的密度矩阵
         
     def charge(self,chrg:Chrgs)->np.ndarray:
@@ -48,12 +49,17 @@ class Calculator(AtomCaler):
         PS=self.PM@self.mol.SM
         EV=np.diagonal(PS) # 矩阵的对角元素
         atoms=self.mol.atoms
-        charges=np.zeros(len(atoms))
+        elects=np.zeros(len(atoms))
         for a,atom in enumerate(atoms):
             u,l=atom.obtBorder
             elect=EV[u:l].sum()
-            charges[a]=atom.atomic-elect
-        return charges
+            elects[a]=elect
+            # charges[a]=atom.atomic-elect
+        if self.form=='number':
+            return elects
+        if self.form=='charge':
+            return np.array(self.mol.atoms.atomics)-elects
+        # return charges
     
     def lowdin(self)->np.ndarray:
         """
@@ -69,27 +75,33 @@ class Calculator(AtomCaler):
         SM_half=Q@(V_@Q_)
         SPS=SM_half@(PM@SM_half)
         eleNums=np.diagonal(SPS)
-        charges=np.zeros(len(self.mol.atoms))
+        elects=np.zeros(len(self.mol.atoms))
         for a,atom in enumerate(self.mol.atoms):
             u,l=atom.obtBorder
             eleNum=eleNums[u:l].sum()
-            charges[a]=atom.atomic-eleNum
-        return charges
+            elects[a]=eleNum
+        if self.form=='number':
+            return elects
+        if self.form=='charge':
+            return np.array(self.mol.atoms.atomics)-elects
     
     def sapce(self)->np.ndarray:
         """计算空间电荷,DFT格点数值积分"""
         gridCaler=dftgrid.Calculator(self.mol)
         grid,weit=gridCaler.molGrid()
         densCaler=density.Calculator(self.mol)
-        PMo=densCaler.PM # 备份旧的PM
+        # PMo=densCaler.PM # 备份旧的PM
         densCaler.PM=self.PM # 设为当前PM
-        charges=np.zeros(len(self.mol.atoms))
+        elects=np.zeros(len(self.mol.atoms))
         for a,atom in enumerate(self.mol.atoms):
             dens=densCaler.atmDens(atom.idx,grid)
             eleNum=np.sum(dens*weit)
-            charges[a]=atom.atomic-eleNum
-        densCaler.PM=PMo # 恢复旧的PM
-        return charges
+            elects[a]=eleNum
+        # densCaler.PM=PMo # 恢复旧的PM
+        if self.form=='number':
+            return elects
+        if self.form=='charge':
+            return np.array(self.mol.atoms.atomics)-elects
     
     def hirshfeld(self)->np.ndarray:
         """
@@ -98,8 +110,9 @@ class Calculator(AtomCaler):
         from pywfn.spaceProp import density
         from pywfn.data import radDens
         gridCaler=dftgrid.Calculator(self.mol)
-        grid,weit=gridCaler.molGrid()
+        
         densCaler=density.Calculator(self.mol)
+        grid,weit=gridCaler.molGrid()
         densCaler.set_grid(grid)
         PMo=densCaler.PM # 备份旧的PM
         densCaler.PM=self.PM # 设为当前PM
@@ -107,7 +120,7 @@ class Calculator(AtomCaler):
         npos=len(grid)
         natm=self.mol.atoms.natm
         pdens=np.zeros(npos) # 前体电子密度
-        fdensl=[]
+        fdensl=[] # 原子自由电子密度
         # print(time.time())
         for atom in self.mol.atoms:
             radius=np.linalg.norm(grid-atom.coord,axis=1)
@@ -128,53 +141,54 @@ class Calculator(AtomCaler):
             Ps[a]=np.sum(Wa*mdens*weit) # 真实体系的电子布局
         chargs=Zs-Ps
         densCaler.PM=PMo # 恢复旧的PM
-        return chargs
+        if self.form=='number':
+            return np.array(self.mol.atoms.atomics)-chargs
+        if self.form=='charge':
+            return chargs
     
-    def dirElectron(self,chrg:Chrgs,atms:list[int],dirs:list[np.ndarray]|None=None)->np.ndarray:
+    def dirElectron(self,atms:list[int],dirs:list[np.ndarray],ctype:str)->np.ndarray:
         """计算不同方向的电子[n,5](atm,x,y,z,val)"""
-        fatms,fdirs=fit_dirs(self.mol,atms,dirs) # 矫正原子索引和方向，使数量相等
-        assert len(fatms)==len(fdirs),"原子与方向数量要相同"
-        result=np.zeros(shape=(len(fdirs),5))
+        # fatms,fdirs=fit_dirs(self.mol,atms,dirs) # 矫正原子索引和方向，使数量相等
+        assert len(atms)==len(dirs),"原子与方向数量要相同"
+        # result=np.zeros(shape=(len(dirs),5))
         obts=self.mol.O_obts
         PMo=self.PM.copy() # 记录旧的密度矩阵
-        for d in range(len(fdirs)):
-            fatm=fatms[d]
-            fdir=fdirs[d]
-            atom=self.mol.atom(fatm)
-            CMp=projCM(self.mol,obts,[fatm],[fdir],False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
-            PMp=CM2PM(CMp,obts,self.mol.oE)
-            self.PM=PMp # 修改密度矩阵
+        self.form='number'
 
-            val=self.charge(chrg)[fatm-1]
-            x,y,z=fdir.tolist()
-            result[d]=[fatm,x,y,z,atom.atomic-val]
+        CMp=projCM(self.mol,obts,atms,dirs,False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
+        PMp=CM2PM(CMp,obts,self.mol.oE)
+        self.PM=PMp # 修改密度矩阵
+        vals=self.charge(ctype)
         self.PM=PMo # 恢复旧的密度矩阵
-        return result
+        return vals
     
-    def piElectron(self,chrg:Chrgs):
+    def piElectron(self,ctype:str):
         """计算π电子"""
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol)
-        atms=[]
-        dirs=[]
-        idxs=[]
-        for idx,atom in enumerate(self.mol.atoms):
+        atmDirs={} # 记录每一个原子的方向
+        for atom in self.mol.atoms:
             normal=dirCaler.normal(atom.idx) # 原子的法向量
             if normal is None:continue # 没有法向量就跳过
-            atms.append(atom.idx)
-            dirs.append(normal)
-            idxs.append(idx)
+            atmDirs[atom.idx]=normal
+        atms=list(atmDirs.keys())
+        dirs=list(atmDirs.values())
+        
         CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
         PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
         PMo=self.PM.copy() # 备份老的密度矩阵
         self.PM=PMp # 将密度矩阵替换为投影后的密度矩阵
-        charges=self.charge(chrg)
-        # print(charges)
+        self.form='number'
+        eleNums=self.charge(ctype)
+        # print(eleNums)
         result=[]
-        for i,atm in enumerate(atms):
-            if i not in idxs:continue
-            x,y,z=dirs[i]
-            ele=self.mol.atoms[i].atomic-charges[idxs[i]]
+        for atom in self.mol.atoms:
+            atm=atom.idx
+            if atm in atms:
+                x,y,z=atmDirs[atm]
+            else:
+                x,y,z=[0,0,0]
+            ele=eleNums[atm-1]
             result.append([atm,x,y,z,ele])
         self.PM=PMo
         return np.array(result)

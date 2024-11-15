@@ -4,29 +4,43 @@
 """
 from pywfn.base import Mol
 from pywfn.atomprop import charge
-from pywfn.bondprop import order
+from pywfn.bondprop import order as orderProp
 import numpy as np
+from pywfn.shell import Shell
+from pywfn.utils import printer
 
 class Calculator:
     def __init__(self, mol:Mol):
         self.mol = mol
-        self.caler=order.Calculator(mol)
         self.ratio=0.5
     
-    def pisd_v1(self): # 版本1 直接用键级标准差
-        result=self.caler.pi_pocv()
+    def pisd(self,ring:list[int]=None): # 版本1 直接用键级标准差
+        caler=orderProp.Calculator(self.mol)
+        result=caler.pi_pocv()
         orders=result[:,-1]
         forders=[] # 过滤掉C-H键
-        for i in range(len(orders)):
+        for i,order in enumerate(orders):
             atm1=int(result[i,0])
             atm2=int(result[i,1])
             if self.mol.atom(atm1).atomic==1:continue
             if self.mol.atom(atm2).atomic==1:continue
-            forders.append(orders[i])
+            if len(self.mol.atom(atm1).neighbors)==4:continue
+            if len(self.mol.atom(atm2).neighbors)==4:continue
+            if ring is None:
+                print(f'{atm1:>2}-{atm2:>2}:{order:>10.4f}')
+                forders.append(order)
+            elif (atm1 in ring and atm2 in ring):
+                print(f'{atm1:>2}-{atm2:>2}:{order:>10.4f}')
+                forders.append(order)
+            
+        if len(forders)==0:
+            printer.warn('没有键')
+            return 0
         return np.std(forders).item()
     
-    def pisd_v2(self): # 版本2 使用键级均值和标准差
-        result=self.caler.pi_pocv()
+    def pimsd(self): # 版本2 使用键级均值和标准差
+        caler=orderProp.Calculator(self.mol)
+        result=caler.pi_pocv()
         orders=result[:,-1]
         forders=[] # 过滤掉C-H键
         for i in range(len(orders)):
@@ -40,9 +54,10 @@ class Calculator:
         ratio=self.ratio
         return (ratio*mean-(1-ratio)*stds).item()
 
-    def pimed(self): # 版本2 使用键级均值和标准差
+    def pimed(self): # 使用键级类比于HOMED方法
         D=0.2
-        result=self.caler.pi_pocv()
+        caler=orderProp.Calculator(self.mol)
+        result=caler.pi_pocv()
         orders=result[:,-1]
         forders=[] # 过滤掉C-H键
         for i in range(len(orders)):
@@ -51,11 +66,9 @@ class Calculator:
             if self.mol.atom(atm1).atomic==1:continue
             if self.mol.atom(atm2).atomic==1:continue
             forders.append((orders[i]-0.66)**2)
-        # mean=np.mean(forders)
-        # stds=np.std(forders)
-        # ratio=self.ratio
         nbond=self.mol.bonds.num
-        return (1-np.sum(forders)/(nbond*D)).item()
+        result=1-sum(forders)/(nbond*D)
+        return result
     
     def homed(self):
         D=0.2
@@ -69,3 +82,31 @@ class Calculator:
         val=sum(vals)
         # print(vals)
         return 1-val/(self.mol.bonds.num*D)
+    
+    def onShell(self,shell:Shell):
+        from pywfn.utils import printer
+        while True:
+            printer.options('芳香性',{
+                '1':'piSD  (根据pi键级的标准差)',
+                '2':'piMSD (根据pi键级的均值和标准差)',
+                '3':'piMED',
+                '4':'HOMED',
+            })
+            opt=input('选择计算活性类型:')
+            ring=shell.input.Integ('?输入环编号: ')
+            if len(ring)==0:ring=None
+            match opt:
+                case '1':
+                    result=self.pisd(ring)
+                    print(f'{result}')
+                case '2':
+                    result=self.pimsd()
+                    print(f'{result}')
+                case '3':
+                    result=self.pimed()
+                    print(f'{result}')
+                case '4':
+                    result=self.homed()
+                    print(f'{result}')
+                case _:
+                    break

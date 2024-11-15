@@ -8,7 +8,6 @@
 """
 from pywfn.base import Mol
 from pywfn.spaceProp import wfnfunc
-from pywfn.data import sphGrid
 from functools import cached_property,lru_cache
 from pywfn.spaceProp import dftgrid
 from pywfn import maths

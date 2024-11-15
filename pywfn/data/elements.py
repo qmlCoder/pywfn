@@ -8,6 +8,7 @@
 from functools import lru_cache
 
 rawData = [
+    [ 0, "Bq", 25],
     [ 1, "H" , 32],
     [ 2, "He", 46],
     [ 3, "Li",133],

@@ -107,19 +107,24 @@ class LogReader(reader.Reader):
         # 所有标题所在的行
         def sear_group(start:int): #每一个搜索的线程
             # print(f'search_group:{start}')
-            keys=list(self.titles.keys()) # 总的key
-            keys=[key for key in keys if self.titles[key].line==-1] # 需要搜索的key
-            if len(keys)==0:return
+            rkeys=list(self.titles.keys()) # 总的key
+            fkeys=[]
+            for key in rkeys:
+                title = self.titles[key]
+                if title.line!=-1 and title.multi==False:continue # 如果已经有行数，而且不是多次匹配，则跳过
+                fkeys.append(key)
+            # keys=[key for key in keys if self.titles[key].line==-1] # 需要搜索的key,如果不是-1则代表不需要搜索
+            if len(fkeys)==0:return
             for j in range(start,start+bsize):
                 line=self.getline(j)
                 if line=='':break
-                for key in keys:
+                for key in fkeys:
                     title:Title=self.titles[key]
-                    if title.line!=-1 and title.multi==False:continue
                     if not title.judge(line):continue
                     self.titles[key].set_lnum(j)
+                    # print(key,j)
                     if j>=self.titles[key].line:
-                        self.titles[key].line=j
+                        # self.titles[key].line=j
                         self.conf[f'title_{key}']=j
                         self.save_config()
         nWork=5
@@ -133,7 +138,7 @@ class LogReader(reader.Reader):
     
     @property
     def normalEnd(self)->bool:
-        lastLine=self.getline(self.lineNum)
+        lastLine='\n'.join(self.getlines(self.lineNum-10,self.lineNum))
         return 'Normal termination of Gaussian' in lastLine
     
     @lru_cache

@@ -219,6 +219,10 @@ class Atoms:
     def symbols(self)->tuple[str]:
         return tuple(a.symbol for a in self.atoms)
     
+    @property
+    def syms(self)->tuple[str]:
+        return tuple(a.symbol for a in self.atoms)
+    
     
     @property
     def indexs(self)->tuple[int]:

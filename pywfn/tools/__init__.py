@@ -62,13 +62,15 @@ def onShell(shell:"shell.Shell"):
         nele=input('输入加减电子数: ')
         nele=int(nele)
         if nele>0:
-            sufx='p'
-        elif nele<0:
             sufx='n'
+        elif nele<0:
+            sufx='p'
         else:
             raise ValueError('加减电子数不能为0')
         for mol in mols:
             tool=editGjf.Tool(mol)
-            tool.addEle(nele)
+            oldCharge,oldSpin=tool.addEle(nele)
             path=Path(mol.reader.path)
             tool.save(f'{path.parent}/{path.stem}_{sufx}.gjf')
+            mol.props.set('charge',oldCharge)
+            mol.props.set('spin',oldSpin)

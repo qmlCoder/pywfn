@@ -10,8 +10,8 @@ import sys
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.nrad=74
-        self.nsph=74
+        self.nrad=100 # 径向格点数量
+        self.nsph=74 # 球面格点数量
 
     def radGrid(self,atmic:int):
         pi=np.pi
@@ -29,9 +29,6 @@ class Calculator:
             ws.append(wi)
         rs=np.array(rs,dtype=np.float32)
         ws=np.array(ws,dtype=np.float32)*4.*pi
-        # print("原子径向格点",R)
-        # for r,w in zip(rs,ws):
-        #     print(f'{r:>10.4f}{w:>10.4f}')
         return rs,ws
 
     def sphGrid(self)->tuple[np.ndarray,np.ndarray]:
@@ -45,6 +42,8 @@ class Calculator:
             case 14:result=lebedev.LD0014()
             case 26:result=lebedev.LD0026()
             case 74:result=lebedev.LD0074()
+            case 86:result=lebedev.LD0086()
+            case 434:result=lebedev.LD0434()
             case _:
                 print("原子角度格点数量不匹配!!")
                 sys.exit(1)
@@ -71,7 +70,6 @@ class Calculator:
     def atmGrid(self,atm:int):
         """单个原子的网格点坐标，以原子为中心"""
         atmGrid,atmWeit=self.dftGrid(atm)
-        # atmGrid,atmWeit=sphGrid.grids,sphGrid.weits
         atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3) #移动到以原子为中心
         return atmGrid,atmWeit
     

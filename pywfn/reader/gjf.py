@@ -3,9 +3,11 @@
 """
 from numpy import ndarray
 from pywfn import reader
+from pywfn.data.elements import elements
 import re
 import numpy as np
 from functools import lru_cache
+
 
 class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
@@ -29,10 +31,12 @@ class GjfReader(reader.Reader):
 
     @lru_cache
     def read_coord(self):
-        finds=re.findall(r' ([A-Za-z]+) +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)',self.text)
+        finds:list[str]=re.findall(r' ([A-Za-z\d]+) +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)',self.text)
         symbols=[]
         coords=[]
         for s,x,y,z in finds:
+            if s.isdigit():
+                s=elements[int(s)].symbol
             symbols.append(s)
             coords.append([x,y,z])
         coords=np.array(coords,dtype=np.float32)*1.889

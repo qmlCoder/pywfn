@@ -1,5 +1,6 @@
 from pywfn.base import Mol
 from pywfn.maths import vector_angle
+from pywfn.maths import flib
 
 import numpy as np
 import re
@@ -55,7 +56,7 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
                 Co[idxs]=Cos
             Cop=atom.get_pProj(vect,obt)
             Cop=np.concatenate(Cop)
-            if len(Cop)>6:Cop[:3]=0 # 只要价层轨道
+            # if len(Cop)>6:Cop[:3]=0 # 只要价层轨道
             Co[pIdx]=Cop
             CMp[u:l,obt]=Co.copy()
     if akeeps is not None: # 保留一些指定的原子的系数
@@ -65,7 +66,7 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
             CMp[u:l]=mol.CM[u:l].copy()
     return CMp
 
-def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray]:
+def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """求解休克尔分子轨道法
 
     Args:
@@ -87,17 +88,20 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray]:
         BM[i,j]=1.0
         BM[j,i]=1.0
     # 2.求解
-    e,C=np.linalg.eig(BM) # 矩阵对角化
+    es,CM=np.linalg.eig(BM) # 矩阵对角化
     nele=int(len(atms)-mol.charge) #电子数量
-    idxs=np.argsort(e)[:nele//2] # 占据轨道
-    sC=C[:,idxs].copy() # 每一列对应一个特征向量
-    se=e[idxs].copy()
-    return DM,se,sC
+    # idxs=np.argsort(es)[:nele//2] # 占据轨道
+    idxs=np.argsort(-es) # 占据轨道
+    es=es[idxs].copy()
+    CM=CM[:,idxs].copy() # 每一列对应一个特征向量
+    # sC=C[:,idxs].copy() # 每一列对应一个特征向量
+    # se=e[idxs].copy()
+    return BM,es,CM,idxs
 
 def eleMat(mol:Mol)->np.ndarray:
     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
     # 使用法向量可以计算每个分子的pi电子分布
-    from pywfn.maths import flib
+    
     obts=mol.O_obts
 
     nobt=len(obts)
@@ -105,6 +109,8 @@ def eleMat(mol:Mol)->np.ndarray:
     nmat,nobt=CM.shape
     NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
     return NM
+
+
 
 def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
     """
@@ -126,10 +132,8 @@ def piEleMat(mol:Mol)->np.ndarray:
         if normal is None:continue
         dirs.append(normal)
         atms.append(i+1)
-    obts=mol.O_obts
+    obts=mol.O_obts+mol.V_obts
     CMp=projCM(mol,obts,atms,dirs,False,False)
-    molP=mol.clone()
-    molP.props.set('CM',CMp)
-    NM=eleMat(molP)
-    del molP
+    nmat,nobt=CMp.shape
+    NM=flib.eleMat(nmat,nobt,CMp,mol.SM)*mol.oE
     return NM

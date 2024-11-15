@@ -17,22 +17,22 @@ class MolProp:
     @cached_property
     def hlIdx(self):
         """homo和lomo的索引"""
-        oets=self.mol.obtElcts
+        oets=self.mol.obtOccs
         for i,e in enumerate(oets):
-            if e==0:
-                return i-1,i
+            if e:continue
+            return i-1,i
 
     @cached_property
     def homo(self):
         """HOMO轨道的能量"""
         h,l=self.hlIdx
-        return self.mol.Eigenvalues[h]
+        return self.mol.obtEngs[h]
     
     @cached_property
     def lomo(self):
         """HOMO轨道的能量"""
         h,l=self.hlIdx
-        return self.mol.Eigenvalues[l]
+        return self.mol.obtEngs[l]
     
     @cached_property
     def ecp(self):
@@ -56,12 +56,12 @@ class MolProp:
     
     @cached_property
     def ei(self):
-        """亲点指数"""
+        """亲电指数"""
         return self.ecp**2/self.ch
     
     @cached_property
     def N(self):
-        """亲和反应指标"""
+        """亲核反应指标"""
         basi=self.mol.basis.name
 
         return self.homo-TCEs[basi]
@@ -80,3 +80,16 @@ class MolProp:
         ]
         for k,v in props:
             printer.info(f'{k:{chr(12288)}<6}\t{v:>10.6f}')
+
+from pywfn.shell import Shell
+def onShell(shell:Shell):
+    printer.options('分子属性',{
+        '1':'芳香性',
+    })
+    opt=input('请输入对应选项：')
+    match opt:
+        case '1':
+            from pywfn.molprop import aromatic
+            mol=shell.input.Moles(num=1)[0]
+            caler=aromatic.Calculator(mol)
+            caler.onShell(shell)

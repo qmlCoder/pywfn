@@ -2,7 +2,7 @@
 用来生成格点数据并保存cube文件
 cube文件使用的是玻尔半径B
 分子的坐标使用的是埃米A
-A=B/1,889
+A=B/1.889
 B=A*1.889
 计算的时候使用A，写文件的时候将坐标和格点转为B
 """
@@ -14,116 +14,85 @@ from pathlib import Path
 from pywfn import maths,base,config
 from pywfn.utils import printer
 from pywfn.spaceProp import wfnfunc,density
+from pywfn.data.elements import elements
 
 class CubWriter:
-    def __init__(self,mol:base.Mol) -> None:
-        self.mol=mol
-        self.step:float=config.RENDER_CLOUD_STEP
-        self.border:float=config.RENDER_CLOUD_BORDER
-        self.atms:list[int]=self.mol.atoms.atms
-        self.direct:np.ndarray=None
-        self.floatNum=12
-        na,nb=self.mol.eleNum
-        self.obts=[na-1]
-        if self.mol.open:
-            nbas=self.mol.CM.shape[0]
-            self.obts.append(nbas+nb-1)
-        self.wfnCaler=wfnfunc.Calculator(mol)
-        self.denCaler=density.Calculator(mol)
-        self.CM=self.mol.CM
-        self.ctype='wfn' # 计算的类型，波函数、电子密度
-    
-    def init_file(self,path:str):
+    def __init__(self,syms:list[str],xyzs:np.ndarray,obts:list[int],pos0:list[float],nums:list[int],step:list[float],vals:list[np.ndarray]) -> None:
+        """cube文件导出器
+
+        Args:
+            syms (list[str]): 原子符号
+            xyzs (np.ndarray): 原子坐标
+            obts (list[int]): 原子轨道
+            pos0 (list[float]): 起点坐标
+            nums (list[int]): 格点数量
+            step (list[float]): 格点步长
+            vals (list[np.ndarray]): 格点数量
+        """
         self.title0='genetrate by pywfn'
         self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
-        # obts=','.join((f'{e+1}' for e in self.obts))
-        self.filePath=path
-        self.file=open(self.filePath,mode='w')
+        self.syms=syms
+        self.xyzs=xyzs
+        self.obts=obts
+        self.pos0=pos0
+        self.nums=nums
+        self.step=step
+        self.vals=vals
+        self.npos=self.nums[0]*self.nums[1]*self.nums[2]
         
-    def get_gridPos(self):
+    def write_grids(self):
         """生成格点数据"""
-        self.mol.bohr=False
-        idxs=[atm-1 for atm in self.atms]
-        p0=self.mol.coords[idxs,:].min(axis=0)
-        p1=self.mol.coords[idxs,:].max(axis=0)
-        bord=self.border
         
-        (Nx,Ny,Nz),gridPos=maths.cubeGrid(p0,p1,self.step,bord=bord) #计算波函数时的坐标还是要使用原子单位的坐标
-        self.gridSize=(Nx,Ny,Nz)
-        assert Nx*Ny*Nz==len(gridPos),"网格点数量不匹配"
-        self.file.write(f'{self.title0}\n{self.title1} {len(gridPos)*len(self.obts)}\n')
-        x0,y0,z0=[e for e in p0-bord]
-        step=self.step
-        natm=len(self.mol.atoms)
+        self.file.write(f'{self.title0}\n{self.title1} {self.npos*len(self.obts)}\n')
+        nx,ny,nz=self.nums
+        x0,y0,z0=self.pos0
+        sx,sy,sz=self.step
+        natm=len(self.syms)
         self.file.write(f'{-natm:>5}{x0:>12.6f}{y0:>12.6f}{z0:>12.6f}\n')
-        self.file.write(f'{Nx:>5}{step:>12.6f}{0:>12.6f}{0:>12.6f}\n')
-        self.file.write(f'{Ny:>5}{0:>12.6f}{step:>12.6f}{0:>12.6f}\n')
-        self.file.write(f'{Nz:>5}{0:>12.6f}{0:>12.6f}{step:>12.6f}\n')
-        self.write_coord()
-        return gridPos
+        self.file.write(f'{nx:>5}{sx:>12.6f}{0:>12.6f}{0:>12.6f}\n')
+        self.file.write(f'{ny:>5}{0:>12.6f}{sy:>12.6f}{0:>12.6f}\n')
+        self.file.write(f'{nz:>5}{0:>12.6f}{0:>12.6f}{sz:>12.6f}\n')
     
     def write_coord(self):
-        for atom in self.mol.atoms:
-            x,y,z=atom.coord
-            self.file.write(f'{atom.atomic:>5}{atom.atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
+        natm=len(self.syms)
+        for i in range(natm):
+            x,y,z=self.xyzs[i]
+            sym=self.syms[i]
+            atomic=elements[sym].atomic
+            self.file.write(f'{atomic:>5}{atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
 
-    def calc_values(self):
-        """
-        计算数值，计算和保存逻辑分开
-        """
     
     def write_value(self):
         """
         计算波函数值并写入文件
         """
-        obts=self.obts
-        gridPos=self.get_gridPos()
-        Nx,Ny,Nz=self.gridSize
-        if self.ctype=='wfn':
-            obtInfo=[len(obts)]+[o+1 for o in obts]
-        elif self.ctype=='den':
-            obtInfo=[len(obts)]+[0]
+        nobt=len(self.obts)
+        npos=self.npos
+        index=0
+        nx,ny,nz=self.nums
+
         
-        for i,info in enumerate(obtInfo): # 写入轨道信息
+        for i,info in enumerate([nobt]+self.obts): # 写入轨道信息
             self.file.write(f'{info:>5}')
             if(i+1)%10==0:self.file.write('\n')
         if(i+1)%10!=0:self.file.write('\n')
-        if self.ctype=='wfn':
-            self.wfnCaler.set_grid(gridPos)
-            self.wfnCaler.atms=self.atms
-            allVals=[self.wfnCaler.obtWfn(obt) for obt in obts]
-        elif self.ctype=='den':
-            self.denCaler.set_grid(gridPos)
-            allVals=[self.denCaler.molDens_lib()]
-        lenVals=len(gridPos)
-        index=0
-        for i in printer.track(range(lenVals)): # 对每一个点进行循环
-            for j in range(len(allVals)): # 对每一个轨道进行循环
-                v=allVals[j][i]
+
+        for i in range(npos): # 对每一个点进行循环
+            for j in range(nobt): # 对每一个轨道进行循环
+                v=self.vals[j][i]
                 # if v==0:v=1e-8
                 self.file.write(f'{v:13.5E}')
                 index+=1
-                if index==Nz*len(obts):
+                if index==nz*nobt:
                     self.file.write('\n')
                     index=0
                     continue
                 if index%6==0:self.file.write('\n')
     
     def save(self,path:str):
-        self.init_file(path)
+        self.file=open(path,mode='w')
+        self.write_grids()
+        self.write_coord()
         self.write_value()
-        printer.res(f'导出文件至{self.filePath}')
+        printer.res(f'导出文件至{path}')
         self.file.close()
-
-    def onShell(self):
-        name='开窍层' if self.mol.open else '闭壳层'
-        na,nb=self.mol.eleNum
-        print(f'该分子为{name},alpha和beta电子数量分别为{na},{nb}')
-        from pywfn.utils import parse_intList,parse_obtList
-        atms=input('输入需渲染的原子(默认所有原子): ')
-        if atms!='':self.atoms=parse_intList(atms,start=1)
-        obts=input('输入需渲染的轨道(默认HOMO轨道),例如a10,b10: ')
-        nbas=self.mol.CM.shape[0]
-        if obts!='':self.obts=parse_obtList(obts,nbas)
-        path=self.mol.reader.path
-        self.save(f'{path}.cub')

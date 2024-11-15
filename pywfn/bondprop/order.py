@@ -18,7 +18,7 @@ class Calculator:
         self.mol=mol
 
     # mayer键级
-    def mayer(self,PM:np.ndarray|None=None,bonds:list[list[int]]|None=None)->np.ndarray:
+    def mayer(self,PM:np.ndarray|None=None)->np.ndarray:
         """计算mayer键级，mayer键级是基础键级，很多方法的键级都是基于mayer键级计算出来的
 
         Args:
@@ -35,9 +35,8 @@ class Calculator:
         PS=PM@SM
         OM=PS*PS.T
         orders=[]
-        if bonds is None:
-            bonds=[bond.ats for bond in self.mol.bonds]
-        for a1,a2 in bonds:
+        for bond in self.mol.bonds:
+            a1,a2=bond.ats
             u1,l1=self.mol.atom(a1).obtBorder
             u2,l2=self.mol.atom(a2).obtBorder
             vals=OM[u1:l1,u2:l2]
@@ -71,30 +70,36 @@ class Calculator:
                 result.append([a1,a2,x,y,z,order])
         return np.array(result)
     
-    def boundMayer(self,atm:int)->np.ndarray:
-        """计算与指定原子相邻的键的束缚键级
+    def boundMayer(self,atm:int,dirs:np.ndarray)->np.ndarray:
+        """计算与指定原子相邻的键的束缚键级，束缚键级投影指定原子，保留邻接原子，清除其它原子
 
         Args:
             atm (int): 指定原子编号
 
         Returns:
-            np.ndarray: 束缚键级
+            np.ndarray: 束缚键级`[a1,a2,x,y,z,val]`
         """
-        dirCaler=direction.Calculator(self.mol)
-        dirs=dirCaler.reaction(atm)
+        # if dirs is None:
+        #     dirCaler=direction.Calculator(self.mol)
+        #     dirs=dirCaler.reaction(atm) # 获取原子的反应方向
         nebs=self.mol.atom(atm).neighbors
-        bonds=[[atm,neb] for neb in  nebs]
+        # bonds=[[atm,neb] for neb in  nebs]
         obts=self.mol.O_obts
         result=[]
         
         for d in range(len(dirs)):
-            CMp=projCM(self.mol,obts,[atm],[dirs[d]],False,True,akeeps=nebs)
+            # CMp=projCM(self.mol,obts,[atm],[dirs[d]],False,True,akeeps=nebs)
+            CMp=projCM(self.mol,obts,[atm],[dirs[d]],True,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
-            orders=self.mayer(PM=PMp,bonds=bonds)
+            orders=self.mayer(PM=PMp)
             x,y,z=dirs[d]
             for a1,a2,val in orders:
+                if int(a1) not in nebs+[atm]:continue
+                if int(a2) not in nebs+[atm]:continue
+                # print(a1,a2,x,y,z,val)
                 result.append([a1,a2,x,y,z,val])
-        return np.array(result)
+        result=np.array(result)
+        return result
     
     def pi_pocv(self)->np.ndarray:
         """计算分子的所有pi键键级，每个可能的pi键计算出一个键级

@@ -16,16 +16,22 @@ class Tool():
             delEle (int): 加减电子数
         """
         na,nb=self.mol.eleNum
-        # print('alpha和beta电子数分别为',na,nb)
-        if na==nb:
-            na+=1
-        elif na>nb:
-            nb+=1
-        # print('alpha和beta电子数分别为',na,nb)
+        if delEle>0:
+            if na==nb:
+                na+=delEle
+            elif na>nb:
+                nb+=delEle
+        if delEle<0:
+            if na==nb:
+                nb+=delEle
+            elif na>nb:
+                na+=delEle
+        oldCharge,oldSpin=self.mol.charge,self.mol.spin
         charge=sum(self.mol.atoms.atomics)-na-nb
         spin=na-nb+1
         self.mol.props.set('charge',charge)
         self.mol.props.set('spin',spin)
+        return oldCharge,oldSpin
     
     def save(self,path:str):
         writer=GjfWriter(self.mol)

@@ -10,21 +10,21 @@ import numpy as np
 from pywfn.maths import flib
 from pywfn.maths import cubeGrid
 from pywfn.spaceProp import lutils
-
-from pywfn.data import sphGrid
-weight = sphGrid.gridData[:, -1]
-coords = sphGrid.gridData[:, :3]
+from pywfn.maths import march
+Array=np.ndarray
 
 class Calculator:
-    def __init__(self,mol) -> None:
-        self.mol:Mol=mol
+    def __init__(self,mol:Mol) -> None:
+        self.mol=mol
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
-        self.grids:np.ndarray=None
+        self.grids:np.ndarray=None # 格点数据
         self.wfns:np.ndarray=None
         self.CM=self.mol.CM.copy()
         self.atms=self.mol.atoms.atms
     
     def set_grid(self,grids:np.ndarray):
+        assert len(grids.shape)==2,"grids必须为二维"
+        assert grids.shape[1]==3,"grids必须为3列"
         self.grids=grids
         self.wfns=None # 重新设置格点的时候计算出的波函数要清零
     
@@ -115,14 +115,15 @@ class Calculator:
         mat=wfns.reshape(nx,ny)
         return mat
     
-    def sph_2DWfn(self,r:float,obt:int)->np.ndarray:
+    def sph_2DWfn(self,r:float,obt:int,size:int)->np.ndarray:
         """
         计算球坐标映射为2d坐标的波函数
         返回二维矩阵
         """
-        R=2.29/0.529177
-        nx=1000
-        ny=500
+        # R=2.29/0.529177
+        R=r
+        nx=size*2
+        ny=size
         # 地图坐标
         xr=np.linspace(-2*R*2**0.5,2*R*2**0.5,nx)
         yr=np.linspace(-R*2**0.5,R*2**0.5,ny)
@@ -163,24 +164,48 @@ class Calculator:
             wfns+=wfn
         return wfns
     
-    def rectValue(self):
+    def rectValue(self): # 在一个矩形内的波函数值
         grid=maths.rectGrid()
         pass
 
-    def cubeValue(self,vtype:str,obt:int|None=None,atm:int|None=None):
+    def cubeValue(self,obt:int): # 在一个正方体内的波函数值
         p0,p1=lutils.get_molBorder(self.mol) # 获取分子边界
         shape,grid=cubeGrid(p0,p1,0.1,1)# 生成网格坐标
         self.set_grid(grid)
-        if vtype=='obtwfn':
-            assert obt is not None,"需要制定轨道编号"
-            wfns=self.obtWfn(obt).reshape(*shape)
-        elif vtype=='atowfn':
-            assert atm is not None,"需要指定原子编号"
-            wfns=self.atoWfn(atm).reshape(*shape)
-        else:
-            raise ValueError("vtype只能是obtwfn或atowfn")
+        wfns=self.obtWfn(obt).reshape(*shape)
         return wfns
-        
+    
+    def toCub(self,path:str,obts:list[int],pos0:np.ndarray,shape:list[int],step:list[float]):
+        """导出成.cub文件
+
+        Args:
+            path (str): 导出的文件位置
+            obts (list[int]): 渲染的轨道
+            pos0 (np.ndarray): 格点起始位置
+            shape (list[int]): 格点的形状
+            step (list[float]): 格点的步长
+        """
+        from pywfn.writer import CubWriter
+        vals=[self.obtWfn(obt) for obt in obts]
+        syms=self.mol.atoms.syms
+        xyzs=self.mol.coords
+        nums=shape
+        writer=CubWriter(syms,xyzs,[o+1 for o in obts],pos0,nums,step,vals)
+        writer.save(path)
+    
+    def toObj(self,path:str,wfns:np.ndarray): ## 保存为obj文件
+        from pywfn.writer import ObjWriter
+        vals=wfns.flatten()
+        shape=wfns.shape
+        cube=march.cord2cube(shape,self.grids,vals)
+        vertP,vertN=march.cube2vert(cube,0.01)
+        filtP,faceP=march.filtVerts(vertP)
+        filtN,faceN=march.filtVerts(vertN)
+        verts=np.concatenate([filtP,filtN])
+        faces=np.concatenate(faceP,faceN)
+        writer=ObjWriter(verts,faces)
+        writer.save(path)
+
 
 def meshgrid(xr,yr):
     xs,ys=np.meshgrid(xr,yr)
