@@ -26,7 +26,7 @@ class Calculator:
             bonds (list[list[int]], optional): 可指定要计算的键，若不指定则使用所有键
 
         Returns:
-            np.ndarray: 指定键的键级
+            np.ndarray: 所有键的键级，形状为:[d,3](a1,a2,order)
         """
         # 获取密度矩阵 P
         if PM is None:PM=self.mol.PM
@@ -46,11 +46,11 @@ class Calculator:
         # print(order)
         return order
     
-    def dirMayer(self,bonds:list[list[int]])->np.ndarray:
+    def dirMayer(self,bond:list[int])->np.ndarray:
         """计算带有方向的Mayer键级
 
         Args:
-            bonds (list[list[int]]): 通过二维整数列表指定要计算哪些键级
+            bonds (list[int]): 指定要计算哪个键级
 
         Returns:
             np.ndarray: 返回数组形状为:[d,6](a1,a2,x,y,z,v),其中d为键级方向数量
@@ -58,15 +58,15 @@ class Calculator:
         dirCaler=direction.Calculator(self.mol)
         obts=self.mol.O_obts
         result=[]
-        for a1,a2 in bonds:
-            dirs=dirCaler.reaction(a1)
-            if a1>a2:a1,a2=a2,a1
-            for d in range(len(dirs)):
-                CMp=projCM(self.mol,obts,[a1,a2],[dirs[d],dirs[d]],False,True)
-                PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
-                a1_,a2_,order=self.mayer(PM=PMp,bonds=[[a1,a2]]).flatten()
-                assert a1==a1_ and a2==a2_,"原子不对应"
-                x,y,z=dirs[d]
+        a1,a2=bond
+        dirs=dirCaler.reactions(a1) #a1的反应方向
+        if a1>a2:a1,a2=a2,a1
+        for d,dir in enumerate(dirs):
+            CMp=projCM(self.mol,obts,[a1,a2],[dir,dir],False,True)
+            PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
+            for a1_,a2_,order in self.mayer(PM=PMp):
+                if a1!=a1_ or a2!=a2_:continue
+                x,y,z=dir
                 result.append([a1,a2,x,y,z,order])
         return np.array(result)
     
@@ -125,7 +125,7 @@ class Calculator:
         result[:,-1]=orders
         return result
 
-    def pi_smo(self,atm1:int,atm2:int)->np.ndarray:
+    def pi_smo(self,bond:list[int])->np.ndarray:
         """根据分子轨道挑选法计算pi键级
 
         Args:
@@ -136,6 +136,7 @@ class Calculator:
             np.ndarray: pi键级
         """
         dirCaler=direction.Calculator(self.mol)
+        atm1,atm2=bond
         atom1=self.mol.atom(atm1)
         atom2=self.mol.atom(atm2)
         
@@ -161,9 +162,6 @@ class Calculator:
         a1,a2=atom1.obtBorder
         b1,b2=atom2.obtBorder
         order=np.sum(PS[a1:a2,b1:b2]*PS[b1:b2,a1:a2])
-        piObts=set(piObts)
-        piObts=[self.mol.obtStrs[o] for o in piObts]
-        lutils.formPrint(contents=[piObts],eachLength=10)
         return order
 
     def hmo(self)->np.ndarray:
@@ -174,18 +172,24 @@ class Calculator:
         """
         atms=self.mol.heavyAtoms
         natm=len(atms)
-        DM,e,CM=hmo(self.mol)
+        BM,es,CM,occs=hmo(self.mol)
+        print('CM=\n',CM,es)
         # 3.构建键级矩阵
-        result=[]
-        OM=np.zeros_like(DM)
-        for i,j in product(range(natm),range(natm)):
-            order=np.sum(CM[i,:]*CM[j,:])*2
-            OM[i,j]=order
-            if i>=j:continue
-            if DM[i,j]>1.7*1.889:continue
-            result.append([atms[i],atms[j],order])
-        result=np.array(result)
-        return np.abs(result)
+        nmat=CM.shape[0]
+        CM[:,nmat//2:]=0 
+        print('CM=\n',CM)
+        orders=[]
+        for i,ai in enumerate(atms):
+            for j,aj in enumerate(atms):
+                if i>=j:continue
+                if BM[i,j]==0:continue
+                dist=self.mol.DM[ai-1,aj-1]
+                if dist>1.7*1.8897:continue
+                order=np.sum(CM[i,:]*CM[j,:])*2
+                # print(i,j,CM[i,:],CM[j,:],order)
+                orders.append([ai,aj,order])
+        orders=np.array(orders)
+        return np.abs(orders)
 
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
@@ -297,7 +301,7 @@ class Calculator:
             elif opt=='2':
                 opt=input('请输入需要计算的键，例如(1-2): ')
                 a1,a2=opt.split('-')
-                result=self.dirMayer(bonds=[[int(a1),int(a2)]])
+                result=self.dirMayer(bond=[int(a1),int(a2)])
                 for a1,a2,x,y,z,val in result:
                     print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
             elif opt=='3':
@@ -305,9 +309,10 @@ class Calculator:
                 for a1,a2,val in orders:
                     print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
             elif opt=='4':
-                orders=self.pi_smo()
-                for a1,a2,val in orders:
-                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                opt=input('请输入需要计算的键，例如(1-2): ')
+                a1,a2=opt.split('-')
+                order=self.pi_smo(bond=[int(a1),int(a2)])
+                print(f'{int(a1):>2d}-{int(a2):>2d}:{order:>8.4f}')
             elif opt=='5':
                 orders=self.hmo()
                 for a1,a2,val in orders:

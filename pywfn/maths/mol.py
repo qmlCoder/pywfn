@@ -79,23 +79,18 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     atms=mol.heavyAtoms # 重原子列表
     natm=len(atms) # 重原子数量
     BM=np.zeros(shape=(natm,natm)) # 键连矩阵
-    DM=np.zeros_like(BM) # 键长矩阵
-    for i,j in product(range(natm),range(natm)):
-        a1,a2=atms[i],atms[j]
-        if a1>=a2:continue
-        dist=mol.DM[i,j]
-        if dist>1.7*1.889:continue
-        BM[i,j]=1.0
-        BM[j,i]=1.0
+    for i,ai in enumerate(atms):
+        for j,aj in enumerate(atms):
+            if ai>=aj:continue
+            dist=mol.DM[ai-1,aj-1]
+            if dist>1.7*1.889:continue
+            BM[i,j]=1.0
+            BM[j,i]=1.0
     # 2.求解
-    es,CM=np.linalg.eig(BM) # 矩阵对角化
-    nele=int(len(atms)-mol.charge) #电子数量
-    # idxs=np.argsort(es)[:nele//2] # 占据轨道
+    es,CM=np.linalg.eigh(BM) # 矩阵对角化
     idxs=np.argsort(-es) # 占据轨道
     es=es[idxs].copy()
     CM=CM[:,idxs].copy() # 每一列对应一个特征向量
-    # sC=C[:,idxs].copy() # 每一列对应一个特征向量
-    # se=e[idxs].copy()
     return BM,es,CM,idxs
 
 def eleMat(mol:Mol)->np.ndarray:

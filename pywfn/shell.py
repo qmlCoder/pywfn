@@ -187,7 +187,7 @@ class Inputer:
                 self.Files()
                 continue
             idxs = self.Integ(f"输入分子编号: ")
-            if len(idxs) != count:
+            if len(idxs) != count and count!=0:
                 printer.warn(f"需要输入{count}个数字,当前{len(idxs)}个")
             else:
                 break
