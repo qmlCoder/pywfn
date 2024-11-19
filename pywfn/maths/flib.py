@@ -48,7 +48,7 @@ def trans_dtype(paras:list):
             else:
                 raise TypeError("Unsupported type")
         else:
-            raise TypeError("Unsupported type")
+            raise TypeError(f"Unsupported type: {type(para)}")
     return fparas,ftypes
 
 def call_flib(func:str,ipts:list,outs:list):

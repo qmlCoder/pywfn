@@ -75,9 +75,6 @@ def cube2vert(cube:np.ndarray,isov:float)->tuple[np.ndarray|None,np.ndarray|None
 
 def filtVerts(verts:np.ndarray):
     """删除重复的顶点"""
-    
-    print('verts',verts.shape)
-    print(verts[0])
     onMap={1:1} #新旧顶点之间的映射
     nvert=len(verts)
     filts=[verts[0]] #过滤出的点
@@ -102,7 +99,6 @@ def filtVerts(verts:np.ndarray):
         faces.append([onMap[i],onMap[i+1],onMap[i+2]])
     filts=np.array(filts)
     faces=np.array(faces)
-    # print(filts)
     # print(f'过滤前:{len(verts)}个点，过滤后:{len(filts)}个点,index={index}')
     return filts,faces
 

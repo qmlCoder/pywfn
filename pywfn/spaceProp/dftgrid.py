@@ -10,8 +10,8 @@ import sys
 class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
-        self.nrad=100 # 径向格点数量
-        self.nsph=74 # 球面格点数量
+        self.nrad=74 # 径向格点数量
+        self.nsph=434 # 球面格点数量
 
     def radGrid(self,atmic:int):
         pi=np.pi
@@ -27,8 +27,8 @@ class Calculator:
             if ri>15:continue
             rs.append(ri)
             ws.append(wi)
-        rs=np.array(rs,dtype=np.float32)
-        ws=np.array(ws,dtype=np.float32)*4.*pi
+        rs=np.array(rs)
+        ws=np.array(ws)*4.*pi
         return rs,ws
 
     def sphGrid(self)->tuple[np.ndarray,np.ndarray]:

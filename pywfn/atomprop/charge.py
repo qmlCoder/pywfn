@@ -3,24 +3,23 @@ import numpy as np
 from pywfn.data.elements import elements
 from functools import lru_cache
 from pywfn.utils import printer
-from pywfn.atomprop import lutils,AtomCaler
 from pywfn.spaceProp import density,dftgrid
 from pywfn import maths
 from typing import Literal
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import projCM
+from pywfn.shell import Shell
 
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
-class Calculator(AtomCaler):
+class Calculator():
     def __init__(self,mol:"Mol"):
         self.logTip:str=''
         self.mol=mol
-        self.chrg:Chrgs='mulliken'
-        self.form:str='charge' # 输出格式，电子数或电荷数
+        self.form:str='charge' # 输出格式，电子数或电荷数 number|charge
         self.PM=self.mol.PM.copy() # 计算时使用的密度矩阵
         
-    def charge(self,chrg:Chrgs)->np.ndarray:
+    def charge(self,ctype:str)->np.ndarray:
         """计算四种基础电荷之一
 
         Args:
@@ -29,13 +28,13 @@ class Calculator(AtomCaler):
         Returns:
             np.ndarray: 原子电荷
         """
-        if chrg=='mulliken':
+        if ctype=='mulliken':
             return self.mulliken()
-        elif chrg=='lowdin':
+        elif ctype=='lowdin':
             return self.lowdin()
-        elif chrg=='space':
+        elif ctype=='space':
             return self.sapce()
-        elif chrg=='hirshfeld':
+        elif ctype=='hirshfeld':
             return self.hirshfeld()
         else:
             raise ValueError('unknown charge type')
@@ -59,7 +58,6 @@ class Calculator(AtomCaler):
             return elects
         if self.form=='charge':
             return np.array(self.mol.atoms.atomics)-elects
-        # return charges
     
     def lowdin(self)->np.ndarray:
         """
@@ -103,54 +101,39 @@ class Calculator(AtomCaler):
         if self.form=='charge':
             return np.array(self.mol.atoms.atomics)-elects
     
-    def hirshfeld(self)->np.ndarray:
-        """
-        计算原子的Hirshfeld电荷
-        """
-        from pywfn.spaceProp import density
+    def hirshfeld(self):
+        """计算原子的Hirshfeld电荷"""
         from pywfn.data import radDens
-        gridCaler=dftgrid.Calculator(self.mol)
-        
-        densCaler=density.Calculator(self.mol)
-        grid,weit=gridCaler.molGrid()
-        densCaler.set_grid(grid)
-        PMo=densCaler.PM # 备份旧的PM
-        densCaler.PM=self.PM # 设为当前PM
-        
-        npos=len(grid)
+        from pywfn.spaceProp import dftgrid
+        from pywfn.spaceProp import density
+        gridCaler=dftgrid.Calculator(self.mol) # 格点计算器
+        densCaler=density.Calculator(self.mol) # 电子密度计算器
         natm=self.mol.atoms.natm
-        pdens=np.zeros(npos) # 前体电子密度
-        fdensl=[] # 原子自由电子密度
-        # print(time.time())
-        for atom in self.mol.atoms:
-            radius=np.linalg.norm(grid-atom.coord,axis=1)
-            fdens=radDens.get_radDens(atom.atomic,radius)
-            pdens+=fdens
-            fdensl.append(fdens)
-
         Ps=np.zeros(natm)
         Zs=np.zeros(natm)
-        
-        mdens=densCaler.molDens_lib()
-
-        for a,atom in enumerate(self.mol.atoms): # 计算每一个原子的电荷
-            radius=np.linalg.norm(grid-atom.coord,axis=1)
-            fdens=fdensl[a]
-            Wa=np.divide(fdens,pdens,out=np.zeros_like(fdens),where=pdens!=0)
-            Zs[a]=np.sum(fdens*weit) # 自由态下核电荷数
-            Ps[a]=np.sum(Wa*mdens*weit) # 真实体系的电子布局
-        chargs=Zs-Ps
-        densCaler.PM=PMo # 恢复旧的PM
+        chargs=np.zeros(natm)
+        for i,atom in enumerate(self.mol.atoms):
+            grid,weit=gridCaler.atmGrid(atom.idx)
+            densCaler.set_grid(grid)
+            npos=len(grid)
+            pdens=np.zeros(npos) # 前体电子密度
+            fdensl=[] # 原子自由电子密度
+            for j,atom in enumerate(self.mol.atoms):
+                radius=np.linalg.norm(grid-atom.coord,axis=1) # 所有格点到当前原子的距离
+                fdens=radDens.get_radDens(atom.atomic,radius) # 自由原子电子密度
+                pdens+=fdens
+                fdensl.append(fdens)
+            mdens=densCaler.molDens_lib() #分子电子密度
+            res=fdensl[i]/pdens*mdens*weit
+            chargs[i]=np.sum(res)
         if self.form=='number':
-            return np.array(self.mol.atoms.atomics)-chargs
-        if self.form=='charge':
             return chargs
-    
+        if self.form=='charge':
+            return np.array(self.mol.atoms.atomics)-chargs
+
     def dirElectron(self,atms:list[int],dirs:list[np.ndarray],ctype:str)->np.ndarray:
         """计算不同方向的电子[n,5](atm,x,y,z,val)"""
-        # fatms,fdirs=fit_dirs(self.mol,atms,dirs) # 矫正原子索引和方向，使数量相等
         assert len(atms)==len(dirs),"原子与方向数量要相同"
-        # result=np.zeros(shape=(len(dirs),5))
         obts=self.mol.O_obts
         PMo=self.PM.copy() # 记录旧的密度矩阵
         self.form='number'
@@ -193,7 +176,7 @@ class Calculator(AtomCaler):
         self.PM=PMo
         return np.array(result)
     
-    def onShell(self):
+    def onShell(self,shell:Shell):
         from pywfn.utils import parse_intList
         chrgMap={'':'mulliken','1':'mulliken','2':'lowdin','3':'space','4':'hirshfeld'}
         chrgStr='1. Mulliken[*]; 2. lowdin; 3. sapce; 4. hirshfeld'
@@ -238,12 +221,14 @@ class Calculator(AtomCaler):
                 opt=input('选择电荷类型: ')
                 if opt not in chrgMap.keys():return
                 chrg=chrgMap[opt]
-                numStr=input('输入原子编号: ')
-                atms=parse_intList(numStr,start=1)
-                elects=self.dirElectron(chrg,atms)
-                for a,x,y,z,v in elects:
-                    print(f'{int(a):>3d}({x:>6.2f},{y:>6.2f},{z:>6.2f}):{v:>8.4f}')
-                # print(f'sum:{elects[:,-1].sum()}')
+                # numStr=input('输入原子编号: ')
+                atm=shell.input.Integ(tip='输入原子编号: ',count=1)[0]
+                dir=shell.input.Float(tip='输入原子向量: ',count=3)
+                dir=np.array(dir)
+                elects=self.dirElectron(atms=[atm],dirs=[dir],ctype=chrg)
+                ele=elects[atm-1]
+                x,y,z=dir
+                print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>8.4f}')
             
             elif opt=='6': # pi电子
                 print(chrgStr)

@@ -199,6 +199,10 @@ class Printer:
         print('')
         self.console.print(table)
     
+    def shell(self,text:str): # 以shell方式运行的时候才会打印
+        if not config.IF_SHELL:return
+        self.console.print(text)
+    
     def track(self,seq:Sequence,tip:str='')->Iterable:
         if config.IF_DEBUG:
             from rich import progress
@@ -207,6 +211,10 @@ class Printer:
             return seq
 
 printer=Printer()
+
+class Caler:
+    def __init__(self):
+        self.showMesg=False
 
 """不需要多次实例化的类可以使用类方法"""
 import time

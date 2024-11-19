@@ -60,9 +60,9 @@ class LogReader(reader.Reader):
         self.titles={ #记录每一个title所在的行数
             'coords':Title(r'(Input orientation|Standard orientation)',0,True),
             'basis':Title('Standard basis:',1),
-            'coefs':Title(r'  Molecular Orbital Coefficients',0),
-            'acoefs':Title(r'Alpha Molecular Orbital Coefficients',1),
-            'bcoefs':Title(r'Beta Molecular Orbital Coefficients',1),
+            'coefs':Title(r'  Molecular Orbital Coefficients',0,True),
+            'acoefs':Title(r'Alpha Molecular Orbital Coefficients',1,True),
+            'bcoefs':Title(r'Beta Molecular Orbital Coefficients',1,True),
             'overlap':Title(' *** Overlap *** \n',2),
             'kinetic':Title(' *** Kinetic Energy *** \n',2),
             'potential':Title(' ***** Potential Energy ***** \n',2),

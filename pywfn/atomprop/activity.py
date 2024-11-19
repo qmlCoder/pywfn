@@ -13,7 +13,7 @@ class Calculator:
         self.mol=mol
 
     # 福井函数
-    def fukui(self,molN:Mol,molP:Mol,ctype:str='mulliken')->np.ndarray:
+    def fukui(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
         """计算所有原子的福井函数
 
         Args:
@@ -34,23 +34,24 @@ class Calculator:
         vals[:,3]=vals[:,2]-vals[:,1]
         vals[:,4]=vals[:,1]-vals[:,0]
         vals[:,5]=(vals[:,2]-vals[:,0])/2
+        
         return vals
     
     # parr函数
-    def parr(self,molN:Mol,molP:Mol,ctype:str='mulliken')->np.ndarray:
-        """计算所有原子的parr函数[n,2]"""
+    def parr(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
+        """计算所有原子的parr函数[n,5](N+1,N,N-1,pk-,pk+)"""
         mols=[molN,molP]
         cals=[spin.Calculator(mol) for mol in mols]
         natm=molN.atoms.natm
-        vals=np.zeros(shape=(natm,3))
+        vals=np.zeros(shape=(natm,5))
         for c,cal in enumerate(cals):
-            vals[:,c]=cal.spins(ctype)
+            vals[:,c]=cal.spin(ctype)
         vals[:,3]=vals[:,0]-vals[:,1]
         vals[:,4]=vals[:,1]-vals[:,2]
         return vals
     
     # 双描述符
-    def dual(self,molN:Mol,molP:Mol,ctype:str='mulliken')->np.ndarray:
+    def dual(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
         """计算凝聚双描述符[n,4](N+1,N,N-1,f2)
         """
         mols=[molN,self.mol,molP]
@@ -65,7 +66,7 @@ class Calculator:
     
     # 电子能差
     def engDiff(self,molN:Mol,molP:Mol)->np.ndarray:
-        """计算电子能差
+        """计算电子能差，中性到两个状态能量变化，变得越小越好
 
         Args:
             molN (Mol): N+1 电子
@@ -160,7 +161,7 @@ class Calculator:
         return result
 
     # 方向福井函数
-    def dirFukui(self,atms:list[int],dirs:np.ndarray,molN:Mol,molP:Mol,ctype:str='mulliken')->np.ndarray:
+    def dirFukui(self,atms:list[int],dirs:np.ndarray,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
         """计算方向福井函数
 
         Args:
@@ -195,7 +196,7 @@ class Calculator:
         return result
     
     # pi双描述符
-    def dual_pi(self,molN:Mol,molP:Mol,ctype:str='mulliken'): # 基于π电子的双描述符
+    def dual_pi(self,molN:Mol,molP:Mol,ctype:str): # 基于π电子的双描述符
         from pywfn.atomprop import charge
         calerN=charge.Calculator(molN)
         calerP=charge.Calculator(molP)
@@ -223,45 +224,61 @@ class Calculator:
                 '7':'方向福井函数',
             })
             opt=input('选择计算活性类型:')
-            ctypes={'':'mulliken','1':'mulliken','2':'lowdin'}
+            ctypes={'':'hirshfeld','1':'mulliken','2':'lowdin','3':'hirshfeld','4':'pi_pocv'}
+            chrgTip='1.mulliken; 2.lowdin; 3.hirshfeld*; 4.pi_pocv'
             match opt:
                 case '1': # 福井函数
-                    molN,molP=shell.input.Moles(tip='分别输入N-1和N+1电子的分子',num=2)
-                    opt=input('请输入电荷类型: 1.mulliken; 2.lowdin')
+                    if len(shell.paths)<3:
+                        print('需要至少3个分子')
+                        break
+                    molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                    print(chrgTip)
+                    opt=input('请输入电荷类型: ')
                     if opt not in ctypes.keys():continue
                     result=self.fukui(molN,molP,ctypes[opt])
-                    for i,(e,n) in enumerate(result):
-                        print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
+                    print(f'idx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
+                    for i,(en,e0,ep,fn,fp,f0) in enumerate(result):
+                        print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}')
                 case '2': # parr函数
-                    molN,molP=shell.input.Moles(tip='分别输入N-1和N+1电子的分子',num=2)
-                    opt=input('请输入电荷类型: 1.mulliken; 2.lowdin')
+                    molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                    print(chrgTip)
+                    opt=input('请输入电荷类型:')
                     if opt not in ctypes.keys():continue
                     result=self.parr(molN,molP,ctypes[opt])
-                    for i,(e,n) in enumerate(result):
-                        print(f'{i+1:>3d} {e:>8.4f}{n:>8.4f}')
+                    print(f'idx:{"s(N+1)":>10}{"s(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
+                    for i,(sn,s0,sp,ve,vn) in enumerate(result):
+                        print(f'{i+1:>3d}:{sn:>10.4f}{s0:>10.4f}{sp:>10.4f}{ve:>10.4f}{vn:>10.4f}')
                 case '3': # 双描述符
-                    molN,molP=shell.input.Moles(tip='分别输入N-1和N+1电子的分子',num=2)
-                    opt=input('请输入电荷类型: 1.mulliken; 2.lowdin')
+                    if len(shell.paths)<3:
+                        print('需要至少3个分子')
+                        break
+                    molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                    print(chrgTip)
+                    opt=input('请输入电荷类型: ')
                     if opt not in ctypes.keys():continue
                     result=self.dual(molN,molP,ctypes[opt])
-                    for i,val in enumerate(result):
-                        print(f'{i+1:>3} {val:>8.4f}')
+                    print(f'idx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"CDD":>10}')
+                    for i,(en,e0,ep,val) in enumerate(result):
+                        print(f'{i+1:>3}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{val:>10.4f}')
                 case '4': # 原子能差
-                    molN,molP=shell.input.Moles(tip='分别输入N-1和N+1电子的分子',num=2)
+                    molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
                     result=self.engDiff(molN,molP)
-                    for i,val in enumerate(result):
-                        print(f'{i+1:>3d} {val:>8.4f}')
+                    print(f'idx:{"E(N+1)":>10}{"E(N)":>10}{"E(N-1)":>10}{"d-":>10}{"d+":>10}')
+                    for i,(en,e0,ep,ve,vn) in enumerate(result):
+                        print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{ve:>10.4f}{vn:>10.4f}')
                 case '5': # 化合价
                     result=self.valence()
                     for i,val in enumerate(result):
-                        print(f'{i+1:>3d} {val:>8.4f}')
-                case '6': # 自由价
-                    atms=shell.input.Integ(tip='输入原子编号: ')
-                    assert atms is not None,"输入错误"
-                    for atm in atms:
-                        result=self.freeValence(int(atm))
-                        for a,x,y,z,v in result:
-                            print(f'{a:>3d} {x:>8.4f} {y:>8.4f} {z:>8.4f} {v:>8.4f}')
+                        print(f'{i+1:>3d}:{val:>10.4f}')
+                case '6': # 自由价，可以输入方向或内置方向
+                    from pywfn.atomprop import direction
+                    dirCaler=direction.Calculator(self.mol)
+                    atm=shell.input.Integ(tip='输入原子编号: ',count=1)[0]
+                    dirs=shell.input.Float(tip='?指定投影方向: ',count=3)
+                    if dirs is None:dirs=dirCaler.reactions(atm)
+                    result=self.freeValence(atm,dirs)
+                    for a,x,y,z,v in result:
+                        print(f'{atm:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
                 case '7': # 方向fukui函数
                     # self.mols=shell.input.Moles(num=3)
                     atms=shell.input.Integ(tip='输入原子编号: ')

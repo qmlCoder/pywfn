@@ -17,17 +17,17 @@ from pywfn.spaceProp import wfnfunc,density
 from pywfn.data.elements import elements
 
 class CubWriter:
-    def __init__(self,syms:list[str],xyzs:np.ndarray,obts:list[int],pos0:list[float],nums:list[int],step:list[float],vals:list[np.ndarray]) -> None:
+    def __init__(self,syms:list[str],xyzs:np.ndarray,obts:list[int],pos0:list[float],size:list[int],step:list[float],vals:np.ndarray) -> None:
         """cube文件导出器
 
         Args:
             syms (list[str]): 原子符号
-            xyzs (np.ndarray): 原子坐标
+            xyzs (np.ndarray): 原子坐标 [n,3]
             obts (list[int]): 原子轨道
             pos0 (list[float]): 起点坐标
-            nums (list[int]): 格点数量
+            size (list[int]): 格点数量
             step (list[float]): 格点步长
-            vals (list[np.ndarray]): 格点数量
+            vals (np.ndarray): 格点数值 [轨道,格点]
         """
         self.title0='genetrate by pywfn'
         self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
@@ -35,16 +35,17 @@ class CubWriter:
         self.xyzs=xyzs
         self.obts=obts
         self.pos0=pos0
-        self.nums=nums
+        self.size=size
         self.step=step
         self.vals=vals
-        self.npos=self.nums[0]*self.nums[1]*self.nums[2]
+        assert len(vals.shape)==2,'数据应为二维[轨道,格点]'
+        self.npos=self.size[0]*self.size[1]*self.size[2]
         
     def write_grids(self):
         """生成格点数据"""
         
         self.file.write(f'{self.title0}\n{self.title1} {self.npos*len(self.obts)}\n')
-        nx,ny,nz=self.nums
+        nx,ny,nz=self.size
         x0,y0,z0=self.pos0
         sx,sy,sz=self.step
         natm=len(self.syms)
@@ -69,7 +70,7 @@ class CubWriter:
         nobt=len(self.obts)
         npos=self.npos
         index=0
-        nx,ny,nz=self.nums
+        nx,ny,nz=self.size
 
         
         for i,info in enumerate([nobt]+self.obts): # 写入轨道信息
@@ -79,7 +80,7 @@ class CubWriter:
 
         for i in range(npos): # 对每一个点进行循环
             for j in range(nobt): # 对每一个轨道进行循环
-                v=self.vals[j][i]
+                v=self.vals[j,i]
                 # if v==0:v=1e-8
                 self.file.write(f'{v:13.5E}')
                 index+=1

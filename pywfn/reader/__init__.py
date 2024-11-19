@@ -52,9 +52,8 @@ import shutil
 class Reader:
     def __init__(self,path:str,clear:bool=False) -> None:
         self.path:str=path
-        dfold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}'
-        # if fold.exists() and remake:
-        if not dfold.exists() and config.IF_BUFF:
+        dfold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}' # 数据存储路径
+        if not dfold.exists():
             os.mkdir(f'{dfold}')
         else:
             foldTime=dfold.stat().st_mtime # 文件夹创建的时间

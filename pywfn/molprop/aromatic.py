@@ -38,20 +38,24 @@ class Calculator:
             return 0
         return np.std(forders).item()
     
-    def pimsd(self): # 版本2 使用键级均值和标准差
+    def pimsd(self,ring:list[int]=None,ratio=0.5): # 版本2 使用键级均值和标准差
         caler=orderProp.Calculator(self.mol)
         result=caler.pi_pocv()
         orders=result[:,-1]
         forders=[] # 过滤掉C-H键
-        for i in range(len(orders)):
+        for i,order in enumerate(orders):
             atm1=int(result[i,0])
             atm2=int(result[i,1])
             if self.mol.atom(atm1).atomic==1:continue
             if self.mol.atom(atm2).atomic==1:continue
-            forders.append(orders[i])
+            if ring is None:
+                print(f'{atm1:>2}-{atm2:>2}:{order:>10.4f}')
+                forders.append(order)
+            elif (atm1 in ring and atm2 in ring):
+                print(f'{atm1:>2}-{atm2:>2}:{order:>10.4f}')
+                forders.append(order)
         mean=np.mean(forders)
         stds=np.std(forders)
-        ratio=self.ratio
         return (ratio*mean-(1-ratio)*stds).item()
 
     def pimed(self): # 使用键级类比于HOMED方法
@@ -80,7 +84,6 @@ class Calculator:
             if self.mol.atom(atm2).atomic==1:continue
             vals.append((bond.length/1.889-idea)**2)
         val=sum(vals)
-        # print(vals)
         return 1-val/(self.mol.bonds.num*D)
     
     def onShell(self,shell:Shell):
@@ -92,15 +95,16 @@ class Calculator:
                 '3':'piMED',
                 '4':'HOMED',
             })
-            opt=input('选择计算活性类型:')
-            ring=shell.input.Integ('?输入环编号: ')
-            if len(ring)==0:ring=None
+            opt=input('输入芳香性类型:')
+            
             match opt:
                 case '1':
+                    ring=shell.input.Integ('?输入环编号: ')
+                    if len(ring)==0:ring=None
                     result=self.pisd(ring)
                     print(f'{result}')
                 case '2':
-                    result=self.pimsd()
+                    result=self.pimsd(ring=ring,ratio=0.5)
                     print(f'{result}')
                 case '3':
                     result=self.pimed()

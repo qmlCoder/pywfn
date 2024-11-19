@@ -6,6 +6,7 @@ from pywfn.utils import printer
 from pywfn.maths.gto import Gto
 
 
+# 立方格点
 def cubeGrid(
     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
 ):
@@ -31,25 +32,27 @@ def cubeGrid(
 
     return (Nx, Ny, Nz), np.array(pos, dtype=np.float32)
 
-def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
+
+# 平面格点
+def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float):
     """
     在空间中创建一个矩形区域,方便导出二维图像
     需要指定平面的法向量/z轴方向
     再指定平面的x轴方向，根据x和z轴计算y轴方向
     再根据z轴和y轴修复x轴方向
     """
-    vz=norm.copy()
-    vz/=np.linalg.norm(vz)
-    vx/=np.linalg.norm(vx)
+    vz=norm.copy() 
+    vz/=np.linalg.norm(vz) #平面的z轴朝向
+    vx/=np.linalg.norm(vx) #平面的x轴朝向
     step=config.IMG_SPACE_STEP
-    dxs=np.linspace(0,sx,int(sx/step))
-    dys=np.linspace(0,sy,int(sy/step))
+    dxs=np.linspace(0,size,int(size/step))
+    dys=np.linspace(0,size,int(size/step))
     
     nx=len(dxs)
     ny=len(dys)
     vy=np.cross(vx,vz)
     vx=np.cross(vz,vy)
-    p0=cent-vx/2*sx-vy/2*sy
+    p0=cent-vx/2*size-vy/2*size
     # print(p0,cent,vx,vy)
     grid=[]
     for dx in dxs:
@@ -57,11 +60,10 @@ def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,sx:float,sy:float):
             grid.append(p0+vx*dx+vy*dy)
     return (nx,ny),np.array(grid)
 
-
-def lineGrid(p0:np.ndarray,p1:np.ndarray):
+# 直线格点
+def lineGrid(p0:np.ndarray,p1:np.ndarray,step:float):
     """获取一条线上的空间坐标"""
     vect=p1-p0
-    step=0.001
     length=np.linalg.norm(vect)
     count=int(length/step)
     grid=[]
@@ -72,7 +74,7 @@ def lineGrid(p0:np.ndarray,p1:np.ndarray):
 
 def c2d_sph(xs,ys):
     """
-    2D坐标转球型坐标
+    2D平面笛卡尔坐标转球谐坐标
     并不是所有的2D坐标都能转为球坐标
     """
     S=0.75
@@ -91,7 +93,7 @@ def c2d_sph(xs,ys):
     return ts,ps
 
 def sph_c3d(ts,ps,r=1):
-    """球型坐标转3D坐标"""
+    """球谐坐标转3D笛卡尔坐标"""
     xs=np.cos(ps)*np.cos(ts)*r
     ys=np.cos(ps)*np.sin(ts)*r
     zs=np.sin(ps)*r

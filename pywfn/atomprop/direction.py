@@ -28,40 +28,49 @@ class Calculator:
         sym:轨道的符号,正则表达式
         """
         from pywfn.spaceProp import wfnfunc
-        wfnCaler=wfnfunc.Calculator(self.mol)
-        step=0.01
+        wfnCaler=wfnfunc.Calculator(self.mol) # 波函数计算器
+        step=0.1
         delPos=np.array([
             [+step,0,0],[-step,0,0],
             [0,+step,0],[0,-step,0],
             [0,0,+step],[0,0,-step]
         ])
+        CM=self.mol.CM.copy()
+        nmat=CM.shape[0]
+        idxs=[] # 符合要求的轨道索引
+        for i in range(nmat):
+            if self.mol.obtAtms[i]!=atm:continue #不是指定的原子不算
+            if re.match(sym,self.mol.obtSyms[i]) is None:continue # 符号不对不算
+            idxs.append(i)
         def get_vals(pos): # 计算周围一圈的波函数值
             wfnCaler.set_grid(pos+delPos) # 设置网格
-            CM=self.mol.CM
-            nmat=CM.shape[0]
             vals=np.zeros(6) # 只计算六个点的波函数值
-            for i in range(nmat):
-                if self.mol.obtAtms[i]!=atm:continue #不是指定的原子不算
-                if re.match(sym,self.mol.obtSyms[i]) is None:continue #符号不对不算
+            for i in idxs: # 遍历所有符合要求的轨道
                 vals+=wfnCaler.atoWfn(i)*CM[i,obt] # 分子轨道=组合系数*原子轨道
             return vals
             
         pos0=self.mol.atom(atm).coord.copy()
+        # print(pos0)
         val0=-np.inf #起初为负无穷
         for i in range(1000):
             vals=get_vals(pos0)
+            # print(pos0,vals)
             maxIdx=np.argmax(vals) # 最大值所在的索引
             maxVal=np.max(vals) # 最大值
-            if maxVal>val0:
+            if maxVal>val0 and maxVal>0:
                 val0=maxVal
                 pos0+=delPos[maxIdx]
             elif step>1e-8:
                 step/=10
             else:
                 break
+        
         direction=pos0-self.mol.atom(atm).coord
-        direction/=np.linalg.norm(direction)
-        return direction
+        length=np.linalg.norm(direction)
+        if length<1e-8:
+            return None
+        else:
+            return direction/length
         
     def sphAround(self)->np.ndarray|None:
         """计算周围一圈的球形范围"""
@@ -141,7 +150,7 @@ class Calculator:
                 vects=[normal]
                 return np.array(vects)
         
-        raise ValueError("找不到可能的反应方向")
+        raise ValueError(f"原子{atm}未定义可能的反应方向!")
     
     def normal(self,atm:int)->np.ndarray|None:
         """计算原子的法向量

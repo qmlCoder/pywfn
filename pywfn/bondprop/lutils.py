@@ -33,25 +33,34 @@ def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,normal:np.ndarray)->int:
     orbital:分子轨道序数
     normal:原子法向量[其实可以是任意方向]
     """
+    # print('判断pi轨道:',atm1,atm2)
     atom1=mol.atom(atm1)
     atom2=mol.atom(atm2)
     if atom1.symbol=='H' or atom2.symbol=='H':
+        # print(obt+1,'轨道是H原子轨道,无法判断')
         return 0
     # 1. 根据s轨道和p轨道的贡献
     sContCenter=get_sCont(mol,atm1,obt)
     sContAround=get_sCont(mol,atm1,obt)
+    # print('s轨道贡献:',sContCenter,sContAround)
     if sContCenter>0.01 or sContAround>0.01:
+        # print(obt+1,'s轨道贡献:',sContCenter,sContAround)
         return 0
     # 2. p轨道的方向要处在垂直分子平面方向
     dirCaler=direction.Calculator(mol)
-    cenDir=dirCaler.maxWeave(atm1,obt,'p')
-    aroDir=dirCaler.maxWeave(atm2,obt,'p')
-
-    if cenDir is None or aroDir is None:
+    cenDir=dirCaler.maxWeave(atm1,obt,'P[XYZ]')
+    aroDir=dirCaler.maxWeave(atm2,obt,'P[XYZ]')
+    
+    if cenDir is None and aroDir is None:
+        # print(obt+1,'p轨道方向:',cenDir,aroDir)
         return 0
-    centerAngle=vector_angle(cenDir,normal)
+    if cenDir is None: cenDir=normal
+    if aroDir is None: aroDir=normal
+    centerAngle=vector_angle(cenDir,normal) # 计算分子平面和p轨道方向的夹角
     aroundAngle=vector_angle(aroDir,normal)
+    
     if abs(0.5-centerAngle)<0.3 or abs(0.5-aroundAngle)<0.3:
+        # print(obt+1,'夹角:',centerAngle,aroundAngle)
         return 0
     # 以上两个条件都满足的可以认为是π轨道
     if (0.5-centerAngle)*(0.5-aroundAngle)>0:

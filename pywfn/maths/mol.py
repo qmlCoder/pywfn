@@ -100,20 +100,19 @@ def eleMat(mol:Mol)->np.ndarray:
     obts=mol.O_obts
 
     nobt=len(obts)
-    CM=mol.CM[:,obts].copy()
+    CM=mol.CM.copy()
     nmat,nobt=CM.shape
     NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
     return NM
-
-
 
 def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
     """
     电子能量分布矩阵
     """
-    obts=mol.O_obts
-    obtEngs=np.array(mol.obtEngs).reshape(1,-1)[:,obts]
-    EM=NM*obtEngs
+    # obts=mol.O_obts
+    obtEngs=np.array(mol.obtEngs).reshape(1,-1)
+    obtOccs=np.array(mol.obtOccs).reshape(1,-1)
+    EM=NM*obtEngs*obtOccs
     return EM
 
 def piEleMat(mol:Mol)->np.ndarray:

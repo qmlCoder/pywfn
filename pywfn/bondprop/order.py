@@ -149,11 +149,12 @@ class Calculator:
         for atom in [atom1,atom2]: # 修改每个原子对应的系数矩阵
             if atom.symbol=='H':continue
             a_1,a_2=atom.obtBorder
-            for orbital in obts:
-                judgeRes=lutils.judgeOrbital(self.mol,atm1,atm2,orbital,normal)
+            for obt in obts:
+                judgeRes=lutils.judgeOrbital(self.mol,atm1,atm2,obt,normal)
                 if judgeRes==0:continue # 如果是π轨道
-                CMs[a_1:a_2,orbital]=self.mol.CM[a_1:a_2,orbital]
-                piObts.append(orbital)
+                CMs[a_1:a_2,obt]=self.mol.CM[a_1:a_2,obt]
+                if obt not in piObts:piObts.append(obt)
+        print(f'挑选的pi轨道有：{piObts}')
         oe=self.mol.oE
         PMs=lutils.CM2PM(CMs,obts,oe)
         SM=self.mol.SM
@@ -173,11 +174,9 @@ class Calculator:
         atms=self.mol.heavyAtoms
         natm=len(atms)
         BM,es,CM,occs=hmo(self.mol)
-        print('CM=\n',CM,es)
         # 3.构建键级矩阵
         nmat=CM.shape[0]
         CM[:,nmat//2:]=0 
-        print('CM=\n',CM)
         orders=[]
         for i,ai in enumerate(atms):
             for j,aj in enumerate(atms):
@@ -191,12 +190,12 @@ class Calculator:
         orders=np.array(orders)
         return np.abs(orders)
 
-    def multiCenter(self,atms:list[int]):
+    def multiCenter(self,bond:list[int]):
         """计算多中心键级"""
         pass
     
     # 分解键级
-    def decompose(self,atms:tuple[int,int]):
+    def decompose(self,bond:tuple[int,int]):
         """
         键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
         将原子轨道基函数的系数按照角动量进行分组
@@ -207,14 +206,10 @@ class Calculator:
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol) # 方向计算器
         # 计算出两个坐标系
-        atm1,atm2=atms
+        atm1,atm2=bond
         T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
         T2=dirCaler.coordSystem(atm2,atm1)
-        # T2[:,1]*=-1
-        # print('T1\n',T1)
-        # print('T2\n',T2)
         T2=T1
-        # T2[:,1]*=-1
         Ts=(T1.T,T2.T)
 
         CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
@@ -260,7 +255,7 @@ class Calculator:
                     ishl=self.mol.obtShls[i]
                     iang=self.mol.obtAngs[i]
                     key=(iatm,ishl,iang)
-                    if iatm in atms:
+                    if iatm in bond:
                         coefDict[key].append(self.mol.CM[i,o])
                     else:
                         coefDict[key].append(0)
@@ -268,8 +263,8 @@ class Calculator:
                 for key,val in coefDict.items():
                     iatm,ishl,iang=key
                     rcoefs=np.array(val)
-                    if iatm in atms:
-                        tcoefs=decomOrbitals(Ts[atms.index(iatm)],rcoefs,keeps[iang])
+                    if iatm in bond:
+                        tcoefs=decomOrbitals(Ts[bond.index(iatm)],rcoefs,keeps[iang])
                     else:
                         tcoefs=rcoefs
                     assert len(rcoefs)==len(tcoefs),"长度对不上"
@@ -278,11 +273,13 @@ class Calculator:
                 values=list(coefDict.values())
                 CMt[:,o]=np.concatenate(values)
             PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
-            results=self.mayer(PMt,[atms])
-            results[:,-1]=results[:,-1]**0.5
-            orders.append(results[:,-1])
-            # print(f'{nameList[k]:<8}键级',results)
-        return np.array(orders)
+            results=self.mayer(PMt)
+            for a1,a2,val in results:
+                if a1 not in bond:continue
+                if a2 not in bond:continue
+                order=val.item()**0.5
+            orders.append(order)
+        return orders
 
     def onShell(self):
         while True:
@@ -292,35 +289,50 @@ class Calculator:
                 '3':'pi键级(POCV)',
                 '4':'pi键级(SMO)',
                 '5':'HMO键级',
+                '6':'分解键级'
             })
-            opt=input('请输入序号选择要计算的键级：')
-            if opt=='1':
-                orders=self.mayer()
-                for a1,a2,val in orders:
-                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
-            elif opt=='2':
-                opt=input('请输入需要计算的键，例如(1-2): ')
-                a1,a2=opt.split('-')
-                result=self.dirMayer(bond=[int(a1),int(a2)])
-                for a1,a2,x,y,z,val in result:
-                    print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
-            elif opt=='3':
-                orders=self.pi_pocv()
-                for a1,a2,val in orders:
-                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
-            elif opt=='4':
-                opt=input('请输入需要计算的键，例如(1-2): ')
-                a1,a2=opt.split('-')
-                order=self.pi_smo(bond=[int(a1),int(a2)])
-                print(f'{int(a1):>2d}-{int(a2):>2d}:{order:>8.4f}')
-            elif opt=='5':
-                orders=self.hmo()
-                for a1,a2,val in orders:
-                    print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
-            elif opt=='':
-                break
-            else:
-                printer.warn('无效选项!')
+            opt=input('选择要计算的键级：')
+            match opt:
+                case '1':
+                    orders=self.mayer()
+                    for a1,a2,val in orders:
+                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                case '2':
+                    while True:
+                        opt=input('请输入需要计算的键，例如(1-2): ')
+                        if not opt:break
+                        a1,a2=opt.split('-')
+                        result=self.dirMayer(bond=[int(a1),int(a2)])
+                        for a1,a2,x,y,z,val in result:
+                            print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
+                case '3':
+                    orders=self.pi_pocv()
+                    for a1,a2,val in orders:
+                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                case '4':
+                    while True:
+                        opt=input('请输入需要计算的键，例如(1-2): ')
+                        if not opt:break
+                        a1,a2=opt.split('-')
+                        order=self.pi_smo(bond=[int(a1),int(a2)])
+                        print(f'{int(a1):>2d}-{int(a2):>2d}:{order:>8.4f}')
+                case '5':
+                    orders=self.hmo()
+                    for a1,a2,val in orders:
+                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                case '6':
+                    while True:
+                        opt=input('请输入需要计算的键，例如(1-2): ')
+                        if not opt:break
+                        a1,a2=opt.split('-')
+                        orders=self.decompose(bond=[int(a1),int(a2)])
+                        sig,piz,pix,det=orders
+                        print(f'σ : {sig:>10.4f}')
+                        print(f'πz: {piz:>10.4f}')
+                        print(f'πx: {pix:>10.4f}')
+                        print(f'δ : {det:>10.4f}')
+                case _:
+                    break
 
 
 def gtf(cords,l,m,n)->np.ndarray:

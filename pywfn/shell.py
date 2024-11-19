@@ -29,12 +29,13 @@ class Shell:
     def homePage(self):
         opts = {
             "0": "导入文件",
-            "1": "键の性质",
-            "2": "原子性质",
+            "1": "原子性质",
+            "2": "键の性质",
             "3": "分子性质",
-            "4": "实用工具",
-            "5": "导出文件",
-            "6": "化学函数"
+            "4": "空间性质",
+            "5": "实用工具",
+            "6": "导出文件",
+            "7": "化学函数"
         }
         while True:
             opts["0"]=f"导入文件({len(self.paths)})"
@@ -44,21 +45,24 @@ class Shell:
                 case "0":
                     self.input.Files()
                 case "1":
-                    from pywfn import bondprop
-                    bondprop.onShell(self)
-                case "2":
                     from pywfn import atomprop
                     atomprop.onShell(self)
+                case "2":
+                    from pywfn import bondprop
+                    bondprop.onShell(self)
                 case "3":
                     from pywfn import molprop
                     molprop.onShell(self)
                 case "4":
+                    from pywfn import spaceProp
+                    spaceProp.onShell(self)
+                case "5":
                     from pywfn import tools
                     tools.onShell(self)
-                case "5":
+                case "6":
                     from pywfn import writer
                     writer.onShell(self)
-                case "6":
+                case "7":
                     from pywfn import chems
                     chems.onShell()
                 case 'q':
@@ -80,8 +84,9 @@ class Inputer:
         """输入浮点数"""
         while True:
             numStr=input(tip)
-            if numStr=="":continue
+            if numStr=="":return None
             nums=[float(e) for e in numStr.split(',')]
+            if len(nums)!=count:continue
             return nums
 
     def Integ(self,tip:str,count:int=0)->list[int]:
