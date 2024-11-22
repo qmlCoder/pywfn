@@ -3,7 +3,7 @@ import numpy as np
 from pywfn.data.elements import elements
 from functools import lru_cache
 from pywfn.utils import printer
-from pywfn.spaceProp import density,dftgrid
+from pywfn.spaceprop import density,dftgrid
 from pywfn import maths
 from typing import Literal
 from pywfn.maths import CM2PM
@@ -16,7 +16,7 @@ class Calculator():
     def __init__(self,mol:"Mol"):
         self.logTip:str=''
         self.mol=mol
-        self.form:str='charge' # 输出格式，电子数或电荷数 number|charge
+        self.numForm:bool=False # 输出格式，电子数或电荷数 number|charge
         self.PM=self.mol.PM.copy() # 计算时使用的密度矩阵
         
     def charge(self,ctype:str)->np.ndarray:
@@ -54,9 +54,9 @@ class Calculator():
             elect=EV[u:l].sum()
             elects[a]=elect
             # charges[a]=atom.atomic-elect
-        if self.form=='number':
+        if self.numForm:
             return elects
-        if self.form=='charge':
+        else:
             return np.array(self.mol.atoms.atomics)-elects
     
     def lowdin(self)->np.ndarray:
@@ -78,9 +78,9 @@ class Calculator():
             u,l=atom.obtBorder
             eleNum=eleNums[u:l].sum()
             elects[a]=eleNum
-        if self.form=='number':
+        if self.numForm:
             return elects
-        if self.form=='charge':
+        else:
             return np.array(self.mol.atoms.atomics)-elects
     
     def sapce(self)->np.ndarray:
@@ -92,20 +92,20 @@ class Calculator():
         densCaler.PM=self.PM # 设为当前PM
         elects=np.zeros(len(self.mol.atoms))
         for a,atom in enumerate(self.mol.atoms):
-            dens=densCaler.atmDens(atom.idx,grid)
+            dens=densCaler.atmDens(grid,[atom.idx])
             eleNum=np.sum(dens*weit)
             elects[a]=eleNum
         # densCaler.PM=PMo # 恢复旧的PM
-        if self.form=='number':
+        if self.numForm:
             return elects
-        if self.form=='charge':
+        else:
             return np.array(self.mol.atoms.atomics)-elects
     
-    def hirshfeld(self):
+    def hirshfeld(self)->np.ndarray:
         """计算原子的Hirshfeld电荷"""
         from pywfn.data import radDens
-        from pywfn.spaceProp import dftgrid
-        from pywfn.spaceProp import density
+        from pywfn.spaceprop import dftgrid
+        from pywfn.spaceprop import density
         gridCaler=dftgrid.Calculator(self.mol) # 格点计算器
         densCaler=density.Calculator(self.mol) # 电子密度计算器
         natm=self.mol.atoms.natm
@@ -114,7 +114,6 @@ class Calculator():
         chargs=np.zeros(natm)
         for i,atom in enumerate(self.mol.atoms):
             grid,weit=gridCaler.atmGrid(atom.idx)
-            densCaler.set_grid(grid)
             npos=len(grid)
             pdens=np.zeros(npos) # 前体电子密度
             fdensl=[] # 原子自由电子密度
@@ -123,21 +122,20 @@ class Calculator():
                 fdens=radDens.get_radDens(atom.atomic,radius) # 自由原子电子密度
                 pdens+=fdens
                 fdensl.append(fdens)
-            mdens=densCaler.molDens_lib() #分子电子密度
+            mdens=densCaler.molDens_lib(grid) #分子电子密度
             res=fdensl[i]/pdens*mdens*weit
             chargs[i]=np.sum(res)
-        if self.form=='number':
+        if self.numForm:
             return chargs
-        if self.form=='charge':
+        else:
             return np.array(self.mol.atoms.atomics)-chargs
 
-    def dirElectron(self,atms:list[int],dirs:list[np.ndarray],ctype:str)->np.ndarray:
+    def dirElectron(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
         """计算不同方向的电子[n,5](atm,x,y,z,val)"""
         assert len(atms)==len(dirs),"原子与方向数量要相同"
         obts=self.mol.O_obts
         PMo=self.PM.copy() # 记录旧的密度矩阵
-        self.form='number'
-
+        self.numForm=True
         CMp=projCM(self.mol,obts,atms,dirs,False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
         PMp=CM2PM(CMp,obts,self.mol.oE)
         self.PM=PMp # 修改密度矩阵
@@ -155,13 +153,12 @@ class Calculator():
             if normal is None:continue # 没有法向量就跳过
             atmDirs[atom.idx]=normal
         atms=list(atmDirs.keys())
-        dirs=list(atmDirs.values())
-        
+        dirs=np.array(atmDirs.values())
+        self.numForm=True
         CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
         PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
         PMo=self.PM.copy() # 备份老的密度矩阵
         self.PM=PMp # 将密度矩阵替换为投影后的密度矩阵
-        self.form='number'
         eleNums=self.charge(ctype)
         # print(eleNums)
         result=[]
@@ -224,8 +221,9 @@ class Calculator():
                 # numStr=input('输入原子编号: ')
                 atm=shell.input.Integ(tip='输入原子编号: ',count=1)[0]
                 dir=shell.input.Float(tip='输入原子向量: ',count=3)
-                dir=np.array(dir)
-                elects=self.dirElectron(atms=[atm],dirs=[dir],ctype=chrg)
+                assert dir is not None,'原子向量输入不正确'
+                dirs=np.array(dir).reshape(1,3)
+                elects=self.dirElectron(atms=[atm],dirs=dirs,ctype=chrg)
                 ele=elects[atm-1]
                 x,y,z=dir
                 print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>8.4f}')
@@ -253,7 +251,7 @@ def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]|None):
         fatms=[]
         fdirs=[]
         for atm in atms:
-            resDirs=dirCaler.reaction(atm)
+            resDirs=dirCaler.reactions(atm)
             fdirs.append(resDirs)
             fatms+=[atm]*len(resDirs)
         fdirs=np.vstack(fdirs)

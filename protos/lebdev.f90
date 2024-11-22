@@ -76,7 +76,7 @@ subroutine ldfunc(as,bs,vs,cs,ni,grids,weits,no)
         idx=idx+cnum(code)
     end do
     if (idx-1/=no) then
-        write(*,*)"lebdev 数量不对" idx-1,no
+        write(*,*)"lebdev 数量不对"
         stop
     end if
 end subroutine ldfunc

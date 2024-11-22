@@ -1,10 +1,10 @@
 from pywfn.base import Mol
 from pywfn.maths import vector_angle
 from pywfn.maths import flib
+from pywfn.utils import chkArray
 
 import numpy as np
 import re
-from itertools import product
 
 def dihedralAngle(mol:Mol,idxs:list[int]):
     """计算二面角"""
@@ -18,7 +18,7 @@ def dihedralAngle(mol:Mol,idxs:list[int]):
     angle=vector_angle(vi,vj)
     return angle
 
-def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
+def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:np.ndarray,
            akeep:bool,lkeep:bool,akeeps=None,keeps:str|None=None)->np.ndarray:
     """
     获取投影后的系数矩阵
@@ -30,7 +30,8 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:list[np.ndarray],
     akeeps:额外保留的原子，不进行投影但是保留
     lkeeps:额外保留的轨道，可以使用正则表达式匹配
     """
-    assert isinstance(dirs,list),"方向向量需为列表"
+    # assert len(dirs.shape)==2,"方向为二维数组"
+    assert chkArray(dirs,[None,3]),"方向数组形状不对"
     assert len(atms)==len(dirs),"原子和方向数量不同"
     if akeep:
         CMp=np.copy(mol.CM)
@@ -126,6 +127,7 @@ def piEleMat(mol:Mol)->np.ndarray:
         if normal is None:continue
         dirs.append(normal)
         atms.append(i+1)
+    dirs=np.array(dirs)
     obts=mol.O_obts+mol.V_obts
     CMp=projCM(mol,obts,atms,dirs,False,False)
     nmat,nobt=CMp.shape

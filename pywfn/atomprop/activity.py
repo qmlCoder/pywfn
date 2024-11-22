@@ -29,7 +29,7 @@ class Calculator:
         natm=self.mol.atoms.natm
         vals=np.zeros(shape=(natm,6)) # 记录所有原子的电荷
         for c,cal in enumerate(cals):
-            cal.form='charge'
+            cal.numForm=False
             vals[:,c]=cal.charge(ctype)
         vals[:,3]=vals[:,2]-vals[:,1]
         vals[:,4]=vals[:,1]-vals[:,0]
@@ -59,7 +59,7 @@ class Calculator:
         natm=self.mol.atoms.natm
         vals=np.zeros(shape=(natm,4)) # 记录所有原子的电荷
         for c,cal in enumerate(cals):
-            cal.form='charge'
+            cal.numForm=False
             vals[:,c]=cal.charge(ctype)
         vals[:,3]=2*vals[:,1]-vals[:,0]-vals[:,2]
         return vals
@@ -136,11 +136,11 @@ class Calculator:
         return result
 
     # 亲核亲电自由价 v1
-    def neFreeValence_v1(self,atm:int,molN:Mol,molP:Mol):
+    def neFreeValence_v1(self,atm:int,dirs:np.ndarray,molN:Mol,molP:Mol):
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
-        valn,val0,valp=[cal.freeValence(atm) for cal in cals]
+        valn,val0,valp=[cal.freeValence(atm,dirs) for cal in cals]
         dirs=val0[:,:-1]
         valsn=(valn[:,-1]-val0[:,-1]).reshape(-1,1)
         valsp=(valp[:,-1]-val0[:,-1]).reshape(-1,1)
@@ -148,11 +148,11 @@ class Calculator:
         return result
     
     # 亲核亲电自由价 v2
-    def neFreeValence_v2(self,atm:int,molN:Mol,molP:Mol):
+    def neFreeValence_v2(self,atm:int,dirs:np.ndarray,molN:Mol,molP:Mol):
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
-        valn,val0,valp=[cal.freeValence(atm) for cal in cals]
+        valn,val0,valp=[cal.freeValence(atm,dirs) for cal in cals]
         val:float=self.valence()[atm-1] # 原子化合价
         dirs=val0[:,:-1]
         valsn=(4-val+(valn[:,-1])-val0[:,-1]).reshape(-1,1)
@@ -181,7 +181,7 @@ class Calculator:
         
         vals:list[np.ndarray]=[]
         for cal in cals:
-            cal.form='number'
+            cal.numForm=True
             res=cal.dirElectron(atms,dirs,ctype) # 计算方向电子
             vals.append(res)
 
@@ -201,9 +201,9 @@ class Calculator:
         calerN=charge.Calculator(molN)
         calerP=charge.Calculator(molP)
         caler0=charge.Calculator(self.mol)
-        calerN.form='number'
-        calerP.form='number'
-        caler0.form='number'
+        calerN.numForm=True
+        calerP.numForm=True
+        caler0.numForm=True
         piN=calerN.piElectron(ctype)
         piP=calerP.piElectron(ctype)
         pi0=caler0.piElectron(ctype)
@@ -233,9 +233,9 @@ class Calculator:
                         break
                     molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
                     print(chrgTip)
-                    opt=input('请输入电荷类型: ')
-                    if opt not in ctypes.keys():continue
-                    result=self.fukui(molN,molP,ctypes[opt])
+                    copt=input('请输入电荷类型: ')
+                    if copt not in ctypes.keys():continue
+                    result=self.fukui(molN,molP,ctypes[copt])
                     print(f'idx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
                     for i,(en,e0,ep,fn,fp,f0) in enumerate(result):
                         print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}')
@@ -275,16 +275,23 @@ class Calculator:
                     dirCaler=direction.Calculator(self.mol)
                     atm=shell.input.Integ(tip='输入原子编号: ',count=1)[0]
                     dirs=shell.input.Float(tip='?指定投影方向: ',count=3)
-                    if dirs is None:dirs=dirCaler.reactions(atm)
+                    if dirs is None:
+                        dirs=dirCaler.reactions(atm)
+                    else:
+                        dirs=np.array(dirs).reshape(1,3)
                     result=self.freeValence(atm,dirs)
                     for a,x,y,z,v in result:
                         print(f'{atm:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
                 case '7': # 方向fukui函数
                     # self.mols=shell.input.Moles(num=3)
+                    copt=input('请输入电荷类型: ')
+                    if copt not in ctypes.keys():continue
                     atms=shell.input.Integ(tip='输入原子编号: ')
                     assert atms is not None,"输入错误"
-                    atms=[int(atm) for atm in atms]
-                    result=self.dirFukui(atms)
+                    dirs=shell.input.Float(tip='?指定投影方向: ',count=3)
+                    dirs=np.array(dirs).reshape(1,3)
+                    molN,molP=shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                    result=self.dirFukui(atms,dirs,molN,molP,ctypes[copt])
                     for i,val in enumerate(result):
                         print(f'{i+1:>3d} {val:>8.4f}')
                 case _:

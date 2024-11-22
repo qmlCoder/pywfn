@@ -34,7 +34,7 @@ class Shell:
             "3": "分子性质",
             "4": "空间性质",
             "5": "实用工具",
-            "6": "导出文件",
+            "6": "文件转换",
             "7": "化学函数"
         }
         while True:
@@ -54,8 +54,8 @@ class Shell:
                     from pywfn import molprop
                     molprop.onShell(self)
                 case "4":
-                    from pywfn import spaceProp
-                    spaceProp.onShell(self)
+                    from pywfn import spaceprop
+                    spaceprop.onShell(self)
                 case "5":
                     from pywfn import tools
                     tools.onShell(self)
@@ -80,7 +80,7 @@ class Inputer:
             sys.exit()
         return res
     
-    def Float(self,tip:str,count:int=0)->list[float]:
+    def Float(self,tip:str,count:int=0)->list[float]|None:
         """输入浮点数"""
         while True:
             numStr=input(tip)

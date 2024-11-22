@@ -15,6 +15,7 @@ def cubeGrid(
     getR:是否获取每个维度的长度
     """
     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
+
     x0, y0, z0 = p0 - bord
     x1, y1, z1 = p1 + bord
     assert x0 < x1 , "x输入的坐标范围错误"
@@ -30,11 +31,11 @@ def cubeGrid(
             for z in zs:
                 pos.append([x, y, z])
 
-    return (Nx, Ny, Nz), np.array(pos, dtype=np.float32)
+    return [Nx, Ny, Nz], np.array(pos, dtype=np.float32)
 
 
 # 平面格点
-def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float):
+def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float)->tuple[list[int],np.ndarray]:
     """
     在空间中创建一个矩形区域,方便导出二维图像
     需要指定平面的法向量/z轴方向
@@ -58,7 +59,7 @@ def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float):
     for dx in dxs:
         for dy in dys:
             grid.append(p0+vx*dx+vy*dy)
-    return (nx,ny),np.array(grid)
+    return [nx,ny],np.array(grid)
 
 # 直线格点
 def lineGrid(p0:np.ndarray,p1:np.ndarray,step:float):

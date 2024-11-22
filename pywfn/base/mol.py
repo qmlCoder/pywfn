@@ -226,7 +226,8 @@ class Mol:
         return ''.join(names)
     
     @property
-    def molBorder(self):
+    def molBorder(self)->tuple[np.ndarray,np.ndarray]:
+        """获取分子空间边界"""
         p0=self.coords.min(axis=0)
         p1=self.coords.max(axis=0)
         return p0,p1

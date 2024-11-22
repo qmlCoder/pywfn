@@ -17,10 +17,8 @@ import numpy as np
 class Calculator():
     def __init__(self,mol:"Mol") -> None:
         self.mol=mol
-        self.logTip='mulliken 电子自旋分布:'
         
-
-    def spin(self,chrg:Chrgs='mulliken')->np.ndarray:
+    def spin(self,chrg:str='mulliken')->np.ndarray:
         """计算所有原子的自旋"""
         if not self.mol.open: #闭壳层自旋肯定为0
             return np.zeros(self.mol.atoms.natm)

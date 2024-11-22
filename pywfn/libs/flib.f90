@@ -38,6 +38,7 @@ subroutine double_array(x, N) bind(C, name="double_array_")
 
 end subroutine double_array
 
+! 生成网格点坐标
 subroutine grid_pos(Nx, Ny, Nz, pos) bind(C, name="grid_pos_")
     use iso_c_binding
     implicit none
@@ -69,6 +70,7 @@ subroutine same_array(row, col, pos) bind(C, name="same_array_")
     end do
 end subroutine same_array
 
+! 计算波函数值
 ! 都使用fortran了，就不要用向量化计算了(numpy得用(╯▔皿▔)╯)，享受逐元素计算的快乐吧
 subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
     ! 高斯指数，坐标数量，坐标值，坐标平方和，角动量分量，返回值
@@ -108,7 +110,6 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, vals) bind(C, name="gtf_") ! 计算�
             val=x**l * y**m * z**n * exp(-alp*r2)*Nm
         end if
         vals(i) = val
-        ! write(*,*)x,y,z,val
     end do
     
 end subroutine gtf

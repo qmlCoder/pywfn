@@ -47,9 +47,6 @@ class Calculator:
             case _:
                 print("原子角度格点数量不匹配!!")
                 sys.exit(1)
-        # print("原子角度格点")
-        # for x,y,z,w in result:
-        #     print(f'{x:>10.4f}{y:>10.4f}{z:>10.4f}{w:>10.4f}')
         return result[:,:3],result[:,-1]
 
     def dftGrid(self,atm:int):
@@ -82,10 +79,7 @@ class Calculator:
         atmPos=self.mol.coords.copy() # 分子坐标
         atmRad=np.array(self.mol.atoms.radius)
         atmDis=self.mol.atoms.LM
-        # print(atmGrid)
         a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
-        # print(atmGrid)
-        # print(np.isnan(a2mWeit))
         assert True not in np.isnan(atmWeit),"不应该有nan"
         return a2mGrid,a2mWeit
     

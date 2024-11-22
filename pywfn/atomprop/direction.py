@@ -27,7 +27,7 @@ class Calculator:
         obt:分子轨道
         sym:轨道的符号,正则表达式
         """
-        from pywfn.spaceProp import wfnfunc
+        from pywfn.spaceprop import wfnfunc
         wfnCaler=wfnfunc.Calculator(self.mol) # 波函数计算器
         step=0.1
         delPos=np.array([
@@ -43,10 +43,9 @@ class Calculator:
             if re.match(sym,self.mol.obtSyms[i]) is None:continue # 符号不对不算
             idxs.append(i)
         def get_vals(pos): # 计算周围一圈的波函数值
-            wfnCaler.set_grid(pos+delPos) # 设置网格
             vals=np.zeros(6) # 只计算六个点的波函数值
             for i in idxs: # 遍历所有符合要求的轨道
-                vals+=wfnCaler.atoWfn(i)*CM[i,obt] # 分子轨道=组合系数*原子轨道
+                vals+=wfnCaler.atoWfns(pos+delPos)*CM[i,obt] # 分子轨道=组合系数*原子轨道
             return vals
             
         pos0=self.mol.atom(atm).coord.copy()
@@ -183,7 +182,9 @@ class Calculator:
             return atom._props['normal']
         nebs=atom.neighbors
         if len(nebs)==1: # 如果只连接一个原子
-            idx,normal=deep_search(atm)
+            searchs=deep_search(atm)
+            assert searchs is not None,"未搜索到想要的原子"
+            idx,normal=searchs
             return normal
         if len(nebs)==2:
             ia,ib=nebs
@@ -192,7 +193,9 @@ class Calculator:
             angle=vector_angle(va,vb)
             linear=abs(1-angle)<1e-1
             if linear:
-                idx,normal=deep_search(atm)
+                searchs=deep_search(atm)
+                assert searchs is not None,"未搜索到想要的原子"
+                idx,normal=searchs
                 atom._props['normal']=normal
                 return normal
             else:
@@ -218,9 +221,9 @@ class Calculator:
 
     def coordSystem(self,atm:int,neb:int)->np.ndarray:
         """原子之上建立一组基坐标
-        - y方向: atm -> beb
+        - x方向: atm -> beb
         - z方向: atm的法向量
-        - x方向: y.z叉乘方向
+        - y方向: y.z叉乘方向
 
         Args:
             atm (int): 要计算的原子索引
@@ -229,10 +232,10 @@ class Calculator:
         Returns:
             np.ndarray: 坐标系,每一列代表一组基坐标
         """
-        vy=self.mol.atom(neb).coord-self.mol.atom(atm).coord
-        vy/=np.linalg.norm(vy)
+        vx=self.mol.atom(neb).coord-self.mol.atom(atm).coord
+        vx/=np.linalg.norm(vx)
         vz=self.normal(atm)
-        vx=np.cross(vy,vz)
+        vy=np.cross(vx,vz) # type: ignore
         return np.array([vx,vy,vz]).T
 
 

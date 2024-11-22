@@ -212,25 +212,28 @@ class Atoms:
         self.atoms.append(atom)
     
     @property
-    def atomics(self)->tuple[int]:
-        return tuple(a.atomic for a in self.atoms)
+    def atomics(self)->list[int]:
+        return [a.atomic for a in self.atoms]
     
     @property
-    def symbols(self)->tuple[str]:
-        return tuple(a.symbol for a in self.atoms)
+    def symbols(self)->list[str]:
+        return [a.symbol for a in self.atoms]
     
     @property
-    def syms(self)->tuple[str]:
-        return tuple(a.symbol for a in self.atoms)
-    
-    
-    @property
-    def indexs(self)->tuple[int]:
-        return tuple(a.idx for a in self.atoms)
+    def syms(self)->list[str]:
+        return [a.symbol for a in self.atoms]
     
     @property
-    def atms(self)->tuple[int]:
-        return tuple(a.idx for a in self.atoms)
+    def xyzs(self)->np.ndarray:
+        return np.array([a.coord for a in self.atoms])
+    
+    @property
+    def indexs(self)->list[int]:
+        return [a.idx for a in self.atoms]
+    
+    @property
+    def atms(self)->list[int]:
+        return [a.idx for a in self.atoms]
     
     @property
     def natm(self)->int:

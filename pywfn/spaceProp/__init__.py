@@ -8,9 +8,17 @@ from pywfn.maths import lineGrid,rectGrid,cubeGrid
 from pywfn.utils import printer
 from pywfn.maths import march
 from pywfn.base import Mol
+from pathlib import Path
 
-class Line:
+class Grid:
     def __init__(self):
+        self.type:str=''
+        self.size:list[int]  # 格点形状
+        self.grid:np.ndarray
+
+class LineGrid(Grid):
+    def __init__(self):
+        self.type:str='Line'
         self.nx=1
         self.grid=np.array([[0,0,0]])
     
@@ -18,50 +26,55 @@ class Line:
         grid=lineGrid(p0,p1,step)
         self.grid=grid
         self.nx=len(grid)
+        self.size=[self.nx,]
         return self
     
     def get(self):
         return (self.nx,),self.grid
 
-class Rect:
+class RectGrid(Grid):
     def __init__(self):
+        self.type:str='Rect'
         self.nx=1
         self.ny=1
         self.grid=np.array([[0,0,0]])
     
     def set(self,cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float):
-        size,grid=rectGrid(cent,norm,vx,size)
+        shape,grid=rectGrid(cent,norm,vx,size) # type: ignore
         self.grid=grid
-        self.nx=size[0]
-        self.ny=size[1]
+        self.nx=shape[0]
+        self.ny=shape[1]
+        self.size=shape
         return self
 
     def get(self):
         return (self.nx,self.ny),self.grid
 
-class Cube:
+class CubeGrid(Grid):
     def __init__(self):
+        self.type:str='Cube'
         self.nx=1
         self.ny=1
         self.nz=1
         self.grid=np.array([[0,0,0]])
-        self.step=1.0
+        self.step=[1.,1.,1.]
     
-    def set(self,p0:np.ndarray,p1:np.ndarray,step:float):
-        size,grid=cubeGrid(p0,p1,step)
+    def set(self,p0:np.ndarray,p1:np.ndarray,step:float,bord=0):
+        shape,grid=cubeGrid(p0,p1,step,bord)
         self.grid=grid
-        self.nx=size[0]
-        self.ny=size[1]
-        self.nz=size[2]
-        self.size=size
-        self.step=step
+        self.nx=shape[0]
+        self.ny=shape[1]
+        self.nz=shape[2]
+        self.size=shape
+        self.step=[step,step,step]
         return self
     
     def get(self):
-        return (self.nx,self.ny,self.nz),self.grid
+        return [self.nx,self.ny,self.nz],self.grid
 
-class Map:
+class MapsGrid(Grid):
     def __init__(self):
+        self.type:str='Maps'
         self.nx=1
         self.ny=1
         self.grid=np.array([[0,0,0]])
@@ -93,27 +106,49 @@ class Map:
         self.ny=ny
         self.grid=grids
         self.idxs=idxs
+        self.size=[ny,nx]
+        return self
+
+    def get(self)->tuple[list[int],np.ndarray]:
+        return self.size,self.grid
+    
+class VandGrid(Grid):
+    def __init__(self):
+        pass
+
+    def set(self,mol):
+        from pywfn.spaceprop import density
+        densCaler=density.Calculator(mol)
+        verts,faces=densCaler.vandSurf()
+        self.grid=verts
+        self.verts=verts
+        self.faces=faces
+        self.size=[len(verts),]
         return self
 
     def get(self):
-        return (self.nx,self.ny),self.grid,self.idxs
-    
+        return self.grid
 
 class SpaceCaler:
     def __init__(self):
         self.mol:Mol
     
-    def toImg(self,path:str,vals:np.ndarray):
+    def toImg(self,path:str,vals:np.ndarray,size:list[int],_type:str): #传入来的数据是一维的
         import matplotlib.pyplot as plt
-        ndim=len(vals.shape) #数据的维度
-        if ndim==1:
-            plt.plot(vals)
-            plt.savefig(path)
-        elif ndim==2:
-            plt.imshow(vals)
-            plt.savefig(path)
+        match _type:
+            case 'Line':
+                xs=np.arange(vals.shape[1])
+                for each in vals:
+                    plt.plot(xs,each)
+                    plt.savefig(path)
+            case 'Rect':
+                plt.imshow(vals.reshape(*size),cmap='rwb')
+                plt.savefig(path)
+            case 'Maps':
+                plt.imshow(vals.reshape(*size))
+                plt.savefig(path)
 
-    def toCub(self,path:str,vals:np.ndarray,cube:Cube,obts:list[int]): ## 保存为cub文件，cub文件是不是只能用来存储波函数？
+    def toCub(self,path:str,vals:np.ndarray,cube:CubeGrid,obts:list[int]): ## 保存为cub文件，cub文件是不是只能用来存储波函数？
         """导出成.cub文件
 
         Args:
@@ -127,11 +162,34 @@ class SpaceCaler:
         xyzs=self.mol.coords
         pos0=grid[0]
         step=cube.step
-        writer=CubWriter(syms,xyzs,obts,pos0,size,step*3,vals)
+        writer=CubWriter()
+        writer.syms=syms
+        writer.xyzs=xyzs
+        writer.obts=obts
+        writer.pos0=pos0
+        writer.size=size
+        writer.step=step
+        writer.vals=vals
+
         writer.save(path)
     
-    def toObj(self,path:str,vals:np.ndarray,cube:Cube,iosv:float): ## 保存为obj文件
+    def toObj(self,path:str,verts:np.ndarray,faces:np.ndarray): ## 保存为obj文件
         from pywfn.writer import ObjWriter
+        writer=ObjWriter()
+        writer.verts=verts
+        writer.faces=faces
+        writer.save(path)
+    
+    def toJson(self,path:str,vals:np.ndarray,vand:VandGrid): ## 将范德华表面及对应的数值保存为json文件
+        import json
+        data={
+            'verts':vand.verts.round(2).tolist(),
+            'faces':vand.faces.round(2).tolist(),
+            'value':vals.round(2).tolist()
+        }
+        Path(path).write_text(json.dumps(data,indent=4))
+        
+    def isoSurf(self,vals:np.ndarray,cube:CubeGrid,iosv:float):
         verts=[]
         faces=[]
         cubeData=march.cord2cube(cube.size,cube.grid,vals)
@@ -149,100 +207,111 @@ class SpaceCaler:
             verts.append(vert)
             faces.append(face)
             npos+=len(vert)
-        # faceP=np.array(len(vertP)//3,3)
-        # faceN=np.array(len(vertN)//3,3)
         verts=np.concatenate(verts)
         faces=np.concatenate(faces)
-        writer=ObjWriter(verts,faces)
-        writer.save(path)
-
+        return verts,faces
 
 from pywfn.shell import Shell
 
-def get_grid(shell:Shell,vtype:str):
-    match vtype:
-        case '直线':
-            from pywfn.spaceProp import Line
+# 根据用户输入获取格点
+def read_grid(shell:Shell,gidx:str,mol:Mol|None=None)->LineGrid|RectGrid|CubeGrid|VandGrid|MapsGrid:
+    match gidx:
+        case '1': # 直线采点
             p0  =shell.input.Float(tip='输入起点: ',count=3)
             p1  =shell.input.Float(tip='输入终点: ',count=3)
-            step=shell.input.Float(tip='输入步长: ',count=1)
+            step=shell.input.Float(tip='输入步长: ',count=1)[0] # type: ignore
             p0=np.array(p0)
             p1=np.array(p1)
-            line=Line().set(p0,p1,step)
-            size,grid=line.get()
-            return size,grid,None,line
-        case '平面':
-            from pywfn.spaceProp import Rect
+            line=LineGrid().set(p0,p1,step)
+            return line
+        case '2': # 平面采点
             cent=shell.input.Float(tip='输入中心: ',count=3)
             norm=shell.input.Float(tip='输入法线: ',count=3)
-            vx  =shell.input.Float(tip='输入x轴: ',count=3)
-            side=shell.input.Float(tip='输入边长: ',count=1)[0]
+            vx  =shell.input.Float(tip='输入 x轴: ',count=3)
+            side=shell.input.Float(tip='输入边长: ',count=1)[0] # type: ignore
             cent=np.array(cent)
             norm=np.array(norm)
             vx=np.array(vx)
-            rect=Rect().set(cent,norm,vx,side)
-            size,grid=rect.get()
-            return size,grid,None,rect
-        case '空间':
-            from pywfn.spaceProp import Cube
+            rect=RectGrid().set(cent,norm,vx,side)
+            return rect
+        case '3': # 空间采点
             p0  =shell.input.Float(tip='输入起点: ',count=3)
             p1  =shell.input.Float(tip='输入终点: ',count=3)
-            step=shell.input.Float(tip='输入步长: ',count=1)
+            step=shell.input.Float(tip='输入步长: ',count=1)[0] # type: ignore
             p0=np.array(p0)
             p1=np.array(p1)
-            cube=Cube().set(p0,p1,step)
-            size,grid=cube.get()
-            return size,grid,None,cube
+            cube=CubeGrid().set(p0,p1,step)
+            return cube
+        case '4': # 分子格点
+            assert mol is not None,"没有提供分子"
+            p0,p1=mol.molBorder
+            cube=CubeGrid().set(p0,p1,0.2,5)
+            return cube
+        case '5': # 地图
+            from pywfn.spaceprop import MapsGrid
+            r=shell.input.Float(tip='输入半径: ',count=1)[0] # type: ignore
+            map=MapsGrid().set(r,100)
+            return map
+        case '6': # 范德华表面
+            vand=VandGrid().set(mol)
+            return vand
+        case _:
+            assert False,"无效的格点类型"
 
-def get_fileType(shell:Shell):    
-    types={'1':'png','2':'cub','3':'obj'}
-    show_dict(types)
-    idx=shell.input.Integ(tip='请选择文件的类型: ')[0]
-    return types[f'{idx}']
-
-def save_file(caler:SpaceCaler,ftype:str,vals:np.ndarray,path:str,
-              cube:Cube=None,obts:list[int]=None,isov:float=None):
-    match ftype:
-        case 'img':
-            caler.toImg(path,vals)
-        case 'cub':
-            caler.toCub(path,vals,cube,obts)
-        case 'obj':
-            caler.toObj(path,vals,cube,isov)
 
 def show_dict(dict:dict):
     for k,v in dict.items():
         print(f'{k}: {v}; ',end='')
     print('\n')
+
+def save_file(caler:SpaceCaler,obje:Grid,vals:np.ndarray, obts:list[int]|None=None): # type: ignore
+    match obje.type:
+        case 'Line':
+            caler.toImg(f'line.png',vals,obje.size,'Line')
+        case 'Rect':
+            caler.toImg(f'rect.png',vals,obje.size,'Rect')
+        case 'Maps':
+            obje:MapsGrid = obje # type: ignore
+            vals=vals.flatten()
+            vals[obje.idxs.flatten()] = 0.0
+            caler.toImg(f'maps.png',vals,obje.size,'Maps')
+        case 'Cube':
+            assert obts is not None,"没有提供轨道索引"
+            caler.toCub(f'cube.cub',vals,obje,obts) # type: ignore
+        case 'Vand':
+            caler.toJson(f'vand.json',vals,obje) # type: ignore
+
 def onShell(shell:Shell):
     while True:
         printer.options('空间性质',{
-            '1':'波函数',
+            '1':'  波函数',
             '2':'电子密度',
-            '3':'静电势',
+            '3':'  静电势',
         })
         ctype=input('请选择计算的性质: ')
-        vdict={'1':'直线','2':'平面','3':'空间','4':'地图'}
-        show_dict(vdict)
-        vtype=input('请选择数据的形式: ')
-        size,grid,idxs,obje=get_grid(shell,vdict[vtype])
+        mol=shell.input.Moles()[0]
+        show_dict({'1':'直线采点','2':'平面采点','3':'空间采点','4':'分子空间','5':'地图映射','6':'范德华表面'})
+        gidx=input('请选择采点方式: ')
+        obje=read_grid(shell,gidx,mol)
         match ctype:
             case '1':
-                from pywfn.spaceProp import wfnfunc
-                mol=shell.input.Moles()[0]
+                from pywfn.spaceprop import wfnfunc
                 caler=wfnfunc.Calculator(mol)
                 atms=shell.input.Integ(tip='?输入要计算的原子: ')
                 if not atms:atms=mol.atoms.atms
                 obts=shell.input.Integ(tip='*输入要计算的轨道: ')
-                wfns=caler.atmWfns(grid,atms,obts)
-                ftype=get_fileType(shell)
-                save_file(caler,ftype,wfns,f'波函数_{vdict[vtype]}.{ftype}',cube=obje,obts=obts)
+                wfns=caler.atmWfns(obje.grid,atms,obts)
+                save_file(caler,obje,wfns,obts=obts)
             case '2':
-                from pywfn.spaceProp import density
-                mol=shell.input.Moles()[0]
+                from pywfn.spaceprop import density
                 caler=density.Calculator(mol)
                 atms=shell.input.Integ(tip='?输入要计算的原子: ')
-                dens=caler.atmDens(grid,atms)
-                ftype=get_fileType(shell)
-                save_file(caler,ftype,dens,f'电子密度_{vdict[vtype]}.{ftype}',cube=obje,obts=[0])
-                
+                if not atms:atms=mol.atoms.atms
+                dens=caler.atmDens(obje.grid,atms)
+                dens=dens.reshape(1,-1)
+                save_file(caler,obje,dens)
+            case '3':
+                from pywfn.spaceprop import potential
+                caler=potential.Calculator(mol)
+                pots=caler.molPotential(obje.grid)
+                save_file(caler,obje,pots)

@@ -12,7 +12,7 @@ import numpy as np
 bonds = [[0, 1], [1, 2], [2, 3], [0, 3], [1, 5], [2, 6], [3, 7], [0, 4], [4, 5], [5, 6], [6, 7], [7, 4]]; ## 八个顶点确定的键
 data:dict[str,list[list[int]]]=marchData
 
-def cord2cube(shape:tuple[int,int,int],cords:np.ndarray,values:np.ndarray)->np.ndarray:
+def cord2cube(shape:list[int],cords:np.ndarray,values:np.ndarray)->np.ndarray:
     """将坐标和值转换为体素数据 [nx,ny,nz,4] (x,y,z,v)，方便获取周围点坐标
 
     Args:

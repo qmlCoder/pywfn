@@ -6,6 +6,7 @@ from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import hmo,projCM
 from pywfn.utils import printer
+from pywfn.shell import Shell
 
 import numpy as np
 from itertools import product
@@ -46,7 +47,7 @@ class Calculator:
         # print(order)
         return order
     
-    def dirMayer(self,bond:list[int])->np.ndarray:
+    def dirMayer(self,bond:list[int],dirs:np.ndarray)->np.ndarray:
         """计算带有方向的Mayer键级
 
         Args:
@@ -55,14 +56,12 @@ class Calculator:
         Returns:
             np.ndarray: 返回数组形状为:[d,6](a1,a2,x,y,z,v),其中d为键级方向数量
         """
-        dirCaler=direction.Calculator(self.mol)
         obts=self.mol.O_obts
         result=[]
         a1,a2=bond
-        dirs=dirCaler.reactions(a1) #a1的反应方向
         if a1>a2:a1,a2=a2,a1
         for d,dir in enumerate(dirs):
-            CMp=projCM(self.mol,obts,[a1,a2],[dir,dir],False,True)
+            CMp=projCM(self.mol,obts,[a1,a2],np.array([dir,dir]),False,True)
             PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
             for a1_,a2_,order in self.mayer(PM=PMp):
                 if a1!=a1_ or a2!=a2_:continue
@@ -89,7 +88,7 @@ class Calculator:
         
         for d in range(len(dirs)):
             # CMp=projCM(self.mol,obts,[atm],[dirs[d]],False,True,akeeps=nebs)
-            CMp=projCM(self.mol,obts,[atm],[dirs[d]],True,True,akeeps=nebs)
+            CMp=projCM(self.mol,obts,[atm],dirs[d,np.newaxis],True,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
             orders=self.mayer(PM=PMp)
             x,y,z=dirs[d]
@@ -115,7 +114,7 @@ class Calculator:
             if normal is None:continue
             atms.append(atom.idx)
             dirs.append(normal)
-        
+        dirs=np.array(dirs)
         PMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         result=self.mayer(PM=PMp)
@@ -141,7 +140,7 @@ class Calculator:
         atom2=self.mol.atom(atm2)
         
         normal=dirCaler.normal(atm1)
-
+        assert normal is not None,f'原子{atm1}没有法向量'
         obts=self.mol.O_obts
         CMs=np.zeros_like(self.mol.CM) # 拷贝一份，然后将不是π轨道的那些变成0
 
@@ -195,7 +194,7 @@ class Calculator:
         pass
     
     # 分解键级
-    def decompose(self,bond:tuple[int,int]):
+    def decompose(self,bond:list[int]):
         """
         键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
         将原子轨道基函数的系数按照角动量进行分组
@@ -209,47 +208,39 @@ class Calculator:
         atm1,atm2=bond
         T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
         T2=dirCaler.coordSystem(atm2,atm1)
-        T2=T1
-        Ts=(T1.T,T2.T)
-
-        CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
-        nmat=CMt.shape[0]
+        Ts=(T1,T2)
+        
+        nmat=self.mol.CM.shape[0]
         sig_keeps={
             0:[0], #s
-            1:[1], #px,py,pz
-            2:[]  #xx,yy,zz,xy,xz,yz
-        } # 每个角动量保持的索引
-
-        sig_keeps={
-            0:[0], #s
-            1:[1], #px,py,pz
-            2:[1]  #xx,yy,zz,xy,xz,yz
+            1:[0], #px,py,pz
+            2:[0]  #xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
 
         piz_keeps={
             0:[], 
-            1:[2], 
+            1:[2], #px,py,pz
             2:[2,5]  #xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
 
-        pix_keeps={
+        piy_keeps={
             0:[], 
-            1:[0], 
-            2:[0,3]  #xx,yy,zz,xy,xz,yz
+            1:[1], #px,py,pz
+            2:[1,4]  #xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
         det_keeps={
             0:[], #s
             1:[], #px,py,pz
-            2:[4] #xx,yy,zz,xy,xz,yz
+            2:[5] #xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
-        keepList=[sig_keeps,piz_keeps,pix_keeps,det_keeps]
-        nameList=['sigma','pi_z','pi_x','delta']
-        # keeps=pi_skeeps
+
+        keepList=[sig_keeps,piz_keeps,piy_keeps,det_keeps]
         orders=[]
+        CMs=[]
         for k,keeps in enumerate(keepList):
-            # if k!=1:continue
+            CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
             for o in self.mol.O_obts:
-                coefDict=defaultdict(list) #系数字典
+                coefDict=defaultdict(list) # 系数字典
                 for i in range(nmat):
                     iatm=self.mol.obtAtms[i]
                     ishl=self.mol.obtShls[i]
@@ -262,26 +253,31 @@ class Calculator:
 
                 for key,val in coefDict.items():
                     iatm,ishl,iang=key
-                    rcoefs=np.array(val)
+                    rcoefs=np.array(val) # 原始系数
                     if iatm in bond:
                         tcoefs=decomOrbitals(Ts[bond.index(iatm)],rcoefs,keeps[iang])
                     else:
-                        tcoefs=rcoefs
+                        tcoefs=np.zeros_like(rcoefs)
                     assert len(rcoefs)==len(tcoefs),"长度对不上"
                     
-                    coefDict[key]=tcoefs
+                    coefDict[key]=tcoefs.tolist()
                 values=list(coefDict.values())
                 CMt[:,o]=np.concatenate(values)
+            CMs.append(CMt)
             PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
             results=self.mayer(PMt)
+            # print(results)
+            values=results[:,-1]
+            values[values<0]=0
+            results[:,-1]=values**0.5
             for a1,a2,val in results:
                 if a1 not in bond:continue
                 if a2 not in bond:continue
-                order=val.item()**0.5
-            orders.append(order)
+                order=val.item()
+                orders.append(order)
         return orders
 
-    def onShell(self):
+    def onShell(self,shell:Shell):
         while True:
             printer.options('键级计算',{
                 '1':'mayer键级',
@@ -301,8 +297,11 @@ class Calculator:
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')
                         if not opt:break
+                        
                         a1,a2=opt.split('-')
-                        result=self.dirMayer(bond=[int(a1),int(a2)])
+                        dirs=shell.input.Float(tip='输入方向: ',count=3)
+                        dirs=np.array(dirs).reshape(1,3)
+                        result=self.dirMayer(bond=[int(a1),int(a2)],dirs=dirs)
                         for a1,a2,x,y,z,val in result:
                             print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
                 case '3':
@@ -325,7 +324,7 @@ class Calculator:
                         opt=input('请输入需要计算的键，例如(1-2): ')
                         if not opt:break
                         a1,a2=opt.split('-')
-                        orders=self.decompose(bond=[int(a1),int(a2)])
+                        orders=self.decompose([int(a1),int(a2)])
                         sig,piz,pix,det=orders
                         print(f'σ : {sig:>10.4f}')
                         print(f'πz: {piz:>10.4f}')

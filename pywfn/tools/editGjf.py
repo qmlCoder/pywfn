@@ -5,35 +5,74 @@
 from pywfn.base import Mol
 from pywfn.writer import GjfWriter
 from pathlib import Path
+from pywfn.data.elements import elements
+import numpy as np
+from pywfn.shell import Shell
+from pywfn.utils import printer
+
 class Tool():
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
+        self.syms=list(mol.atoms.syms)
+        self.xyzs=mol.atoms.xyzs
+        self.nela=self.mol.eleNum[0]
+        self.nelb=self.mol.eleNum[1]
+        fold=Path(self.mol.reader.path).parent # 文件夹
+        stem=Path(self.mol.reader.path).stem   # 文件名(无后缀)
+        self.root=f'{fold}/{stem}'
     
-    def addEle(self,delEle:int):
+    @property
+    def multiply(self):
+        atomic=sum([elements[sym].atomic for sym in self.syms]) #分子核电荷数
+        charge=atomic-self.nela-self.nelb
+        spin=self.nela-self.nelb+1
+        return charge,spin
+    
+    def addElectron(self,delta:int):
         """分子加减电子，影响电荷，加一个电子电荷变为-1
 
         Args:
             delEle (int): 加减电子数
         """
-        na,nb=self.mol.eleNum
-        if delEle>0:
-            if na==nb:
-                na+=delEle
-            elif na>nb:
-                nb+=delEle
-        if delEle<0:
-            if na==nb:
-                nb+=delEle
-            elif na>nb:
-                na+=delEle
-        oldCharge,oldSpin=self.mol.charge,self.mol.spin
-        charge=sum(self.mol.atoms.atomics)-na-nb
-        spin=na-nb+1
-        self.mol.props.set('charge',charge)
-        self.mol.props.set('spin',spin)
-        return oldCharge,oldSpin
+        
+        sat1=delta>0
+        for i in range(abs(delta)):
+            sat2=self.nela==self.nelb
+            match (sat1,sat2):
+                case (True,True):
+                    self.nela+=1
+                case (True,False):
+                    self.nelb+=1
+                case (False,True):
+                    self.nelb-=1
+                case (False,False):
+                    self.nela-=1
+    
+    def addAtoms(self,syms:list[str],atms:np.ndarray):
+        self.syms=self.syms+syms
+        self.xyzs=np.concatenate([self.xyzs,atms],axis=0)
+    
+    def addRingBq(self,rings:list[list[int]]):
+        xyzs=[]
+        syms=['Bq']*len(rings)
+        for ring in rings:
+            xyz=self.xyzs[ring].copy().mean(axis=0)
+            xyzs.append(xyz)
+        self.addAtoms(syms,np.array(xyzs))
     
     def save(self,path:str):
         writer=GjfWriter(self.mol)
         writer.CHK=Path(path).stem
         writer.save(path)
+    
+    def onShell(self,shell:Shell):
+        printer.options('实用工具',{
+            '1':'添加电子',
+            '2':'环心添加Bq',
+        })
+        opt=input('请输入选项：')
+        match opt:
+            case '1':
+                delta=shell.input.Integ('请输入加减电子数：',count=1)[0]
+                self.addElectron(delta)
+                self.save()

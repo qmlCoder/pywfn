@@ -9,17 +9,16 @@ from pywfn import maths
 import numpy as np
 from pywfn.maths import flib
 from pywfn.maths import cubeGrid
-from pywfn.spaceProp import lutils
-from pywfn import spaceProp
+from pywfn.spaceprop import lutils
+from pywfn import spaceprop
 from pywfn.maths import march
-from pywfn.spaceProp import Line,Rect,Cube,Map
 Array=np.ndarray
 
-class Calculator(spaceProp.SpaceCaler):
+class Calculator(spaceprop.SpaceCaler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
-        self.wfns:np.ndarray=None
+        self.wfns:np.ndarray|None=None
         self.CM=self.mol.CM.copy()
         self.atms=self.mol.atoms.atms
     
@@ -101,35 +100,6 @@ class Calculator(spaceProp.SpaceCaler):
                 wfns[o]+=wfn
         return wfns
     
-    # def lineValue(self,line:Line,atms:list[int],obt:int):
-    #     """获取一条直线上的数值"""
-    #     size,grid=line.get()
-    #     wfns=self.atmWfns(atms,obt,grid)
-    #     return wfns.reshape(*size)
-
-    # def rectValue(self,rect:Rect,atms:list[int],obt:int):
-    #     """获取一个矩形上的数值"""
-    #     size,grid=rect.get()
-    #     wfns=self.atmWfns(atms,obt,grid)
-    #     return wfns.reshape(*size)
-
-    # def cubeValue(self,cube:Cube,atms:list[int],obt:int): # 在一个正方体内的波函数值
-    #     size,grid=cube.get()# 生成网格坐标
-    #     wfns=self.atmWfns(atms,obt,grid)
-    #     return wfns.reshape(*size)
-
-    # def ballValue(self,map:Map,obt:int)->np.ndarray:
-    #     """
-    #     计算球坐标映射为2d坐标的波函数
-    #     返回二维矩阵
-    #     """
-    #     size,grid,idxs=map.get()
-    #     # 计算波函数值
-    #     wfns=self.obtWfns(grid,[obt])
-    #     wfns[idxs]=0.0
-    #     wfns=wfns.reshape(*size)
-    #     return wfns
-
 def meshgrid(xr,yr):
     xs,ys=np.meshgrid(xr,yr)
     xs=xs.flatten()

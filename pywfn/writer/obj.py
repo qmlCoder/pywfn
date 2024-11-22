@@ -4,11 +4,13 @@ obj文件生成器
 import numpy as np
 
 class ObjWriter:
-    def __init__(self,verts:np.ndarray,faces:np.ndarray):
-        self.verts=verts # 顶点
-        self.faces=faces # 面
+    def __init__(self):
+        self.verts:np.ndarray|None=None # 顶点
+        self.faces:np.ndarray|None=None # 面
     
     def save(self,path:str):
+        assert self.verts is not None,"没有提供顶点"
+        assert self.faces is not None,"没有提供面"
         with open(path,'w',encoding='utf-8') as f:
             for i,(x,y,z) in enumerate(self.verts):
                 f.write(f'v {x:>10.4f}{y:>10.4f}{z:>10.4f}\n')

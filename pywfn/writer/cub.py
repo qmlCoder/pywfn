@@ -13,39 +13,28 @@ from pathlib import Path
 
 from pywfn import maths,base,config
 from pywfn.utils import printer
-from pywfn.spaceProp import wfnfunc,density
+from pywfn.spaceprop import wfnfunc,density
 from pywfn.data.elements import elements
 
 class CubWriter:
-    def __init__(self,syms:list[str],xyzs:np.ndarray,obts:list[int],pos0:list[float],size:list[int],step:list[float],vals:np.ndarray) -> None:
-        """cube文件导出器
-
-        Args:
-            syms (list[str]): 原子符号
-            xyzs (np.ndarray): 原子坐标 [n,3]
-            obts (list[int]): 原子轨道
-            pos0 (list[float]): 起点坐标
-            size (list[int]): 格点数量
-            step (list[float]): 格点步长
-            vals (np.ndarray): 格点数值 [轨道,格点]
-        """
+    def __init__(self) -> None:
+        """cube文件导出器"""
         self.title0='genetrate by pywfn'
         self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
-        self.syms=syms
-        self.xyzs=xyzs
-        self.obts=obts
-        self.pos0=pos0
-        self.size=size
-        self.step=step
-        self.vals=vals
-        assert len(vals.shape)==2,'数据应为二维[轨道,格点]'
-        self.npos=self.size[0]*self.size[1]*self.size[2]
+        self.syms:list[str]=[] # 原子符号
+        self.xyzs:np.ndarray|None=None # 原子坐标
+        self.obts:list[int]=[] # 分子轨道
+        self.pos0:np.ndarray|None=None # 起点坐标
+        self.size:list[int]=[0,0,0] # 三个方向的格点数量
+        self.step:list[float]=[0,0,0] # 三个方向的格点步长
+        self.vals:np.ndarray|None=None # 格点数值 [轨道,格点]
         
     def write_grids(self):
         """生成格点数据"""
-        
-        self.file.write(f'{self.title0}\n{self.title1} {self.npos*len(self.obts)}\n')
+        npos=self.size[0]*self.size[1]*self.size[2]
+        self.file.write(f'{self.title0}\n{self.title1} {npos*len(self.obts)}\n')
         nx,ny,nz=self.size
+        assert self.pos0 is not None,"没有设置起点坐标"
         x0,y0,z0=self.pos0
         sx,sy,sz=self.step
         natm=len(self.syms)
@@ -55,6 +44,9 @@ class CubWriter:
         self.file.write(f'{nz:>5}{0:>12.6f}{0:>12.6f}{sz:>12.6f}\n')
     
     def write_coord(self):
+        assert len(self.syms)!=0,"没有原子坐标"
+        assert self.xyzs is not None,"没有原子坐标"
+        assert len(self.syms)==len(self.xyzs),"原子坐标和符号数量不一致"
         natm=len(self.syms)
         for i in range(natm):
             x,y,z=self.xyzs[i]
@@ -62,13 +54,12 @@ class CubWriter:
             atomic=elements[sym].atomic
             self.file.write(f'{atomic:>5}{atomic:12.6f}{x:12.6f}{y:12.6f}{z:12.6f}\n')
 
-    
     def write_value(self):
         """
         计算波函数值并写入文件
         """
         nobt=len(self.obts)
-        npos=self.npos
+        npos=self.size[0]*self.size[1]*self.size[2]
         index=0
         nx,ny,nz=self.size
 
@@ -80,6 +71,7 @@ class CubWriter:
 
         for i in range(npos): # 对每一个点进行循环
             for j in range(nobt): # 对每一个轨道进行循环
+                assert self.vals is not None,"没有波函数值"
                 v=self.vals[j,i]
                 # if v==0:v=1e-8
                 self.file.write(f'{v:13.5E}')

@@ -40,7 +40,7 @@ class Bond:
         return (self.a1.coord+self.a2.coord)/2
     
     @property
-    def btype(self):
+    def btype(self)->int:
         """获取键类型
         1:单键
         2:双键

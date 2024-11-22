@@ -1,6 +1,5 @@
 """
-code ocean平台需要一键产生数据，麻烦
+此脚本用来复现论文中的结果
 """
 from pywfn.base import Mol
 from pywfn.reader import LogReader
-

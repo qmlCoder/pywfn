@@ -7,13 +7,15 @@
 空间中一个格点的权重是否应该对所有分子都一致？
 """
 from pywfn.base import Mol
-from pywfn.spaceProp import wfnfunc
+from pywfn.spaceprop import wfnfunc
 from functools import cached_property,lru_cache
-from pywfn.spaceProp import dftgrid,Line,Rect,Cube
+from pywfn.spaceprop import dftgrid
+from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,MapsGrid
+from pywfn import spaceprop
 from pywfn import maths
 import numpy as np
 
-class Calculator:
+class Calculator(spaceprop.SpaceCaler):
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.wfnCaler=wfnfunc.Calculator(mol)
@@ -29,7 +31,7 @@ class Calculator:
             dens+=wfn**2*self.mol.oE
         return dens
     
-    def molDens_lib(self,grid):
+    def molDens_lib(self,grid:np.ndarray):
         """使用Fortran库计算电子密度"""
         from pywfn.maths import flib
         ngrid=len(grid)
@@ -40,6 +42,10 @@ class Calculator:
         wfns=self.wfnCaler.atoWfns(grid) # 原子轨道波函数
         dens=flib.molDens(ngrid,nmat,nobt,CM,wfns)
         return dens*self.mol.oE
+    
+    def molDens_pro(self,grid:np.ndarray):
+        """计算前体分子电子密度 promol"""
+        pass
         
     def atmDens(self,grid:np.ndarray,atms:list[int]):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
@@ -47,7 +53,6 @@ class Calculator:
         dens=np.zeros((len(grid)))
         for a,atm in enumerate(atms):
             atom=self.mol.atom(atm)
-            dens=np.zeros(len(grid))
             u,l = atom.obtBorder
             atowfns=self.wfnCaler.atoWfns(grid)
             for i in range(u,l):
@@ -57,32 +62,12 @@ class Calculator:
                     dens+=wfn_i*wfn_j*self.PM[i,j]
         return dens
     
-    def isoSurf(self): #获取电子密度等值面，顶点坐标以及面索引
-        pass
-    
-    # def lineValue(self,line:Line,atms:list[int]):
-    #     """获取一条直线上的数值"""
-    #     size,grid=line.get()
-    #     if not atms:
-    #         dens=self.molDens_lib(grid)
-    #     else:
-    #         dens=self.atmDens(grid,atms)
-    #     return dens.reshape(*size)
-    
-    # def rectValue(self,rect:Rect,atms:list[int]):
-    #     """生成图片文件"""
-    #     size,grid=rect.get()
-    #     if not atms:
-    #         dens=self.molDens_lib(grid)
-    #     else:
-    #         dens=self.atmDens(grid,atms)
-    #     return dens.reshape(*size)
-    
-    # def cubeValue(self,cube:Cube,atms:list[int]):
-    #     """生成图片文件"""
-    #     size,grid=cube.get()
-    #     if not atms:
-    #         dens=self.molDens_lib(grid)
-    #     else:
-    #         dens=self.atmDens(grid,atms)
-    #     return dens.reshape(*size)
+    def vandSurf(self):
+        p0,p1=self.mol.molBorder
+        p0-=4
+        p1+=4
+        cube=CubeGrid().set(p0,p1,0.2)
+        size,grid=cube.get()
+        dens=self.molDens_lib(grid)
+        verts,faces=self.isoSurf(dens,cube,0.1)
+        return verts,faces
