@@ -140,12 +140,16 @@ class SpaceCaler:
                 xs=np.arange(vals.shape[1])
                 for each in vals:
                     plt.plot(xs,each)
-                    plt.savefig(path)
+                plt.savefig(path)
             case 'Rect':
-                plt.imshow(vals.reshape(*size),cmap='rwb')
+                vmin=vals.min()
+                vmax=vals.max()
+                plt.imshow(vals.reshape(*size),cmap='bwr',vmin=vmin,vmax=vmax)
                 plt.savefig(path)
             case 'Maps':
-                plt.imshow(vals.reshape(*size))
+                vmin=vals.min()
+                vmax=vals.max()
+                plt.imshow(vals.reshape(*size),cmap='bwr',vmin=vmin,vmax=vmax)
                 plt.savefig(path)
 
     def toCub(self,path:str,vals:np.ndarray,cube:CubeGrid,obts:list[int]): ## 保存为cub文件，cub文件是不是只能用来存储波函数？

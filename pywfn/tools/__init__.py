@@ -1,7 +1,7 @@
 """
 各种实用工具的合集
 调用pywfn核心函数，或者是对文件进行处理
-- editGjf   编辑gjf文件
+- editGjf   编辑gjf文件：环心增加Bq原子、增删电子数
 - engCorr   能量矫正
 - extractSI 提取SI信息
 - getPES    绘制势能面
@@ -28,9 +28,8 @@ def onShell(shell:"shell.Shell"):
         '3':'分割 IRC 文件',
         '4':'分割link 任务',
         '5':'拼接 gjf 文件',
-        '6':'环心添加Bq原子',
-        '7':'加/减gjf电子数'
-        
+        '6':'gjf 环心添加Bq原子',
+        '7':'gjf 分子增删电子数'
     })
     opt=input('请输入选项：')
     match opt:
@@ -61,11 +60,16 @@ def onShell(shell:"shell.Shell"):
             paths=shell.input.Paths()
             joinGjf.Tool(paths).save(f'{cwd}/join.gjf')
         case '6': # 环心添加Bq原子
-            from pywfn.tools import ringBq
+            from pywfn.tools import editGjf
             printer.info('在gjf文件指定环的中心添加Bq原子，方便NICS计算')
-            mol=shell.input.Moles(count=1)[0]
-            tool=ringBq.Tool(mol)
-            tool.onShell(shell)
+            mol=shell.input.Moles(num=1)[0]
+            tool=editGjf.Tool(mol)
+            rings=input('输入环编号: ')
+            rings=[[int(atm) for atm in ring] for ring in rings.split(';')]
+            tool.addRingBq(rings)
+            path=Path(mol.reader.path)
+            path=(path.parent/f'{path.stem}_ringBq.gjf')
+            tool.save(f'{path}')
         case '7': # 加/减gjf电子数
             from pywfn.tools import editGjf
             mols=shell.input.Moles()
@@ -79,8 +83,6 @@ def onShell(shell:"shell.Shell"):
                 raise ValueError('加减电子数不能为0')
             for mol in mols:
                 tool=editGjf.Tool(mol)
-                oldCharge,oldSpin=tool.addEle(nele)
+                tool.addElectron(nele)
                 path=Path(mol.reader.path)
-                tool.save(f'{path.parent}/{path.stem}_{sufx}.gjf')
-                mol.props.set('charge',oldCharge)
-                mol.props.set('spin',oldSpin)
+                tool.save(f'{path.parent}/{path.stem}_{sufx}{abs(nele)}.gjf')

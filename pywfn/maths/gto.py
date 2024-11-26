@@ -141,7 +141,7 @@ class Gto:
         cmax=len(exps)
         nc=len(exps)
         alps=np.array(exps)
-        coes=np.array(coes)
+        coes=np.array(coes) # type: ignore
         ngrid=grids.shape[0]
         l,m,n=lmn
         wfns=flib.cgf(cmax,nc,alps,coes,ngrid,grids,coord,l,m,n)

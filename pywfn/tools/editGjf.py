@@ -61,18 +61,9 @@ class Tool():
         self.addAtoms(syms,np.array(xyzs))
     
     def save(self,path:str):
-        writer=GjfWriter(self.mol)
-        writer.CHK=Path(path).stem
+        writer=GjfWriter()
+        writer.charge,writer.spin=self.multiply
+        writer.syms=self.syms
+        writer.xyzs=self.xyzs
+        writer.chk=Path(path).stem
         writer.save(path)
-    
-    def onShell(self,shell:Shell):
-        printer.options('实用工具',{
-            '1':'添加电子',
-            '2':'环心添加Bq',
-        })
-        opt=input('请输入选项：')
-        match opt:
-            case '1':
-                delta=shell.input.Integ('请输入加减电子数：',count=1)[0]
-                self.addElectron(delta)
-                self.save()

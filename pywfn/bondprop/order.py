@@ -208,30 +208,30 @@ class Calculator:
         atm1,atm2=bond
         T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
         T2=dirCaler.coordSystem(atm2,atm1)
-        Ts=(T1,T2)
+        Ts=[T1,T2]
         
         nmat=self.mol.CM.shape[0]
         sig_keeps={
-            0:[0], #s
-            1:[0], #px,py,pz
-            2:[0]  #xx,yy,zz,xy,xz,yz
+            0:[0], # s
+            1:[0], # px,py,pz
+            2:[0]  # xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
 
         piz_keeps={
             0:[], 
-            1:[2], #px,py,pz
-            2:[2,5]  #xx,yy,zz,xy,xz,yz
+            1:[2],  # px,py,pz
+            2:[2,5] # xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
 
         piy_keeps={
-            0:[], 
-            1:[1], #px,py,pz
-            2:[1,4]  #xx,yy,zz,xy,xz,yz
+            0:[],   # s
+            1:[1],  # px,py,pz
+            2:[1,4] # xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
         det_keeps={
-            0:[], #s
-            1:[], #px,py,pz
-            2:[5] #xx,yy,zz,xy,xz,yz
+            0:[], # s
+            1:[], # px,py,pz
+            2:[5] # xx,yy,zz,xy,xz,yz
         } # 每个角动量保持的索引
 
         keepList=[sig_keeps,piz_keeps,piy_keeps,det_keeps]
@@ -249,7 +249,8 @@ class Calculator:
                     if iatm in bond:
                         coefDict[key].append(self.mol.CM[i,o])
                     else:
-                        coefDict[key].append(0)
+                        # coefDict[key].append(0)
+                        coefDict[key].append(self.mol.CM[i,o])
 
                 for key,val in coefDict.items():
                     iatm,ishl,iang=key
@@ -257,7 +258,8 @@ class Calculator:
                     if iatm in bond:
                         tcoefs=decomOrbitals(Ts[bond.index(iatm)],rcoefs,keeps[iang])
                     else:
-                        tcoefs=np.zeros_like(rcoefs)
+                        # tcoefs=np.zeros_like(rcoefs)
+                        tcoefs=np.array(coefDict[key])
                     assert len(rcoefs)==len(tcoefs),"长度对不上"
                     
                     coefDict[key]=tcoefs.tolist()
@@ -275,6 +277,7 @@ class Calculator:
                 if a2 not in bond:continue
                 order=val.item()
                 orders.append(order)
+                break
         return orders
 
     def onShell(self,shell:Shell):
@@ -334,10 +337,10 @@ class Calculator:
                     break
 
 
-def gtf(cords,l,m,n)->np.ndarray:
-    x=cords[0,:]
-    y=cords[1,:]
-    z=cords[2,:]
+def gtf(grid,l,m,n)->np.ndarray:
+    x=grid[:,0]
+    y=grid[:,1]
+    z=grid[:,2]
     r2=x**2+y**2+z**2
     alp=2.0
     facs=[1,1,3]
@@ -349,14 +352,15 @@ def gtf(cords,l,m,n)->np.ndarray:
 
 
 def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list):
-    if len(coefs)==1:
-        return decomOrbitalS(T,coefs,keeps)
-    elif len(coefs)==3:
-        return decomOrbitalP(T,coefs,keeps)
-    elif len(coefs)==6:
-        return decomOrbitalD(T,coefs,keeps)
-    else:
-        return coefs
+    match len(coefs):
+        case 1:
+            return decomOrbitalS(T,coefs,keeps)
+        case 3:
+            return decomOrbitalP(T,coefs,keeps)
+        case 6:
+            return decomOrbitalD(T,coefs,keeps)
+        case _:
+            return coefs
 
 def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list[int]):
     if keeps:
@@ -377,53 +381,47 @@ def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int])->np.ndarray:
         np.ndarray: 分解之后的轨道系数
     """
     npos=3
-    cords=np.random.rand(3,npos) #随机生成3个点
-    zs1=np.zeros(shape=(npos,3))
-    zs1[:,0]=gtf(cords,1,0,0)
-    zs1[:,1]=gtf(cords,0,1,0)
-    zs1[:,2]=gtf(cords,0,0,1)
+    cords=np.random.rand(npos,3) #随机生成3个点[n,3],[3,3]
+    wfn_1=np.zeros(shape=(npos,3)) #再这些点上的波函数数值
+    wfn_1[:,0]=gtf(cords,1,0,0)
+    wfn_1[:,1]=gtf(cords,0,1,0)
+    wfn_1[:,2]=gtf(cords,0,0,1)
 
-    zs2=np.zeros(shape=(npos,3))
-    zs2[:,0]=gtf(T@cords,1,0,0)
-    zs2[:,1]=gtf(T@cords,0,1,0)
-    zs2[:,2]=gtf(T@cords,0,0,1)
+    wfn_2=np.zeros(shape=(npos,3))
+    wfn_2[:,0]=gtf(cords@T,1,0,0)
+    wfn_2[:,1]=gtf(cords@T,0,1,0)
+    wfn_2[:,2]=gtf(cords@T,0,0,1)
 
-    # Mt=(np.linalg.inv(zs2)@zs1)
-
-    Mr=np.linalg.inv(zs2)@zs1
+    Mr=np.linalg.inv(wfn_2)@wfn_1
     Mi=np.linalg.inv(Mr)
-    # print(rcoefs)
     tcoefs=Mr@rcoefs # 根据函数空间基组1下的系数获取函数空间基组2下的系数
-    # print(tcoefs)
     for i in range(3):
         if i in keeps:continue
         tcoefs[i]=0.0
     fcoefs=Mi@tcoefs # 根据修改后的函数空间基组2下的系数得到函数空间基组1下的系数
-    # print(tcoefs)
-    # print(fcoefs)
     return fcoefs
 
 # 分解D轨道
 def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
     npos=6
-    cords=np.random.rand(3,npos) #随机生成6个点
-    zs1=np.zeros(shape=(npos,6))
-    zs1[:,0]=gtf(cords,2,0,0)
-    zs1[:,1]=gtf(cords,0,2,0)
-    zs1[:,2]=gtf(cords,0,0,2)
-    zs1[:,3]=gtf(cords,1,1,0)
-    zs1[:,4]=gtf(cords,1,0,1)
-    zs1[:,5]=gtf(cords,0,1,1)
+    cords=np.random.rand(npos,3) # 随机生成6个点
+    wfn_1=np.zeros(shape=(npos,6))
+    wfn_1[:,0]=gtf(cords,2,0,0)
+    wfn_1[:,1]=gtf(cords,0,2,0)
+    wfn_1[:,2]=gtf(cords,0,0,2)
+    wfn_1[:,3]=gtf(cords,1,1,0)
+    wfn_1[:,4]=gtf(cords,1,0,1)
+    wfn_1[:,5]=gtf(cords,0,1,1)
 
-    zs2=np.zeros(shape=(npos,6))
-    zs2[:,0]=gtf(T@cords,2,0,0)
-    zs2[:,1]=gtf(T@cords,0,2,0)
-    zs2[:,2]=gtf(T@cords,0,0,2)
-    zs2[:,3]=gtf(T@cords,1,1,0)
-    zs2[:,4]=gtf(T@cords,1,0,1)
-    zs2[:,5]=gtf(T@cords,0,1,1)
+    wfn_2=np.zeros(shape=(npos,6))
+    wfn_2[:,0]=gtf(cords@T,2,0,0)
+    wfn_2[:,1]=gtf(cords@T,0,2,0)
+    wfn_2[:,2]=gtf(cords@T,0,0,2)
+    wfn_2[:,3]=gtf(cords@T,1,1,0)
+    wfn_2[:,4]=gtf(cords@T,1,0,1)
+    wfn_2[:,5]=gtf(cords@T,0,1,1)
 
-    Mr=np.linalg.inv(zs2)@zs1
+    Mr=np.linalg.inv(wfn_2)@wfn_1
     Mi=np.linalg.inv(Mr)
     tcoefs=Mr@rcoefs
     for i in range(6):

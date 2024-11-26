@@ -100,7 +100,7 @@ def grid_pos(Nx: int, Ny: int, Nz: int)->np.ndarray:
     return pos
 
 def gtf(alp: float,ngrid:int, grids: np.ndarray,coord:np.ndarray,l:int,m:int,n:int) -> np.ndarray:
-    assert chkArray(coord,(3)),"形状或类型不匹配"
+    assert chkArray(coord,[3]),"形状或类型不匹配"
     ipts=[alp,ngrid,grids,coord,l,m,n]
     wfn=np.zeros(ngrid,dtype=ftype)
     outs=[wfn]
@@ -118,7 +118,7 @@ def cgf(cmax:int,nc:int,alps:np.ndarray,coes:np.ndarray,
     call_flib('cgf_',ipts,outs)
     return wfn
 
-def cgfs(
+def atoWfns(
         ngrid:int,
         grids:Array,
         nmat:int,
@@ -131,11 +131,11 @@ def cgfs(
     """
     计算所有原子轨道波函数
     """
-    assert chkArray(grids,(ngrid,3)),"形状不匹配"
+    assert chkArray(grids,[ngrid,]),"形状不匹配"
     wfns=np.zeros(shape=(nmat,ngrid),dtype=ftype)
     ipts=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns]
     outs=[wfns]
-    call_flib('cgfs_',ipts,outs)
+    call_flib('atoWfns_',ipts,outs)
     return wfns
 
 def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns:np.ndarray):
@@ -202,9 +202,9 @@ def eleMat(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
 
 def nucPotential(cords:Array,nucs:Array,xyzs:Array):
     """计算势能"""
-    assert chkArray(cords,(None,3)),"形状不匹配"
-    assert chkArray(nucs,(None,)),"形状不匹配"
-    assert chkArray(xyzs,(None,3)),"形状不匹配"
+    assert chkArray(cords,[None,3]),"形状不匹配"
+    assert chkArray(nucs,[None,]),"形状不匹配"
+    assert chkArray(xyzs,[None,3]),"形状不匹配"
     ncord=cords.shape[0]
     natm=len(nucs)
     paras=[ncord,cords,natm,nucs,xyzs]
@@ -216,10 +216,10 @@ def nucPotential(cords:Array,nucs:Array,xyzs:Array):
 
 def elePotential(cords:Array,grids:Array,weits:Array,dens:Array):
     """计算势能"""
-    assert chkArray(cords,(None,3)),"形状不匹配"
-    assert chkArray(grids,(None,3)),"形状不匹配"
-    assert chkArray(weits,(None,)),"形状不匹配"
-    assert chkArray(dens,(None,)),"形状不匹配"
+    assert chkArray(cords,[None,3]),"形状不匹配"
+    assert chkArray(grids,[None,3]),"形状不匹配"
+    assert chkArray(weits,[None,]),"形状不匹配"
+    assert chkArray(dens,[None,]),"形状不匹配"
     ncord=cords.shape[0]
     ngrid=grids.shape[0]
     paras=[ncord,cords,ngrid,grids,weits,dens]

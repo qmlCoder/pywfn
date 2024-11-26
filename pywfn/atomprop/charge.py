@@ -122,7 +122,7 @@ class Calculator():
                 fdens=radDens.get_radDens(atom.atomic,radius) # 自由原子电子密度
                 pdens+=fdens
                 fdensl.append(fdens)
-            mdens=densCaler.molDens_lib(grid) #分子电子密度
+            mdens=densCaler.molDens(grid) #分子电子密度
             res=fdensl[i]/pdens*mdens*weit
             chargs[i]=np.sum(res)
         if self.numForm:
@@ -153,7 +153,7 @@ class Calculator():
             if normal is None:continue # 没有法向量就跳过
             atmDirs[atom.idx]=normal
         atms=list(atmDirs.keys())
-        dirs=np.array(atmDirs.values())
+        dirs=np.array([e for e in atmDirs.values()])
         self.numForm=True
         CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
         PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)

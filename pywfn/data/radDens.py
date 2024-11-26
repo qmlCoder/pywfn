@@ -2016,16 +2016,33 @@ ADP=[
     [  3625, 0.0296,   260.0, 0.1168,   5.211, 0.4412]
 ]
 
-def get_radDens_v2(atomic:int,radius:np.ndarray):
+def get_radDens_v2(atomic:int,grids:np.ndarray,level:int=0):
 
     """计算某个原子的径向电子密度"""
     paras=ADP[atomic]
-    values=np.zeros(len(radius))
+    xs=grids[:,0]
+    ys=grids[:,1]
+    zs=grids[:,2]
+    radius=np.linalg.norm(grids,axis=1) # 半径
+    dens0=np.zeros(shape=len(radius)) # 电子密度
+    dens1=np.zeros(shape=(len(radius),3))# 电子密度的一阶导
+
     for i in range(0,len(paras),2):
         coe=paras[i]
         alp=paras[i+1]
-        values+=coe*np.exp(-radius/alp)
-    return values
+        rho0=coe*np.exp(-radius/alp)
+        dens0+=rho0
+        if level < 1:continue # 不计算一阶导
+        rho1_=-coe*rho0/(radius*alp)
+        rho1x=xs*rho1_
+        rho1y=ys*rho1_
+        rho1z=zs*rho1_
+        dens1[:,0]+=rho1x
+        dens1[:,1]+=rho1y
+        dens1[:,2]+=rho1z
+    return dens0,dens1
+
+
     
 if __name__=='__main__':
     radius=np.array([0.1,0.2,0.3])
