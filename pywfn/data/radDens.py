@@ -2023,24 +2023,37 @@ def get_radDens_v2(atomic:int,grids:np.ndarray,level:int=0):
     xs=grids[:,0]
     ys=grids[:,1]
     zs=grids[:,2]
-    radius=np.linalg.norm(grids,axis=1) # 半径
-    dens0=np.zeros(shape=len(radius)) # 电子密度
-    dens1=np.zeros(shape=(len(radius),3))# 电子密度的一阶导
+    r=np.linalg.norm(grids,axis=1) # 半径
+    r2=np.linalg.norm(grids,axis=1)**2 # 半径平方
+    dens0=np.zeros(shape=len(r)) # 电子密度
+    dens1=np.zeros(shape=(len(r),3))# 电子密度的一阶导
+    dens2=np.zeros(shape=(len(r),3,3))# 电子密度的二阶导
 
     for i in range(0,len(paras),2):
         coe=paras[i]
         alp=paras[i+1]
-        rho0=coe*np.exp(-radius/alp)
+        rho0=coe*np.exp(-r/alp)
         dens0+=rho0
-        if level < 1:continue # 不计算一阶导
-        rho1_=-coe*rho0/(radius*alp)
-        rho1x=xs*rho1_
-        rho1y=ys*rho1_
-        rho1z=zs*rho1_
+        if level == 0:continue # 不计算一阶导
+        rho1=-coe*rho0/(r*alp)
+        rho1x=xs*rho1
+        rho1y=ys*rho1
+        rho1z=zs*rho1
         dens1[:,0]+=rho1x
         dens1[:,1]+=rho1y
         dens1[:,2]+=rho1z
-    return dens0,dens1
+        if level == 1:continue # 不计算二阶导
+        dens2[0,0]=(xs**2/r**3-1/r+xs**2/(alp*r2))
+        dens2[0,1]=xs*ys*(1/r**3+1/(alp*r2))
+        dens2[0,2]=xs*zs*(1/r**3+1/(alp*r2))
+        dens2[1,0]=dens2[0,1]
+        dens2[1,1]=(ys**2/r**3-1/r+ys**2/(alp*r2))
+        dens2[1,2]=ys*zs*(1/r**3+1/(alp*r2))
+        dens2[2,0]=dens2[0,2]
+        dens2[2,1]=dens2[1,2]
+        dens2[2,2]=(zs**2/r**3-1/r+zs**2/(alp*r2))
+        dens2=dens2*rho0/alp
+    return dens0,dens1,dens2
 
 
     

@@ -103,13 +103,13 @@ class Basis:
             "XY": [1, 1, 0],
             "XZ": [1, 0, 1],
             "YZ": [0, 1, 1],
-            # "F 0": [0, 0, 0],
-            # "F+1": [0, 0, 0],
-            # "F-1": [0, 0, 0],
-            # "F+2": [0, 0, 0],
-            # "F-2": [0, 0, 0],
-            # "F+3": [0, 0, 0],
-            # "F-3": [0, 0, 0],
+            "F 0": [0, 0, 0],
+            "F+1": [0, 0, 0],
+            "F-1": [0, 0, 0],
+            "F+2": [0, 0, 0],
+            "F-2": [0, 0, 0],
+            "F+3": [0, 0, 0],
+            "F-3": [0, 0, 0],
         }
         return lmnMap[sym]
     
@@ -121,7 +121,7 @@ class Basis:
     def num(self, atomic: int) -> int:
         """获取基组原子对应的基函数数量"""
         data = self.get(atomic)
-        return sum([len(self.lmn(ang)) for ang, _, _ in data])
+        return sum([len(self.lmn(ang)) for _,_,ang, _, _ in data])
 
     def lmn2sym(self, lmn):
         l,m,n = lmn

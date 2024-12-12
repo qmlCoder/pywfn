@@ -3,8 +3,6 @@ import math
 from pywfn import config
 from pywfn import base
 from pywfn.utils import printer
-from pywfn.maths.gto import Gto
-
 
 # 立方格点
 def cubeGrid(
@@ -21,17 +19,22 @@ def cubeGrid(
     assert x0 < x1 , "x输入的坐标范围错误"
     assert y0 < y1 , "x输入的坐标范围错误"
     assert z0 < z1 , "x输入的坐标范围错误"
-    pos = []
+    # pos = []
     xs = np.arange(x0, x1, step)
     ys = np.arange(y0, y1, step)
     zs = np.arange(z0, z1, step)
+    XS,YS,ZS=np.meshgrid(xs,ys,zs)
     Nx, Ny, Nz = len(xs), len(ys), len(zs)
-    for x in xs:
-        for y in ys:
-            for z in zs:
-                pos.append([x, y, z])
+    grid=np.zeros((Nx*Ny*Nz,3),dtype=np.float32)
+    grid[:,0]=XS.flatten()
+    grid[:,1]=YS.flatten()
+    grid[:,2]=ZS.flatten()
+    # for x in xs:
+    #     for y in ys:
+    #         for z in zs:
+    #             pos.append([x, y, z])
 
-    return [Nx, Ny, Nz], np.array(pos, dtype=np.float32)
+    return [Nx, Ny, Nz], grid
 
 
 # 平面格点
@@ -341,3 +344,96 @@ def value2color(value:float,vmin:float,vmax:float,cmin:np.ndarray,cmax:np.ndarra
     k=(value-vmin)/(vmax-vmin)
     color=cmin+k*(cmax-cmin)
     return color
+
+def gtf(grid,l,m,n)->np.ndarray:
+    x=grid[:,0]
+    y=grid[:,1]
+    z=grid[:,2]
+    r2=x**2+y**2+z**2
+    alp=2.0
+    facs=[1,1,3]
+    fac=facs[l]*facs[m]*facs[n]
+    ang=l+m+n
+    Nm=(2*alp/np.pi)**(3/4)*np.sqrt((4*alp)**ang/fac)
+    val=x**l * y**m * z**n * np.exp(-alp*r2)*Nm
+    return val
+
+
+def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list):
+    match len(coefs):
+        case 1:
+            return decomOrbitalS(T,coefs,keeps)
+        case 3:
+            return decomOrbitalP(T,coefs,keeps)
+        case 6:
+            return decomOrbitalD(T,coefs,keeps)
+        case _:
+            return coefs
+
+def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list[int]):
+    if keeps:
+        return coefs
+    else:
+        return np.array([0.])
+
+# 分解P轨道
+def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int])->np.ndarray:
+    """分解P轨道
+
+    Args:
+        T (np.ndarray): 基坐标，每一行代表一个方向
+        rcoefs (np.ndarray): 原始函数空间的基函数系数
+        keeps (list[int]): 保留的角动量
+
+    Returns:
+        np.ndarray: 分解之后的轨道系数
+    """
+    npos=3
+    cords=np.random.rand(npos,3) #随机生成3个点[n,3],[3,3]
+    wfn_1=np.zeros(shape=(npos,3)) #再这些点上的波函数数值
+    wfn_1[:,0]=gtf(cords,1,0,0)
+    wfn_1[:,1]=gtf(cords,0,1,0)
+    wfn_1[:,2]=gtf(cords,0,0,1)
+
+    wfn_2=np.zeros(shape=(npos,3))
+    wfn_2[:,0]=gtf(cords@T,1,0,0)
+    wfn_2[:,1]=gtf(cords@T,0,1,0)
+    wfn_2[:,2]=gtf(cords@T,0,0,1)
+
+    Mr=np.linalg.inv(wfn_2)@wfn_1
+    Mi=np.linalg.inv(Mr)
+    tcoefs=Mr@rcoefs # 根据函数空间基组1下的系数获取函数空间基组2下的系数
+    for i in range(3):
+        if i in keeps:continue
+        tcoefs[i]=0.0
+    fcoefs=Mi@tcoefs # 根据修改后的函数空间基组2下的系数得到函数空间基组1下的系数
+    return fcoefs
+
+# 分解D轨道
+def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
+    npos=6
+    cords=np.random.rand(npos,3)   # 随机生成6个点
+    wfn_1=np.zeros(shape=(npos,6))
+    wfn_1[:,0]=gtf(cords,2,0,0)
+    wfn_1[:,1]=gtf(cords,0,2,0)
+    wfn_1[:,2]=gtf(cords,0,0,2)
+    wfn_1[:,3]=gtf(cords,1,1,0)
+    wfn_1[:,4]=gtf(cords,1,0,1)
+    wfn_1[:,5]=gtf(cords,0,1,1)
+
+    wfn_2=np.zeros(shape=(npos,6))
+    wfn_2[:,0]=gtf(cords@T,2,0,0)
+    wfn_2[:,1]=gtf(cords@T,0,2,0)
+    wfn_2[:,2]=gtf(cords@T,0,0,2)
+    wfn_2[:,3]=gtf(cords@T,1,1,0)
+    wfn_2[:,4]=gtf(cords@T,1,0,1)
+    wfn_2[:,5]=gtf(cords@T,0,1,1)
+
+    Mr=np.linalg.inv(wfn_2)@wfn_1
+    Mi=np.linalg.inv(Mr)
+    tcoefs=Mr@rcoefs
+    for i in range(6):
+        if i in keeps:continue
+        tcoefs[i]=0.0
+    fcoefs=Mi@tcoefs
+    return fcoefs

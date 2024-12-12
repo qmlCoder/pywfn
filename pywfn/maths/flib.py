@@ -131,11 +131,11 @@ def atoWfns(
     """
     计算所有原子轨道波函数
     """
-    assert chkArray(grids,[ngrid,]),"形状不匹配"
+    assert chkArray(grids,[ngrid,3]),"形状不匹配"
     wfns=np.zeros(shape=(nmat,ngrid),dtype=ftype)
     ipts=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns]
     outs=[wfns]
-    call_flib('atoWfns_',ipts,outs)
+    call_flib('cgfs_',ipts,outs)
     return wfns
 
 def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns:np.ndarray):

@@ -12,7 +12,6 @@ from functools import cached_property,lru_cache
 from pywfn.spaceprop import dftgrid
 from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,MapsGrid
 from pywfn import spaceprop
-from pywfn import maths
 from pywfn.data import radDens
 import numpy as np
 
@@ -57,7 +56,7 @@ class Calculator(spaceprop.SpaceCaler):
         dens0=np.zeros((len(grid)))
         dens1=np.zeros((len(grid),3))
         for atom in self.mol.atoms:
-            rho0,rho1=radDens.get_radDens_v2(atom.atomic,grid,level)
+            rho0,rho1,dens2=radDens.get_radDens_v2(atom.atomic,grid,level)
             dens0+=rho0
             dens1+=rho1
         match level: # 根据level返回不同维度的密度
@@ -65,17 +64,25 @@ class Calculator(spaceprop.SpaceCaler):
                 return dens0
             case 1:
                 return dens0,dens1
+            case 2:
+                return dens0,dens1,dens2
             case _:
                 raise ValueError("level must be 0 or 1")
             
     def RDG(self,grid:np.ndarray,pro:bool=False): # reduced density gradient
         if pro: # 如果使用预分子
-            dens0,dens1=self.proMolDens_v2(grid,1)
+            dens0,dens1=self.proMolDens_v2(grid,1) # type: ignore
             return np.linalg.norm(dens1,axis=1)/(2*(3*np.pi**2)**(1/3)*dens0**(4/3))
         else: # 使用真实电子密度及梯度
             pass
-
-        
+    
+    def IRI(self,grid:np.ndarray,pro:bool=False,a=1.1): # 
+        if pro: # 如果使用预分子
+            dens0,dens1=self.proMolDens_v2(grid,1) # type: ignore
+            return np.linalg.norm(dens1,axis=1)/dens0**a
+        else:
+            pass
+   
     def atmDens(self,grid:np.ndarray,atms:list[int]):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
         nmat=self.mol.CM.shape[0]

@@ -14,7 +14,6 @@ import threading
 import json
 
 from pywfn.data.basis import Basis
-from pywfn.maths.gto import Gto
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 from pywfn import reader
@@ -144,14 +143,18 @@ class LogReader(reader.Reader):
     @lru_cache
     def get_coords(self)->np.ndarray:
         """原子坐标[n,3]"""
-        symbols,coords=self.read_coords()
+        result=self.read_coords()
+        assert result is not None,"没有找到原子坐标"
+        symbols,coords=result
         assert isinstance(coords,np.ndarray),'coord必须是np.ndarray类型'
         return coords
 
     @lru_cache
     def get_symbols(self)->list[str]:
         """原子符号[n]"""
-        symbols,coords=self.read_coords()
+        result=self.read_coords()
+        assert result is not None,"没有找到原子符号"
+        symbols,coords=result
         return symbols
 
     @lru_cache
@@ -318,9 +321,13 @@ class LogReader(reader.Reader):
                 shell+=1
             elif re.search(s3,line) is not None:
                 if not ifRead:continue
-                numsStr=re.search(s3,line).groups()[0]
-                nums:list[str]=re.findall(r'-?\d.\d{10}D[+-]\d{2}',numsStr)
-                nums=[float(num.replace('D','E')) for num in nums]
+                find=re.search(s3,line)
+                assert find is not None,'正则匹配错误'
+                numsStr=find.groups()[0]
+                numStrs:list[str]=re.findall(r'-?\d.\d{10}D[+-]\d{2}',numsStr)
+                nums:list[float]=[float(num.replace('D','E')) for num in numStrs]
+                assert angs is not None,'angs is None'
+                assert atomic is not None,'atomic is None'
                 if len(angs)==1:
                     exp,coe=nums
                     data=BasisData(atomic,shell,angs[0],exp,coe)

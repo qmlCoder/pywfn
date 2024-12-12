@@ -69,9 +69,9 @@ class Mol:
     def basis(self)->data.Basis: # 设为属性，可以保证用不到的时候不被实例化
         return self.reader.get_basis()
     
-    @cached_property
-    def gto(self)->"maths.Gto":
-        return maths.Gto(self)
+    # @cached_property
+    # def gto(self)->"maths.Gto":
+    #     return maths.Gto(self)
 
     @property
     def charge(self)->int:
@@ -233,7 +233,7 @@ class Mol:
         return p0,p1
     
 
-    def params(self,atms:tuple[int])->float:
+    def params(self,atms:list[int])->float:
         """
         获取键长、键角、二面角
         """
@@ -283,7 +283,7 @@ class Mol:
         DM=np.zeros(shape=(natm,natm))
         for i in range(natm):
             for j in range(i,natm):
-                dis=self.params((i+1,j+1))
+                dis=self.params([i+1,j+1])
                 DM[i,j]=dis
                 DM[j,i]=dis
         return DM

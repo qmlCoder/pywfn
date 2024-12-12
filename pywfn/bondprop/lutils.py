@@ -8,6 +8,7 @@ from pywfn.maths import vector_angle
 from pywfn.utils import printer
 from pywfn.maths.atom import get_sCont
 from pywfn.atomprop import direction
+from pywfn.spaceprop import density
 
 def CM2PM(CM,orbital:list[int],oe:int)->np.ndarray:
     """
@@ -26,19 +27,26 @@ def CM2PMs(CM,orbital:list[int],oe:int):
     B=(CM[:,orbital].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算快多了
 
-def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,normal:np.ndarray)->int:
+def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator)->int:
     """
-    判断一个轨道是否为π轨道,几何方法
+    判断一个轨道是否为π轨道，几何方法
     centerAtom,aroundAtom:原子对象
     orbital:分子轨道序数
     normal:原子法向量[其实可以是任意方向]
     """
+    
     # print('判断pi轨道:',atm1,atm2)
     atom1=mol.atom(atm1)
     atom2=mol.atom(atm2)
     if atom1.symbol=='H' or atom2.symbol=='H':
         # print(obt+1,'轨道是H原子轨道,无法判断')
         return 0
+    # 根据键轴上的电子密度判断
+    RA=atom1.coord*0.7+atom2.coord*0.3
+    RB=atom1.coord*0.3+atom2.coord*0.7
+    densCaler=density.Calculator(mol)
+    dens=densCaler.molDens(grid=np.array([RA,RB]))
+    if np.max(dens)<0.01:return 0
     # 1. 根据s轨道和p轨道的贡献
     sContCenter=get_sCont(mol,atm1,obt)
     sContAround=get_sCont(mol,atm1,obt)
@@ -47,58 +55,25 @@ def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,normal:np.ndarray)->int:
         # print(obt+1,'s轨道贡献:',sContCenter,sContAround)
         return 0
     # 2. p轨道的方向要处在垂直分子平面方向
-    dirCaler=direction.Calculator(mol)
     cenDir=dirCaler.maxWeave(atm1,obt,'P[XYZ]')
     aroDir=dirCaler.maxWeave(atm2,obt,'P[XYZ]')
+    # print('p轨道方向:',atm1,cenDir)
+    # print('p轨道方向:',atm2,aroDir)
     
     if cenDir is None and aroDir is None:
         # print(obt+1,'p轨道方向:',cenDir,aroDir)
         return 0
+    normal=dirCaler.normal(atm1)
     if cenDir is None: cenDir=normal
     if aroDir is None: aroDir=normal
-    centerAngle=vector_angle(cenDir,normal) # 计算分子平面和p轨道方向的夹角
-    aroundAngle=vector_angle(aroDir,normal)
+    centerAngle=vector_angle(cenDir,normal) # type: ignore # 计算分子平面和p轨道方向的夹角
+    aroundAngle=vector_angle(aroDir,normal) # type: ignore
     
     if abs(0.5-centerAngle)<0.3 or abs(0.5-aroundAngle)<0.3:
         # print(obt+1,'夹角:',centerAngle,aroundAngle)
         return 0
     # 以上两个条件都满足的可以认为是π轨道
     if (0.5-centerAngle)*(0.5-aroundAngle)>0:
-        return 1
-    else:
-        return -1
-
-def judgeOrbital_(centerAtom:Atom,aroundAtom:Atom,orbital:int,normal)-> int:
-    """判断某一个键的分子轨道是不是π轨道,成键返回1，反键返回-1，否则返回0"""
-    
-
-    centerTs=centerAtom.pLayersTs(orbital)
-    aroundTs=aroundAtom.pLayersTs(orbital)
-    centerPs=[np.array(centerTs[i:i+3]) for i in range(0,len(centerTs),3)]
-    aroundPs=[np.array(aroundTs[i:i+3]) for i in range(0,len(aroundTs),3)]
-    normal=centerAtom.get_Normal(aroundAtom)
-    centerPs_=centerAtom.get_pProj(normal, orbital) # 先计算投影
-    aroundPs_=aroundAtom.get_pProj(normal, orbital)
-    centerPs,centerPs_=np.array(centerPs),np.array(centerPs_) # 将系数转为数组
-    aroundPs,aroundPs_=np.array(aroundPs),np.array(aroundPs_)
-    centerPs,centerPs_=centerPs.sum(axis=0),centerPs_.sum(axis=0) # 将不同组的p求和
-    aroundPs,aroundPs_=aroundPs.sum(axis=0),aroundPs_.sum(axis=0)
-    centerL,centerL_=np.linalg.norm(centerPs),np.linalg.norm(centerPs_) #p轨道系数组成向量的长度
-    aroundL,aroundL_=np.linalg.norm(aroundPs),np.linalg.norm(aroundPs_)
-    # centerRatio=np.linalg.norm(centerPs_)/np.linalg.norm(centerPs) # 投影后与投影前的比例
-    # aroundRatio=np.linalg.norm(aroundPs_)/np.linalg.norm(aroundPs) 
-    centerRatio=np.divide(centerL_,centerL,out=np.zeros_like(centerL),where=centerL!=0)
-    aroundRatio=np.divide(aroundL_,aroundL,out=np.zeros_like(aroundL),where=aroundL!=0)
-
-    
-    centerScont=centerAtom.get_sCont(orbital)
-    aroundScont=aroundAtom.get_sCont(orbital)
-    if centerScont>0.001 or aroundScont>0.001:
-        return 0 # s贡献太大的不是
-
-    if centerRatio<=0.1 or aroundRatio<=0.1:
-        return 0
-    if vector_angle(centerPs_,aroundPs_)<=0.5:
         return 1
     else:
         return -1

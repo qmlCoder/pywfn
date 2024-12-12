@@ -9,6 +9,7 @@ from typing import Literal
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import projCM
 from pywfn.shell import Shell
+from collections import defaultdict
 
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
@@ -172,6 +173,42 @@ class Calculator():
             result.append([atm,x,y,z,ele])
         self.PM=PMo
         return np.array(result)
+    
+    def piElectDecom(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
+        from pywfn.atomprop import direction
+        dirCaler=direction.Calculator(self.mol) # 方向计算器
+        natm=self.mol.atoms.natm
+        nmat=self.mol.CM.shape[0]
+        Ts=np.zeros(shape=(natm,3,3)) #每个原子的局部坐标系
+        piz_keeps={
+            0:[], 
+            1:[2],  # px,py,pz
+            2:[2,4] # xx,yy,zz,xy,xz,yz
+        } # 每个角动量保持的索引
+        for i,atom in enumerate(self.mol.atoms):
+            nebs=atom.neighbors
+            Ts[i]=dirCaler.coordSystem(atom.idx,nebs[0])
+        CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
+        for o in self.mol.O_obts:
+            coefDict=defaultdict(list) # 系数字典
+            for i in range(nmat):
+                iatm=self.mol.obtAtms[i]
+                ishl=self.mol.obtShls[i]
+                iang=self.mol.obtAngs[i]
+                key=(iatm,ishl,iang)
+                coefDict[key].append(self.mol.CM[i,o])
+            for key,val in coefDict.items():
+                iatm,ishl,iang=key
+                rcoefs=np.array(val)
+                tcoefs=maths.decomOrbitals(Ts[iatm-1],rcoefs,piz_keeps[iang])
+                coefDict[key]=tcoefs.tolist()
+            values=list(coefDict.values())
+            CMt[:,o]=np.concatenate(values)
+        PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
+        self.PM=PMt
+        self.numForm=True
+        return self.mulliken()
+
     
     def onShell(self,shell:Shell):
         from pywfn.utils import parse_intList

@@ -81,7 +81,7 @@ class Calculator(spaceprop.SpaceCaler):
         lmns=np.array(lmns)
         ncgs=np.array(ncgs)
         
-        wfns=flib.cgfs(ngrid,grid,nmat,coords,cmax,ncgs,expa,coea,lmns)
+        wfns=flib.atoWfns(ngrid,grid,nmat,coords,cmax,ncgs,expa,coea,lmns)
         return wfns
 
     def atmWfns(self,grid:np.ndarray,atms:list[int],obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个

@@ -8,49 +8,6 @@ subroutine info() bind(c, name='info_')
     write(*,*)'Hello from Fortran'
 end subroutine info
 
-! subroutine add(x, y, res) bind(c, name='add_')
-!     use iso_c_binding
-!     implicit none
-!     real(c_double), intent(in), value :: x, y
-!     real(c_double), intent(out) ::  res
-!     res = x + y
-! end subroutine add
-
-! function sum2(a) result(b) bind(c, name='sum2_')
-!     use iso_c_binding
-!     implicit none
-
-!     real(c_double), intent(in)  :: a
-!     real(c_double)              :: b
-
-!     b = a + 2.0
-
-! end function sum2
-
-! subroutine double_array(x, N) bind(C, name="double_array_")
-!     use iso_c_binding
-!     implicit none
-
-!     integer(c_int), intent(in), value   :: N
-!     real(c_double), intent(inout)       :: x(N, N)
-
-!     x = exp(x)
-
-! end subroutine double_array
-
-! subroutine same_array(row, col, pos) bind(C, name="same_array_")
-!     use iso_c_binding
-!     implicit none
-!     integer(c_int), intent(in), value :: row, col
-!     real(c_double), intent(out) ::  pos(row, col)
-!     integer::i, j
-!     do i = 1, row
-!         do j = 1, col
-!             pos(i, j) = pos(i, j) + pos(i, j)
-!         end do
-!     end do
-! end subroutine same_array
-
 ! 生成网格点坐标
 subroutine grid_pos(Nx, Ny, Nz, pos) bind(C, name="grid_pos_")
     use iso_c_binding

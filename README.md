@@ -3,23 +3,31 @@
 文档： https://www.xiaofei911.top/mkdocs/pywfn/
 
 
-## 使用
-1. 安装依赖
+## 依赖
 ```
 numpy==2.1.1
 rich==13.8.0
 matplotlib==3.9.2
 ```
-2. 运行程序
-```
+## 运行(CLI)
+``` shell
 python main.py
 ```
 
+## 示例(API)
+```python
+from pywfn.base import Mol
+from pywfn.reader import LogReader
+from pywfn.atomProp import atomCharge
 
-## 规范
-- 传参的时候尽量不要使用自定义数据类型
+path="D:\BaiduSyncdisk\gfile\CnHn\C6H6.log" # 高斯输出文件的路径
+reader=LogReader(path) # 实例化log文件读取器
+mol=Mol(reader) # 实例化分子对象
 
-- 当程序作为模块的时候，不要打印信息，尽量少使用print
+caler=atomCharge.Calculator(mol) # 实例化原子电荷计算器，传入分子对象
+result=caler.mulliken() # 计算mulliken电荷
+print(result) # 打印结果
+```
 
 ## 功能
 ![](./docs/pywfn_xmind.png)

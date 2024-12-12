@@ -10,6 +10,9 @@ from pywfn.maths import vector_angle,points_rotate,cubeGrid
 from pywfn import config
 import re
 import numpy as np
+from functools import lru_cache
+
+maxWeaves={} # 记录已经计算过的原子最大值方向
 
 class Calculator:
     def __init__(self,mol:Mol) -> None:
@@ -19,7 +22,8 @@ class Calculator:
     def pOrbital(self)->np.ndarray|None:
         """计算p轨道的方向向量"""
         pass
-
+    
+    @lru_cache
     def maxWeave(self,atm:int,obt:int,sym:str)->np.ndarray|None:
         """
         计算原子波函数最大值方向
@@ -27,39 +31,45 @@ class Calculator:
         obt:分子轨道
         sym:轨道的符号,正则表达式
         """
+        def get_vals(pos,step): # 计算周围一圈的波函数值
+            delPos=np.array([
+                [+step,0,0],[-step,0,0],
+                [0,+step,0],[0,-step,0],
+                [0,0,+step],[0,0,-step]
+            ])
+            vals=np.zeros(6) # 只计算六个点的波函数值
+            for i in idxs: # 遍历所有符合要求的轨道
+                coef=CM[i,obt]
+                wfn=wfnCaler.obtWfns(pos+delPos,[obt])[0]
+                vals+=coef*wfn # 分子轨道=组合系数*原子轨道
+
+            maxIdx=np.argmax(vals) # 最大值所在的索引
+            maxVal=np.max(vals) # 最大值
+            maxDir=delPos[maxIdx]
+            return maxVal,maxDir
         from pywfn.spaceprop import wfnfunc
         wfnCaler=wfnfunc.Calculator(self.mol) # 波函数计算器
         step=0.1
-        delPos=np.array([
-            [+step,0,0],[-step,0,0],
-            [0,+step,0],[0,-step,0],
-            [0,0,+step],[0,0,-step]
-        ])
+        
         CM=self.mol.CM.copy()
         nmat=CM.shape[0]
         idxs=[] # 符合要求的轨道索引
         for i in range(nmat):
             if self.mol.obtAtms[i]!=atm:continue #不是指定的原子不算
-            if re.match(sym,self.mol.obtSyms[i]) is None:continue # 符号不对不算
+            obtSym=self.mol.obtSyms[i]
+            if re.match(sym,obtSym) is None:continue # 符号不对不算
             idxs.append(i)
-        def get_vals(pos): # 计算周围一圈的波函数值
-            vals=np.zeros(6) # 只计算六个点的波函数值
-            for i in idxs: # 遍历所有符合要求的轨道
-                vals+=wfnCaler.atoWfns(pos+delPos)*CM[i,obt] # 分子轨道=组合系数*原子轨道
-            return vals
+        
             
         pos0=self.mol.atom(atm).coord.copy()
         # print(pos0)
         val0=-np.inf #起初为负无穷
         for i in range(1000):
-            vals=get_vals(pos0)
-            # print(pos0,vals)
-            maxIdx=np.argmax(vals) # 最大值所在的索引
-            maxVal=np.max(vals) # 最大值
+            maxVal,maxDir=get_vals(pos0,step)
             if maxVal>val0 and maxVal>0:
-                val0=maxVal
-                pos0+=delPos[maxIdx]
-            elif step>1e-8:
+                val0= maxVal
+                pos0+=maxDir
+            elif step>1e-10:
                 step/=10
             else:
                 break
@@ -125,7 +135,6 @@ class Calculator:
                 points=(cent+cros).reshape(-1,3)
                 dirs=[]
                 for axis in (va,va-vb,-vb):
-                    print(points)
                     dirs+=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
                 dirs=np.concatenate(dirs,axis=0)
                 if vector_angle(va+vb,dirs[28])<0.5:dirs*=-1

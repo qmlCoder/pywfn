@@ -64,6 +64,20 @@ class Calculator:
         vals[:,3]=2*vals[:,1]-vals[:,0]-vals[:,2]
         return vals
     
+    def mayerTotalValence(self):
+        natm=self.mol.atoms.natm
+        vals=np.zeros(natm)
+        PS=self.mol.PM@self.mol.SM
+        OM=PS*PS.T
+        diag=np.diag(PS)
+        for i,atom in enumerate(self.mol.atoms):
+            u,l=atom.obtBorder
+            vals[i]=2*np.sum(diag[u:l])-np.sum(OM[u:l,u:l])
+        return vals
+
+    def mayerFreeValence(self):
+        pass
+
     # 电子能差
     def engDiff(self,molN:Mol,molP:Mol)->np.ndarray:
         """计算电子能差，中性到两个状态能量变化，变得越小越好
@@ -89,25 +103,18 @@ class Calculator:
 
     # 化合价
     def valence(self)->np.ndarray:
-        """计算原子化合价"""
-        from pywfn.bondprop import order
-        caler=order.Calculator(self.mol)
-        orders=caler.mayer()
+        """计算原子化合价，与所有原子相邻的Mayer键级之和"""
         natm=self.mol.atoms.natm
-        orderDict={} # 记录每个键对应的键级
-        for a1,a2,order in orders:
-            a1,a2=int(a1),int(a2)
-            key=f'{a1}-{a2}' if a1<a2 else f'{a2}-{a1}'
-            orderDict[key]=order
-        result=np.zeros(natm)
-        for a,atom in enumerate(self.mol.atoms):
-            a1=atom.idx
-            valence=0
-            for a2 in atom.neighbors:
-                key=f'{a1}-{a2}' if a1<a2 else f'{a2}-{a1}'
-                valence+=orderDict[key]
-            result[a]=valence
-        return result
+        vals=np.zeros(natm)
+        PS=self.mol.PM@self.mol.SM
+        OM=PS*PS.T
+        for ai,atomi in enumerate(self.mol.atoms):
+            ui,li=atomi.obtBorder
+            for aj,atomj in enumerate(self.mol.atoms):
+                if atomj.idx==atomi.idx:continue
+                uj,lj=atomj.obtBorder
+                vals[ai]+=np.sum(OM[ui:li,uj:lj])
+        return vals
 
     # 自由价(方向化合价)
     def freeValence(self,atm:int,dirs:np.ndarray)->np.ndarray:
