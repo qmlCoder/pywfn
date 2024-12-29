@@ -246,6 +246,31 @@ class Calculator:
         vz=self.normal(atm)
         vy=np.cross(vx,vz) # type: ignore
         return np.array([vx,vy,vz]).T
+    
+    def bases(self)->dict[int,np.ndarray]:
+        """计算每个原子的局部基坐标[natm,3,3]，每一列代表一个基向量
+        """
+        atms=self.mol.heavyAtoms
+        # base=np.zeros(shape=(natm,3,3))
+        base={}
+        for i,atm in enumerate(atms):
+            atom=self.mol.atom(atm)
+            norm=self.normal(atom.idx) # 原子法向量
+            nebs=atom.neighbors
+            
+            cent=self.mol.coords[[e-1 for e in nebs],:].copy().mean(axis=0) # 邻居原子坐标的平均值
+            vect=atom.coord-cent # 原子到邻居原子的向量
+            vect/=np.linalg.norm(vect) # 单位化
+            assert norm is not None,"原子法向量计算失败"
+            if vector_angle(norm,vect)>0.5:norm*=-1
+            anyv=np.random.rand(3) # 任意向量
+            vz=norm/np.linalg.norm(norm) # 单位法向量
+            vx=np.cross(vz,anyv)
+            vx/=np.linalg.norm(vx)
+            vy=np.cross(vz,vx)
+            vy/=np.linalg.norm(vy)
+            base[atm]=np.array([vx,vy,vz]).T # 原子局部坐标系的基坐标向量
+        return base
 
 
 def search_sp2Dir(v0,v1,v2,v3):

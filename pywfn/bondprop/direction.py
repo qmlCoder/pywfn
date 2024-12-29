@@ -20,6 +20,7 @@ class Calculator:
             np.ndarray: 方向数组[35,3]
         """
         bond=self.mol.bonds.get(atm1,atm2)
+        assert bond is not None,"No bond between atoms"
         bdir=bond.vector # 键轴向量
         anyv=np.random.rand(3) # 随机生成向量
 

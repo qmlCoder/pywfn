@@ -21,4 +21,4 @@ def onShell(shell:Shell):
     if opt=='1':
         mols=shell.input.Moles()
         caler=order.Calculator(mols[0])
-        caler.onShell()
+        caler.onShell(shell)

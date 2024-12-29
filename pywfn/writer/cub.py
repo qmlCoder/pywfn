@@ -11,26 +11,35 @@ import numpy as np
 import time
 from pathlib import Path
 
+from pywfn.base import Mol
 from pywfn import maths,base,config
 from pywfn.utils import printer
 from pywfn.spaceprop import wfnfunc,density
 from pywfn.data.elements import elements
+from pywfn import utils
 
 class CubWriter:
     def __init__(self) -> None:
         """cube文件导出器"""
         self.title0='genetrate by pywfn'
         self.title1=time.strftime('%Y-%m-%d %H:%M:%S')
-        self.syms:list[str]=[] # 原子符号
+        self.syms:list[str]=[]         # 原子符号
         self.xyzs:np.ndarray|None=None # 原子坐标
-        self.obts:list[int]=[] # 分子轨道
+
+        self.obts:list[int]=[]         # 分子轨道
         self.pos0:np.ndarray|None=None # 起点坐标
-        self.size:list[int]=[0,0,0] # 三个方向的格点数量
-        self.step:list[float]=[0,0,0] # 三个方向的格点步长
-        self.vals:np.ndarray|None=None # 格点数值 [轨道,格点]
+        self.size:list[int]  =[0,0,0]  # 三个方向的格点数量
+        self.step:list[float]=[0,0,0]  # 三个方向的格点步长
+        self.vals:np.ndarray|None=None # 格点数值[轨道,格点]
+    
+    def from_mol(self,mol:Mol):
+        """从分子对象中读取数据"""
+        self.syms=mol.atoms.syms
+        self.xyzs=mol.atoms.xyzs
+        return self
         
     def write_grids(self):
-        """生成格点数据"""
+        """生成格点信息"""
         npos=self.size[0]*self.size[1]*self.size[2]
         self.file.write(f'{self.title0}\n{self.title1} {npos*len(self.obts)}\n')
         nx,ny,nz=self.size
@@ -56,13 +65,14 @@ class CubWriter:
 
     def write_value(self):
         """
-        计算波函数值并写入文件
+        写入格点数值
         """
         nobt=len(self.obts)
         npos=self.size[0]*self.size[1]*self.size[2]
+        assert self.vals is not None,"没有波函数值"
+        assert utils.chkArray(self.vals,[nobt,npos]),f"数组形状不正确：{self.vals.shape}"
         index=0
         nx,ny,nz=self.size
-
         
         for i,info in enumerate([nobt]+self.obts): # 写入轨道信息
             self.file.write(f'{info:>5}')
@@ -71,9 +81,7 @@ class CubWriter:
 
         for i in range(npos): # 对每一个点进行循环
             for j in range(nobt): # 对每一个轨道进行循环
-                assert self.vals is not None,"没有波函数值"
                 v=self.vals[j,i]
-                # if v==0:v=1e-8
                 self.file.write(f'{v:13.5E}')
                 index+=1
                 if index==nz*nobt:

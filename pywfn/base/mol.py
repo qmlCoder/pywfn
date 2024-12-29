@@ -301,8 +301,8 @@ class Mol:
         # print('排序后',atmList)
         name=''.join([f'{k}{v}' for k,v in atmList])
         natm=self.atoms.num
-        nele=sum(self.eleNum)
-        return f'<{name},{natm},{nele},{self.charge},{self.spin}>'
+        # nele=sum(self.eleNum)
+        return f'<{name},{natm}>'
     
     def clone(self):
         return copy.deepcopy(self)

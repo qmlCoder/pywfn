@@ -27,7 +27,7 @@ class Calculator(spaceprop.SpaceCaler):
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标
         """
-        atowfns=self.atoWfns(grid) #所有原子轨道的波函数
+        atowfns,_,_=self.atoWfns(grid,level=0) #所有原子轨道的波函数
         ngrid=grid.shape[0]
         nobt=len(obts)
         wfns=np.zeros(shape=(nobt,ngrid))
@@ -39,7 +39,7 @@ class Calculator(spaceprop.SpaceCaler):
             wfns[o]=wfn
         return wfns
     
-    def atoWfns(self,grid:np.ndarray): #所有原子轨道的波函数
+    def atoWfns(self,grid:np.ndarray,level:int): #所有原子轨道的波函数
         """计算所有原子轨道"""
         ngrid=grid.shape[0]
         nmat=self.mol.CM.shape[0]
@@ -81,15 +81,15 @@ class Calculator(spaceprop.SpaceCaler):
         lmns=np.array(lmns)
         ncgs=np.array(ncgs)
         
-        wfns=flib.atoWfns(ngrid,grid,nmat,coords,cmax,ncgs,expa,coea,lmns)
-        return wfns
+        wfns0,wfns1,wfns2=flib.atoWfns(ngrid,grid,nmat,coords,cmax,ncgs,expa,coea,lmns,level)
+        return wfns0,wfns1,wfns2
 
     def atmWfns(self,grid:np.ndarray,atms:list[int],obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
         """计算几个原子的波函数"""
         
         nbas=self.mol.CM.shape[0] # 基函数的数量
         obtAtms=self.mol.obtAtms
-        atowfns=self.atoWfns(grid)
+        atowfns,_,_=self.atoWfns(grid,level=0)
         nobt=len(obts)
         wfns=np.zeros(shape=(nobt,len(grid)))
         for o,obt in enumerate(obts):

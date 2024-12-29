@@ -51,8 +51,8 @@ class Title:
         return f'{self.line}: {self.mark}'
 
 class LogReader(reader.Reader):
-    def __init__(self, path:str,clear:bool=False) -> None:
-        super().__init__(path,clear)
+    def __init__(self, path:str,cache:bool=False) -> None:
+        super().__init__(path,cache)
         assert type(path)==str,'路径应该为字符串格式'
         assert Path(path).suffix in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止
@@ -68,31 +68,31 @@ class LogReader(reader.Reader):
             'density':Title(r'Density Matrix:',1),
             'basisData':Title(r'Overlap normalization',1),
             'engs':Title(r'Zero-point correction',1),
-            'keyWards':Title(r'# .+',0),
+            'keyWards':Title(r'^ # .+',0),
         }
         self.conf={}
-        self.cpath=Path(f'{self.dfold}/log.json') # config path 配置文件，减小第二次使用搜索时间的消耗
-
-        if not self.cpath.exists(): # 如果配置文件不存在则创建配置文件
-            self.cpath.write_text('{}')
-        jstxt=self.cpath.read_text()
-        try:
-            self.conf:dict=json.loads(jstxt) #如果文件格式损坏则重新生成空文件
-        except:
-            self.conf={}
-            self.cpath.write_text('{}')
-        self.get_confTitle()
+        self.cpath=Path(f'{self.dataFold}/log.json') # config path 配置文件，减小第二次使用搜索时间的消耗
+        if self.cache:
+            if not self.cpath.exists(): # 如果配置文件不存在则创建配置文件
+                self.cpath.write_text('{}')
+            jstxt=self.cpath.read_text()
+            try:
+                self.conf:dict=json.loads(jstxt) # 如果文件格式损坏则重新生成空文件
+                keys=self.conf.keys()
+                for tip in self.titles.keys():
+                    key=f'title.{tip}'
+                    if key not in keys:continue
+                    line=self.conf[key]
+                    self.titles[tip].set_line(line)
+            except:
+                self.conf={}
+                self.cpath.write_text('{}')
+        
         self.search_title()
-    
-    def get_confTitle(self):
-        """从配置文件中获取标题所在的行"""
-        keys=self.conf.keys()
-        for tip in self.titles.keys():
-            if not f'title_{tip}' in keys:continue
-            line=self.conf[f'title_{tip}']
-            self.titles[tip].set_line(line)
+
 
     def save_config(self): # 保存配置文件
+        if not self.cache:return # 如果不生成缓存的话就直接返回吧
         with open(f"{self.cpath}",'w') as f:
             jstxt=json.dumps(self.conf,indent=4)
             f.write(jstxt)
@@ -211,6 +211,7 @@ class LogReader(reader.Reader):
     def get_basis(self)->Basis:
         name=self.read_basisName()
         data=self.read_basisData()
+        assert data is not None,"没有找到基组数据"
         basis=Basis(name)
         basis.setData(data)
         return basis
@@ -291,7 +292,7 @@ class LogReader(reader.Reader):
         basisDatas:list[BasisData]=[]
         ifRead=True
         angDict={'S':0,'P':1,'D':2} #角动量对应的字典
-        s1='^ +(\d+) +\d+$'
+        s1=rf'^ +(\d+) +\d+$'
         s2=r' ([SPD]+) +(\d+) \d.\d{2} +\d.\d{12}'
         s3=r'^ +(( +-?\d.\d{10}D[+-]\d{2}){2,3})'
         s4=' ****\n'
@@ -304,7 +305,7 @@ class LogReader(reader.Reader):
         for i in range(titleNum+1,self.lineNum):
             line=self.getline(i)
             if re.search(s1,line) is not None:
-                idx=re.search(s1,line).groups()[0] #第几个原子
+                idx=re.search(s1,line).groups()[0] # type: ignore #第几个原子
                 idx=int(idx)-1
                 symbol=symbols[idx]
                 atomic=elements[symbol].idx
@@ -316,7 +317,7 @@ class LogReader(reader.Reader):
                     ifRead=False
             elif re.search(s2,line) is not None:
                 if not ifRead:continue
-                shellName,lineNum=re.search(s2,line).groups()
+                shellName,lineNum=re.search(s2,line).groups() # type: ignore
                 angs=[angDict[s] for s in shellName] #角动量
                 shell+=1
             elif re.search(s3,line) is not None:
@@ -494,18 +495,20 @@ class LogReader(reader.Reader):
         获取轨道系数及相关信息
         atms,shls,angs,engs,occs,CM
         """
-        atms=self.load_fdata('atms.npy')
-        shls=self.load_fdata('shls.npy')
-        angs=self.load_fdata('angs.npy')
-        engs=self.load_fdata('engs.npy')
-        occs=self.load_fdata('occs.npy')
-        CM=self.load_fdata('CM.npy')
-        fdatas=[atms,shls,angs,engs,occs,CM]
-        rdatas=[fdata is not None for fdata in fdatas]
+        rdatas=[None]*6
+        if self.cache:
+            atms=self.load_fdata('atms.npy')
+            shls=self.load_fdata('shls.npy')
+            angs=self.load_fdata('angs.npy')
+            engs=self.load_fdata('engs.npy')
+            occs=self.load_fdata('occs.npy')
+            CM  =self.load_fdata('CM.npy')
+            rdatas=[atms,shls,angs,engs,occs,CM]
+
         if all(rdatas): # 所有读取的数据都不为空，有可能某些数据被用户删除
-            lists:list[np.ndarray]=[atms,shls,angs,engs,occs]
+            lists:list[np.ndarray]=[atms,shls,angs,engs,occs] # type: ignore
             atms,shls,angs,engs,occs=[e.tolist() for e in lists]
-            return atms,shls,angs,engs,occs,CM
+            return atms,shls,angs,engs,occs,CM # type: ignore
         elif self.titles['coefs'].line!=-1:
             atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
         elif self.titles['acoefs'].line!=-1:
@@ -519,21 +522,19 @@ class LogReader(reader.Reader):
             CM=np.concatenate([CMA,CMB],axis=1)
         else:
             raise ValueError('没有找到轨道系数')
-        self.save_fdata('atms',atms)
-        self.save_fdata('shls',shls)
-        self.save_fdata('angs',angs)
-        self.save_fdata('engs',engs)
-        self.save_fdata('occs',occs)
-        self.save_fdata('CM',CM)
+        if self.cache:
+            self.save_fdata('atms',atms)
+            self.save_fdata('shls',shls)
+            self.save_fdata('angs',angs)
+            self.save_fdata('engs',engs)
+            self.save_fdata('occs',occs)
+            self.save_fdata('CM'  ,CM)
         return atms,shls,angs,engs,occs,CM
 
     @lru_cache
     def read_SM(self):
         """读取重叠矩阵"""
-        SM=self.load_fdata('SM.npy')
-        if SM is None:
-            SM=self.read_Mat('overlap')
-            self.save_fdata('SM.npy',SM)
+        SM=self.read_Mat('overlap')
         return SM
 
     def read_Mat(self,title:str)->np.ndarray:
@@ -565,7 +566,7 @@ class LogReader(reader.Reader):
 
     @lru_cache
     def read_charge(self)->float:
-        res=re.search(r'Sum of Mulliken charges = +(-?\d.\d{5})',self.text).group(1)
+        res=re.search(r'Sum of Mulliken charges = +(-?\d.\d{5})',self.text).group(1) # type: ignore
         return float(res)
     
     def read_energy(self)->float:
@@ -609,7 +610,7 @@ class LogReader(reader.Reader):
         find = re.findall(r'^\s+Frequencies\s--\s+(-?\d+\.\d+.+)$', self.text, flags=re.M)
         if find is None:return freqs
         for line in find:
-            finds=re.findall('-?\d+.\d+',line)
+            finds=re.findall(rf'-?\d+.\d+',line)
             freqs+=[float(e) for e in finds]
         return freqs
         

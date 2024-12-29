@@ -37,7 +37,7 @@ class Calculator(spaceprop.SpaceCaler):
     # 但是貌似不需要计算不同原子的静电式吧？需要的时候再说吧
     def elePotential(self,grid:np.ndarray)->np.ndarray: # 计算电子势
         densCaler=density.Calculator(self.mol)
-        dens=densCaler.molDens_lib(self.grids) # 电子密度
+        dens,_,_=densCaler.molDens(self.grids,level=0) # 电子密度
         vals=flib.elePotential(grid,self.grids,self.weits,dens)
         return vals
     

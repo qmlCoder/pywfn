@@ -13,23 +13,25 @@ subroutine grid_pos(Nx, Ny, Nz, pos) bind(C, name="grid_pos_")
     use iso_c_binding
     implicit none
     integer(c_int), intent(in), value :: Nx, Ny, Nz
-    real(c_double), intent(out) ::  pos(Nx*Ny*Nz, 3)
+    real(c_double), intent(out) ::  pos(3, Nx*Ny*Nz)
     integer::i, j, k, l
     l = 1
-    do i = 0, Nx - 1
-        do j = 0, Ny - 1
-            do k = 0, Nz - 1
-                pos(l, :) = [i, j, k]
-                l = l + 1
+    !$omp parallel default(none), private(i,j,k,l), shared(pos,Nx,Ny,Nz)
+    !$omp do
+    do i = 1, Nx
+        do j = 1, Ny
+            do k = 1, Nz
+                l = (i-1)*Ny*Nz + (j-1)*Nz + k
+                pos(:, l) = [real(i-1, c_double), real(j-1, c_double), real(k-1, c_double)]
             end do
         end do
     end do
-
+    !$omp end do
+    !$omp end parallel
 end subroutine grid_pos
 
 ! 计算波函数值
-! 都使用fortran了，就不要用向量化计算了(numpy得用(╯▔皿▔)╯)，享受逐元素计算的快乐吧
-subroutine gtf(alp,ngrid,grids,coord,l,m,n, wfn0, wfn1, level) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
+subroutine gtf(alp,ngrid,grids,coord,l,m,n,level, wfn0, wfn1, wfn2) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
     ! 高斯指数，坐标数量，坐标值，坐标平方和，角动量分量，返回值
     ! 直接传入平方和防止重复计算，减少计算量
     use iso_c_binding
@@ -39,11 +41,13 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, wfn0, wfn1, level) bind(C, name="gtf
     real(c_double),intent(in) :: coord(3) ! 原子坐标映射到基函数
     integer(c_int), intent(in), value :: l,m,n
     real(c_double), intent(in), value :: alp
-    real(c_double), intent(inout) :: wfn0(ngrid)  ! 原始波函数值
+    real(c_double), intent(inout) :: wfn0(ngrid) ! 原始波函数值
     real(c_double), intent(inout) :: wfn1(3,ngrid)! 波函数一阶导
-    integer(c_int), intent(in), value :: level ! 0表示不计算导数
+    real(c_double), intent(inout) :: wfn2(3,3,ngrid) ! 波函数二阶导
+    integer(c_int), intent(in), value :: level ! 0：不计算倒数，1：计算一介倒数，2：计算二阶导数
 
-    real(c_double)::pi = 3.1415926 ! 物理常量
+    ! real(c_double)::pi = 3.1415926 ! 物理常量
+    real(c_double)::pi = 4.*atan(1.) ! 物理常量
     real(c_double)::Nm ! 归一化系数
     real(c_double)::r2 ! 坐标平方
     real(c_double)::fac ! 双阶乘
@@ -57,6 +61,10 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, wfn0, wfn1, level) bind(C, name="gtf
     fac = facs(l)*facs(m)*facs(n) ! 数组越界不报错？
     ang = l + m + n
     Nm = (2.*alp/pi)**0.75*sqrt((4.*alp)**ang/fac) ! 计算归一化系数
+    wfn0=0.0
+    wfn1=0.0
+    wfn2=0.0
+    !$omp parallel do default(none), private(i,x,y,z,r2,exv), shared(ngrid,grids,coord,l,m,n,alp,wfn0,wfn1,wfn2,level,Nm)
     do i=1,ngrid
         x = grids(1,i)-coord(1)
         y = grids(2,i)-coord(2)
@@ -64,8 +72,8 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, wfn0, wfn1, level) bind(C, name="gtf
         r2 = x**2 + y**2 + z**2
         exv = exp(-alp*r2)
         wfn0(i) = Nm* x**l * y**m * z**n * exv
-        if (level==0) continue ! 不计算导数
-        !计算波函数梯度
+        if (level==0) cycle ! 不计算导数
+        ! 计算波函数梯度
         wfn1(1,i)=-2*alp*x*wfn0(i)
         wfn1(2,i)=-2*alp*y*wfn0(i)
         wfn1(3,i)=-2*alp*z*wfn0(i)
@@ -77,12 +85,25 @@ subroutine gtf(alp,ngrid,grids,coord,l,m,n, wfn0, wfn1, level) bind(C, name="gtf
         if (l==2) wfn1(1,i)=wfn1(1,i) + x * y**m * z**n *exv*Nm*2
         if (m==2) wfn1(2,i)=wfn1(2,i) + x**l * y * z**n *exv*Nm*2
         if (n==2) wfn1(3,i)=wfn1(3,i) + x**l * y**m * z *exv*Nm*2
+
+        if (level==1) cycle ! 不计算二阶导
+        ! 计算波函数二阶导数
+        wfn2(1,1,i) = Nm*x**(l - 2)*y**m*z**n*(2*alp*x**2*(2*alp*x**2 - 2*l - 1) + l*(l - 1))               *exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(1,2,i) = Nm*x**(l - 1)*y**(m - 1)*z**n*(4*alp**2*x**2*y**2 - 2*alp*l*y**2 - 2*alp*m*x**2 + l*m)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(1,3,i) = Nm*x**(l - 1)*y**m*z**(n - 1)*(4*alp**2*x**2*z**2 - 2*alp*l*z**2 - 2*alp*n*x**2 + l*n)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(2,1,i) = Nm*x**(l - 1)*y**(m - 1)*z**n*(4*alp**2*x**2*y**2 - 2*alp*l*y**2 - 2*alp*m*x**2 + l*m)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(2,2,i) = Nm*x**l*y**(m - 2)*z**n*(2*alp*y**2*(2*alp*y**2 - 2*m - 1) + m*(m - 1))               *exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(2,3,i) = Nm*x**l*y**(m - 1)*z**(n - 1)*(4*alp**2*y**2*z**2 - 2*alp*m*z**2 - 2*alp*n*y**2 + m*n)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(3,1,i) = Nm*x**(l - 1)*y**m*z**(n - 1)*(4*alp**2*x**2*z**2 - 2*alp*l*z**2 - 2*alp*n*x**2 + l*n)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(3,2,i) = Nm*x**l*y**(m - 1)*z**(n - 1)*(4*alp**2*y**2*z**2 - 2*alp*m*z**2 - 2*alp*n*y**2 + m*n)*exp(-alp*(x**2 + y**2 + z**2))
+        wfn2(3,3,i) = Nm*x**l*y**m*z**(n - 2)*(2*alp*z**2*(2*alp*z**2 - 2*n - 1) + n*(n - 1))               *exp(-alp*(x**2 + y**2 + z**2))
     end do
+    !$omp end parallel do
     
 end subroutine gtf
 
-! 计算某点处一个原子轨道波函数
-subroutine cgf(cmax,nc,alps, coes,ngrid,grids,coord,l,m,n, wfn0, wfn1,level) bind(C, name="cgf_") ! 计算收缩波函数，原子轨道
+! 计算某点处一个原子轨道波函数，收缩基函数
+subroutine cgf(cmax,nc,alps, coes,ngrid,grids,coord,l,m,n, level, wfn0, wfn1, wfn2) bind(C, name="cgf_") ! 计算收缩波函数，原子轨道
     ! 收缩数量，高斯指数，收缩系数，角动量分量，点数量，点平方和，点坐标，波函数值
     use iso_c_binding
     implicit none
@@ -94,22 +115,24 @@ subroutine cgf(cmax,nc,alps, coes,ngrid,grids,coord,l,m,n, wfn0, wfn1,level) bin
     integer(c_int), intent(in), value ::  l,m,n
     real(c_double), intent(inout) ::  wfn0(ngrid)
     real(c_double), intent(inout) ::  wfn1(3,ngrid)
+    real(c_double), intent(inout) ::  wfn2(3,3,ngrid)
     integer(c_int), intent(in), value :: level ! 0表示不计算导数
-    real(c_double)::alp, coe, val0(ngrid), val1(3,ngrid)
+    real(c_double)::alp, coe, val0(ngrid), val1(3,ngrid),val2(3,3,ngrid)
     integer::i
     wfn0 = 0.0
     do i = 1, nc
         alp = alps(i)
         coe = coes(i)
         val0 = 0.0
-        call gtf(alp, ngrid,grids,coord,l,m,n, val0, val1,level)
+        call gtf(alp, ngrid,grids,coord,l,m,n, level ,val0, val1, val2)
         wfn0 = wfn0 + coe*val0
         wfn1 = wfn1 + coe*val1
+        wfn2 = wfn2 + coe*val2
     end do
 end subroutine cgf
 
 ! 计算所有基函数的原子轨道(向量)，分子轨道是原子轨道的线性组合，计算波函数及梯度
-subroutine atoWfns(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,wfn0,wfn1,level) bind(C, name="atoWfns_")
+subroutine atoWfns(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,level,wfn0,wfn1,wfn2) bind(C, name="atoWfns_")
     implicit none
     integer(c_int), intent(in),value :: ngrid,nmat,cmax
     real(c_double), intent(in) :: grids(3,ngrid)
@@ -120,6 +143,7 @@ subroutine atoWfns(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,wfn0,wfn1,lev
     integer(c_int), intent(in) :: ncgs(nmat) ! 每一个原子轨道的收缩数量
     real(c_double), intent(inout)::wfn0(ngrid,nmat)
     real(c_double), intent(inout)::wfn1(3,ngrid,nmat)
+    real(c_double), intent(inout)::wfn2(3,3,ngrid,nmat)
     integer(c_int), intent(in), value :: level ! 0表示不计算导数
 
     integer(c_int)::l,m,n
@@ -130,7 +154,9 @@ subroutine atoWfns(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,wfn0,wfn1,lev
     integer::i
 
     ! write(*,*)'ngrid,nmat,cmax',ngrid,nmat,cmax
-
+    wfn0=0.0
+    wfn1=0.0
+    wfn2=0.0
     do i=1,nmat
         l=lmns(1,i)
         m=lmns(2,i)
@@ -139,12 +165,12 @@ subroutine atoWfns(ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,wfn0,wfn1,lev
         alps=alpl(:,i)
         coes=coel(:,i)
         nc=ncgs(i)
-        call cgf(cmax,nc,alps,coes,ngrid,grids,coord,l,m,n,wfn0(:,i),wfn1(:,:,i),level)
+        call cgf(cmax,nc,alps,coes,ngrid,grids,coord,l,m,n,level,wfn0(:,i),wfn1(:,:,i),wfn2(:,:,:,i))
     end do
 end subroutine atoWfns
 
 ! 计算分子电子密度及梯度，轨道的电子密度直接就是波函数的平方
-subroutine molDens(ngrid,nmat,nobt,matC,wfns0,wfns1,dens0,dens1,level) bind(C,name="moldens_")
+subroutine molDens(ngrid,nmat,nobt,matC,wfns0,wfns1,wfns2,level,dens0,dens1,dens2) bind(C,name="moldens_")
     use iso_c_binding
     integer(c_int),intent(in),value::ngrid
     integer(c_int),intent(in),value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
@@ -152,24 +178,53 @@ subroutine molDens(ngrid,nmat,nobt,matC,wfns0,wfns1,dens0,dens1,level) bind(C,na
     real(c_double),intent(in) :: matC(nobt,nmat) ! 轨道系数矩阵
     real(c_double),intent(inout)::wfns0(ngrid,nmat) !波函数
     real(c_double),intent(inout)::wfns1(3,ngrid,nmat) !波函数梯度
+    real(c_double),intent(inout)::wfns2(3,3,ngrid,nmat) !波函数二阶导
+
     real(c_double),intent(inout)::dens0(ngrid)
     real(c_double),intent(inout)::dens1(3,ngrid)
+    real(c_double),intent(inout)::dens2(3,3,ngrid)
     integer(c_int),intent(in),value :: level ! 0表示不计算导数
-    real(c_double) ::wfn0(ngrid),wfn1(3,ngrid)
-    integer :: obt,ato
+    real(c_double) ::wfn0(ngrid,nobt),wfn1(3,ngrid,nobt),wfn2(3,3,ngrid,nobt)
+    real(c_double) ::den0(ngrid,nobt),den1(3,ngrid,nobt),den2(3,3,ngrid,nobt)
+    integer :: obt,ato,i,j
     ! 提前算出所有原子轨道的波函数并存储起来，分子轨道的波函数只是原子轨道波函数的线性组合
     dens0=0.0
     dens1=0.0
+    dens2=0.0
+
+    wfn0=0.0
+    wfn1=0.0
+    wfn2=0.0
+    den0=0.0
+    den1=0.0
+    den2=0.0
     do obt=1,nobt !循环每一个分子轨道
-        wfn0=0.0
-        wfn1=0.0
-        do ato=1,nmat ! 循环每一个原子轨道
-            wfn0 = wfn0 + wfns0(:,ato)*matC(obt,ato)
-            wfn1 = wfn1 + wfns1(:,:,ato)*matC(obt,ato)
+        !$omp parallel do default(none), private(ato), shared(wfn0,wfn1,wfn2,matC,wfns0,wfns1,wfns2,obt,level,nmat)
+        do ato=1,nmat ! 循环每一个原子轨道，计算分子轨道波函数
+            if (abs(matC(obt,ato))<1e-4) cycle
+            wfn0(:,obt) = wfn0(:,obt) + wfns0(:,ato)*matC(obt,ato)
+            if (level==0) cycle
+            wfn1(:,:,obt) = wfn1(:,:,obt) + wfns1(:,:,ato)*matC(obt,ato)
+            if (level==1) cycle
+            wfn2(:,:,:,obt) = wfn2(:,:,:,obt) + wfns2(:,:,:,ato)*matC(obt,ato)
         end do
-        dens0=dens0+wfn0*wfn0
-        dens1=dens1+wfn0*wfn1
+        !$omp end parallel do
+
+        den0(:,obt)=den0(:,obt) + wfn0(:,obt)*wfn0(:,obt) !电子密度是波函数的平方
+        if (level==0) cycle
+        do i=1,3
+            den1(i,:,obt)=den1(i,:,obt)+2*wfn0(:,obt)*wfn1(i,:,obt)
+        end do
+        if (level==1) cycle
+        do i=1,3
+            do j=1,3
+                den2(i,j,:,obt)=wfn1(i,:,obt)*wfn1(j,:,obt) + wfn0(:,obt)*wfn2(i,j,:,obt)
+            end do
+        end do
     end do
+    dens0=sum(den0,dim=2)
+    dens1=sum(den1,dim=3)
+    dens2=sum(den2,dim=4)
 end subroutine molDens
 
 ! 计算原子电子密度

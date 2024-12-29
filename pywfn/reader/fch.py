@@ -25,7 +25,7 @@ class FchReader(reader.Reader):
 
         self.jobTitle:str=self.getline(0)
         
-        mathc2=re.match(r'(.{10})(.{30})(.{30})',self.getline(1)).groups()
+        mathc2=re.match(r'(.{10})(.{30})(.{30})',self.getline(1)).groups() # type: ignore
         self.jobType,self.jobMethod,self.jobBasis=mathc2
         self.needs=[
             'Atomic numbers', # 原子种类
@@ -41,6 +41,8 @@ class FchReader(reader.Reader):
             'Alpha MO coefficients',
             'Beta MO coefficients',
             'Mulliken Chrgs',
+            'Total SCF Density',
+            'Orthonormal basis'
         ]
         self.titles:dict[str,int]={k:0 for k in self.needs}
         self.marks=[
@@ -72,7 +74,7 @@ class FchReader(reader.Reader):
         hasData=bool(hasData)
         dataNum=int(dataNum)
         lineSpan=dataNum//6+(0 if dataNum%6==0 else 1)
-        tpmap={'I':'\d+','R':'-?\d+.\d+'}
+        tpmap={'I':rf'\d+','R':rf'-?\d+.\d+'}
         text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan+1))
         values=re.findall(tpmap[dtype],text)
         if dtype=='I':
@@ -82,7 +84,7 @@ class FchReader(reader.Reader):
         return values
     
     def get_symbols(self) -> list[str]:
-        atomics=self.read_atoms()
+        atomics:list[str]=self.read_atoms() # type: ignore
         symbols=[elements[a].symbol for a in atomics]
         return symbols
     
@@ -116,16 +118,49 @@ class FchReader(reader.Reader):
             if lineNum==0:continue
             line=self.getline(lineNum)
             # print(line)
-            find=re.search('N= +(\d+)',line).groups()
-            if find is None:return None
-            nval=int(find[0])
+            find=re.search(rf'N= +(\d+)',line)
+            assert find is not None,"不能找到系数矩阵"
+            nval=int(find.groups()[0])
             nmat=int(nval**0.5)
             nline=math.ceil(nval/5)
             lines=self.getlines(lineNumA+1,lineNumA+1+nline)
-            vals=re.findall('-?\d+.\d+E[+-]\d+',''.join(lines))
+            vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
             CM=np.array(vals,dtype=float).reshape(nmat,nmat).T
             CMs.append(CM)
         return np.concatenate(CMs,axis=0)
+
+    def get_OB(self):
+        lineNum=self.titles['Orthonormal basis']
+        line=self.getline(lineNum)
+        find=re.search(rf'N= +(\d+)',line)
+        assert find is not None,"不能找到键级矩阵"
+        nval=int(find.groups()[0])
+        nmat=int(nval**0.5)
+        nline=math.ceil(nval/5)
+        lines=self.getlines(lineNum+1,lineNum+1+nline)
+        vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
+        return np.array(vals,dtype=float).reshape(nmat,nmat).T
+
+    def get_DM(self)->np.ndarray:
+        lineNum=self.titles['Total SCF Density']
+        line=self.getline(lineNum)
+        find=re.search(rf'N= +(\d+)',line)
+        assert find is not None,"不能找到密度矩阵"
+        nval=int(find.groups()[0])
+        nmat=int(((1+8*nval)**0.5-1)/2)
+        nline=math.ceil(nval/5)
+        lines=self.getlines(lineNum+1,lineNum+1+nline)
+        vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
+        DM=np.zeros(shape=(nmat,nmat))
+        idx=0
+        for i in range(nmat):
+            for j in range(i+1):
+                DM[i,j]=vals[idx]
+                DM[j,i]=vals[idx]
+                idx+=1
+        return DM
+
+
         
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')

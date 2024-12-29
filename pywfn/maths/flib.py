@@ -70,7 +70,7 @@ def call_flib(func:str,ipts:list,outs:list):
 from pywfn import config
 print('动态链接库目录',config.ROOT_LIBS)
 if os.name=='nt': # Windows系统
-    print('当前系统:windows')
+    print(f'当前系统:windows, 动态链接库目录{config.ROOT_LIBS}')
     os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
 elif os.name=='posix': # Linux系统
@@ -79,7 +79,7 @@ elif os.name=='posix': # Linux系统
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.so')
 else:
     raise OSError("Unsupported OS")
-call_flib('info_',[],[])
+# call_flib('info_',[],[])
 
 def grid_pos(Nx: int, Ny: int, Nz: int)->np.ndarray:
     """生成格点数据
@@ -99,24 +99,28 @@ def grid_pos(Nx: int, Ny: int, Nz: int)->np.ndarray:
     call_flib('grid_pos_',ipts,outs)
     return pos
 
-def gtf(alp: float,ngrid:int, grids: np.ndarray,coord:np.ndarray,l:int,m:int,n:int) -> np.ndarray:
+def gtf(alp: float,ngrid:int, grids: np.ndarray,coord:np.ndarray,l:int,m:int,n:int,level:int):
     assert chkArray(coord,[3]),"形状或类型不匹配"
-    ipts=[alp,ngrid,grids,coord,l,m,n]
-    wfn=np.zeros(ngrid,dtype=ftype)
-    outs=[wfn]
+    ipts=[alp,ngrid,grids,coord,l,m,n,level]
+    wfn0=np.zeros(shape=(ngrid,),dtype=ftype)
+    wfn1=np.zeros(shape=(ngrid,3),dtype=ftype)
+    wfn2=np.zeros(shape=(ngrid,3,3),dtype=ftype)
+    outs=[wfn0,wfn1,wfn2]
     call_flib('gtf_',ipts,outs)
-    return wfn
+    return wfn0,wfn1,wfn2
 
 
 def cgf(cmax:int,nc:int,alps:np.ndarray,coes:np.ndarray,
-        ngrid:np.ndarray,grids:np.ndarray,coord:np.ndarray,l:int,m:int,n:int):
+        ngrid:np.ndarray,grids:np.ndarray,coord:np.ndarray,l:int,m:int,n:int,level:int):
     assert len(coord.shape)==1,"坐标的维度为1"
-    wfn=np.zeros(ngrid,dtype=ftype)
+    wfn0=np.zeros(shape=(ngrid,),dtype=ftype)
+    wfn1=np.zeros(shape=(ngrid,3),dtype=ftype)
+    wfn2=np.zeros(shape=(ngrid,3,3),dtype=ftype)
 
-    ipts=[cmax,nc,alps,coes,ngrid,grids,coord,l,m,n]
-    outs=[wfn]
+    ipts=[cmax,nc,alps,coes,ngrid,grids,coord,l,m,n,level]
+    outs=[wfn0,wfn1,wfn2]
     call_flib('cgf_',ipts,outs)
-    return wfn
+    return wfn0,wfn1,wfn2
 
 def atoWfns(
         ngrid:int,
@@ -127,26 +131,29 @@ def atoWfns(
         ncgs:Array,
         alpl:Array,
         coel:Array,
-        lmns:Array):
+        lmns:Array,
+        level:int):
     """
     计算所有原子轨道波函数
     """
     assert chkArray(grids,[ngrid,3]),"形状不匹配"
-    wfns=np.zeros(shape=(nmat,ngrid),dtype=ftype)
-    ipts=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns]
-    outs=[wfns]
-    call_flib('cgfs_',ipts,outs)
-    return wfns
+    wfns0=np.zeros(shape=(nmat,ngrid),dtype=ftype)
+    wfns1=np.zeros(shape=(nmat,ngrid,3))
+    wfns2=np.zeros(shape=(nmat,ngrid,3,3))
+    ipts=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,level]
+    outs=[wfns0,wfns1,wfns2]
+    call_flib('atoWfns_',ipts,outs)
+    return wfns0,wfns1,wfns2
 
-def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns:np.ndarray):
+def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns0:np.ndarray,wfns1:np.ndarray,wfns2:np.ndarray,level:int):
     """计算分子电子密度"""
     # print(grids[:3,:])
-    paras=[ngrid,nmat,nobt,CM,wfns]
-    dens=np.zeros(ngrid,dtype=ftype)
-    call_flib('moldens_',paras,[dens])
-    return dens
-
-# def atmDens()
+    paras=[ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level]
+    dens0=np.zeros(shape=(ngrid,),dtype=ftype)
+    dens1=np.zeros(shape=(ngrid,3),dtype=ftype)
+    dens2=np.zeros(shape=(ngrid,3,3),dtype=ftype)
+    call_flib('moldens_',paras,[dens0,dens1,dens2])
+    return dens0,dens1,dens2
 
 def a2mWeight(
         atm:int,
