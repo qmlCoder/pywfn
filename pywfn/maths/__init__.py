@@ -25,7 +25,7 @@ def cubeGrid(
     Nz=int((z1-z0)/step)
     step=((lx*ly*lz)/(Nx*Ny*Nz))**(1/3)
     grid=flib.grid_pos(Nx,Ny,Nz)
-    print('rawGrid\n',grid)
+    # print('rawGrid\n',grid)
     grid=grid*step+p0
     return [Nx,Ny,Nz],grid
     # pos = []

@@ -12,20 +12,16 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
 
-    def pi_decom(self)->np.ndarray: # 分解出pi分子轨道
+    def pi_decom(self,dtype:str)->np.ndarray: # 分解出pi分子轨道
         dirCaler=direction.Calculator(self.mol)
         CMt=self.mol.CM.copy()
         nmat=self.mol.CM.shape[0]
         # Ts=[]
 
-        keeps=[[0],[0,0,1],[0,0,1,0,1,1]]
+        keeps=[[0],[0,0,1],[0,0,0,1,1,1]]
         bases=dirCaler.bases()
-        # for atom in self.mol.atoms:
-        #     nebs=atom.neighbors
-        #     # T=dirCaler.coordSystem(atom.idx,nebs[0])
-        #     T=dirCaler.bases()[atom.idx-1]
-        #     Ts.append(T)
-        for o in self.mol.O_obts:
+        nobt=self.mol.CM.shape[1]
+        for o in range(nobt): # 遍历轨道
             coefDict=defaultdict(list) # 系数字典
             for i in range(nmat):
                 iatm=self.mol.obtAtms[i]
@@ -39,24 +35,28 @@ class Calculator:
                 rcoefs=np.array(val) # 原始系数
                 if iatm in bases.keys():
                     T=bases[iatm]
-                    tcoefs=decomOrbitals(T,rcoefs,keeps[iang])
+                    tcoefs=decomOrbitals(T,rcoefs,keeps[iang],dtype)
                 else:
                     tcoefs=np.zeros_like(rcoefs)
-                # print(rcoefs,'->',tcoefs)
                 coefDict[key]=tcoefs.tolist()
             values=list(coefDict.values())
             CMt[:,o]=np.concatenate(values)
         return CMt
 
 
-def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list[int]):
+def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list[int],dtype:str):
     match len(coefs):
         case 1:
             tcoefs = decomOrbitalS(T,coefs,keeps)
         case 3:
             tcoefs = decomOrbitalP(T,coefs,keeps)
         case 6:
-            tcoefs = decomOrbitalD(T,coefs,keeps)
+            if dtype=='atom':
+                tcoefs=coefs*np.array([0.,0.,0.,1.,1.,1.])
+            elif dtype=='bond':
+                tcoefs = decomOrbitalD(T,coefs,keeps)
+            else:
+                raise Exception('未知轨道类型')
             # tcoefs = coefs
         case _:
             # return coefs

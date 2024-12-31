@@ -177,7 +177,7 @@ class Calculator():
     def piElectDecom(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
         from pywfn.orbtprop import decom
 
-        CMt=decom.Calculator(self.mol).pi_decom()
+        CMt=decom.Calculator(self.mol).pi_decom('atom')
         PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
         self.PM=PMt
         self.numForm=True

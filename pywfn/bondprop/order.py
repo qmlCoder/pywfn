@@ -269,7 +269,7 @@ class Calculator:
                     rcoefs=np.array(val) # 原始系数
                     if iatm in bond:
                         T=Ts[bond.index(iatm)]
-                        tcoefs=decomOrbitals(T,rcoefs,keeps[iang])
+                        tcoefs=decomOrbitals(T,rcoefs,keeps[iang],dtype='bond')
                         # print(rcoefs,tcoefs)
                     else:
                         tcoefs=rcoefs
