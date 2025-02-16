@@ -4,7 +4,7 @@
 import numpy as np
 
 from pywfn import reader
-from pywfn.data.basis import Basis
+from pywfn.base.basis import Basis
 class AnyReader(reader.Reader):
     def __init__(self,path:str='',props:dict={}):
         super().__init__(path)

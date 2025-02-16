@@ -61,3 +61,10 @@
     !   wfn2(2, 3, i) = wfn2(3, 2, i)
 
 ```
+
+## 编译命令
+```shell
+gfortran -shared -ffree-form -ffree-line-length-none -fopenmp data.f90 flib.f90 -o flib.dll
+```
+
+./gfile/ch4_6d.fch

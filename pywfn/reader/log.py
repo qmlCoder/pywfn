@@ -3,6 +3,7 @@
 高斯的输出文件包含迭代信息(结构优化、扫描等)
 但是封装成分子对象之后就只有一个信息了
 所以迭代信息只能在reader对象中存在,且不是默认属性
+输出文件中存储的系数可能是球谐的，但是要转为笛卡尔的才方便使用
 """
 
 import re
@@ -13,7 +14,7 @@ from collections import namedtuple
 import threading
 import json
 
-from pywfn.data.basis import Basis
+from pywfn.base.basis import Basis
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 from pywfn import reader
@@ -22,6 +23,7 @@ from typing import Callable
 import linecache
 import textwrap
 import time
+from pywfn.reader.utils import toCart
 
 class Title:
     def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
@@ -141,21 +143,21 @@ class LogReader(reader.Reader):
         return 'Normal termination of Gaussian' in lastLine
     
     @lru_cache
-    def get_coords(self)->np.ndarray:
+    def get_atmXyzs(self)->np.ndarray:
         """原子坐标[n,3]"""
         result=self.read_coords()
         assert result is not None,"没有找到原子坐标"
-        symbols,coords=result
-        assert isinstance(coords,np.ndarray),'coord必须是np.ndarray类型'
-        return coords
+        atmSyms,atmXyzs = result
+        assert isinstance(atmXyzs,np.ndarray),'coord必须是np.ndarray类型'
+        return atmXyzs
 
     @lru_cache
-    def get_symbols(self)->list[str]:
+    def get_atmSyms(self)->list[str]:
         """原子符号[n]"""
         result=self.read_coords()
         assert result is not None,"没有找到原子符号"
-        symbols,coords=result
-        return symbols
+        atmSyms,atmXyzs = result
+        return atmSyms
 
     @lru_cache
     def get_CM(self) -> np.ndarray:
@@ -163,17 +165,17 @@ class LogReader(reader.Reader):
         return CM
     
     @lru_cache
-    def get_obtAtms(self) -> list[int]:
+    def get_atoAtms(self) -> list[int]:
         ObtAtms=self.read_CMs()[0]
         return ObtAtms
     
     @lru_cache
-    def get_obtShls(self) -> list[int]:
+    def get_atoShls(self) -> list[int]:
         ObtShls=self.read_CMs()[1]
         return ObtShls
 
     @lru_cache
-    def get_obtSyms(self)-> list[list[int]]:
+    def get_atoSyms(self)-> list[list[int]]:
         obtSyms=self.read_CMs()[2]
         return obtSyms
 
@@ -190,31 +192,27 @@ class LogReader(reader.Reader):
     def get_SM(self)->np.ndarray:
         return self.read_SM()
     
-    def get_charge(self) -> int|None:
+    def get_nele(self)->tuple[int,int]:
         read=self.read_multiy()
         if read is None:
-            return None
+            return (0,0)
         charge,spin=read
-        return charge
-    
-    def get_spin(self)->int|None:
-        read=self.read_multiy()
-        if read is None:
-            return None
-        charge,spin=read
-        return spin
+        syms=self.get_atmSyms()
+        from pywfn.data.elements import elements
+        total=sum([elements[sym].atomic for sym in syms]) # 总核电荷数
+        elea=(spin+total+charge)/2
+        eleb=elea+spin
+        return int(elea),int(eleb)
     
     def get_energy(self)->float:
         return self.read_energy()
     
-    from pywfn.data import Basis
-    def get_basis(self)->Basis:
+    from pywfn.base.basis import BasisData
+    def get_basData(self)->tuple[str,list[BasisData]]:
         name=self.read_basisName()
         data=self.read_basisData()
         assert data is not None,"没有找到基组数据"
-        basis=Basis(name)
-        basis.setData(data)
-        return basis
+        return name,data
 
     def read_keyWrds(self):
         """读取关键字"""
@@ -257,7 +255,7 @@ class LogReader(reader.Reader):
         """读取电荷和自选多重度"""
         res=re.findall(rf'Charge = +(-?\d) Multiplicity = (\d)',self.text)
         if res is None:
-            printer.warn(f'{self.path} 没有读到电荷和自选多重度!')
+            printer.warn(f'{self.path} 没有读到电荷和自旋多重度!')
         else:
             charge,multiy=res[0]
             return int(charge),int(multiy)
@@ -280,72 +278,60 @@ class LogReader(reader.Reader):
     @lru_cache
     def read_basisData(self):
         """
-        读取基组数据
+        读取基组数据，每个原子的都读出来
         原子类型
             电子层
         """
-        from pywfn.data.basis import BasisData
+        from pywfn.base.basis import BasisData
         assert 'gfinput' in self.read_keyWrds(),'关键词应该包含：gfinput'
         titleNum=self.titles['basisData'].line
-        symbols=self.get_symbols()
+        symbols=self.get_atmSyms()
         if titleNum is None:return
         basisDatas:list[BasisData]=[]
-        ifRead=True
         angDict={'S':0,'P':1,'D':2} #角动量对应的字典
         s1=rf'^ +(\d+) +\d+$'
         s2=r' ([SPD]+) +(\d+) \d.\d{2} +\d.\d{12}'
         s3=r'^ +(( +-?\d.\d{10}D[+-]\d{2}){2,3})'
         s4=' ****\n'
-        atomics=[] # 已经获取过的元素
-        atomic=None
-        shell=0
+        elm=None
+        shl=0 # 壳层
         angs=None
         exp=None
         coe=None
+        # datas=[] # 存储基函数数据
         for i in range(titleNum+1,self.lineNum):
             line=self.getline(i)
             if re.search(s1,line) is not None:
-                idx=re.search(s1,line).groups()[0] # type: ignore #第几个原子
-                idx=int(idx)-1
-                symbol=symbols[idx]
-                atomic=elements[symbol].idx
-
-                if atomic not in atomics:
-                    atomics.append(atomic) #shells
-                    ifRead=True # 该元素是否已经读过
-                else:
-                    ifRead=False
+                atm=re.search(s1,line).groups()[0] # type: ignore #第几个原子
+                atm=int(atm)
+                atmSym=symbols[atm-1] # 原子符号
+                elem=elements[atmSym] # 原子类型
             elif re.search(s2,line) is not None:
-                if not ifRead:continue
                 shellName,lineNum=re.search(s2,line).groups() # type: ignore
                 angs=[angDict[s] for s in shellName] #角动量
-                shell+=1
+                shl+=1
             elif re.search(s3,line) is not None:
-                if not ifRead:continue
                 find=re.search(s3,line)
                 assert find is not None,'正则匹配错误'
                 numsStr=find.groups()[0]
                 numStrs:list[str]=re.findall(r'-?\d.\d{10}D[+-]\d{2}',numsStr)
                 nums:list[float]=[float(num.replace('D','E')) for num in numStrs]
                 assert angs is not None,'angs is None'
-                assert atomic is not None,'atomic is None'
+                # assert atomic is not None,'atomic is None'
                 if len(angs)==1:
-                    exp,coe=nums
-                    data=BasisData(atomic,shell,angs[0],exp,coe)
-                    basisDatas.append(data)
+                    alp,coe=nums
+                    basisDatas.append(BasisData(atm,shl,angs[0],coe,alp))
                 if len(angs)==2:
-                    exp,coe1,coe2=nums
-                    data1=BasisData(atomic,shell,angs[0],exp,coe1)
-                    data2=BasisData(atomic,shell,angs[1],exp,coe2)
-                    basisDatas.append(data1)
-                    basisDatas.append(data2)
+                    alp,coe1,coe2=nums
+                    basisDatas.append(BasisData(atm,shl,angs[0],coe1,alp))
+                    basisDatas.append(BasisData(atm,shl,angs[1],coe2,alp))
             elif line==s4 is not None:
-                shell=0
+                shl=0
                 continue
             else:
                 break
                 # 排序一下
-        basisDatas.sort(key=lambda b:(b.atmic,b.shl,b.ang))
+        basisDatas.sort(key=lambda b:(b.atm,b.shl,b.ang))
         return basisDatas
         
     def read_summery(self):
@@ -487,49 +473,52 @@ class LogReader(reader.Reader):
                     if obtAtom!='':
                         atomID=int(obtAtom) # 更改当前行的原子
                     ObtAtms.append(atomID)
+        
         return ObtAtms,ObtShls,ObtSyms,ObtEngs,ObtOccs,CM
 
     @lru_cache
     def read_CMs(self)->tuple[list,list,list,list,list,np.ndarray]:
         """
         获取轨道系数及相关信息
-        atms,shls,angs,engs,occs,CM
+        atms,shls,syms,engs,occs,CM
         """
         rdatas=[None]*6
         if self.cache:
             atms=self.load_fdata('atms.npy')
             shls=self.load_fdata('shls.npy')
-            angs=self.load_fdata('angs.npy')
+            syms=self.load_fdata('angs.npy')
             engs=self.load_fdata('engs.npy')
             occs=self.load_fdata('occs.npy')
             CM  =self.load_fdata('CM.npy')
-            rdatas=[atms,shls,angs,engs,occs,CM]
+            rdatas=[atms,shls,syms,engs,occs,CM]
 
         if all(rdatas): # 所有读取的数据都不为空，有可能某些数据被用户删除
-            lists:list[np.ndarray]=[atms,shls,angs,engs,occs] # type: ignore
-            atms,shls,angs,engs,occs=[e.tolist() for e in lists]
-            return atms,shls,angs,engs,occs,CM # type: ignore
+            lists:list[np.ndarray]=[atms,shls,syms,engs,occs] # type: ignore
+            atms,shls,syms,engs,occs=[e.tolist() for e in lists]
+            return atms,shls,syms,engs,occs,CM # type: ignore
         elif self.titles['coefs'].line!=-1:
-            atms,shls,angs,engs,occs,CM=self.read_CM('coefs')
+            atms,shls,syms,engs,occs,CM=self.read_CM('coefs')
         elif self.titles['acoefs'].line!=-1:
-            atmsA,shlsA,angsA,engsA,occsA,CMA=self.read_CM('acoefs')
-            atmsB,shlsB,angsB,engsB,occsB,CMB=self.read_CM('bcoefs')
+            atmsA,shlsA,symsA,engsA,occsA,CMA=self.read_CM('acoefs')
+            atmsB,shlsB,symsB,engsB,occsB,CMB=self.read_CM('bcoefs')
             atms=atmsA
-            angs=angsA
+            syms=symsA
             shls=shlsA
             engs=engsA+engsB
             occs=occsA+occsB
             CM=np.concatenate([CMA,CMB],axis=1)
         else:
-            raise ValueError('没有找到轨道系数')
+            raise ValueError('没有找到轨道系数，请检查关键词是否完整')
         if self.cache:
             self.save_fdata('atms',atms)
             self.save_fdata('shls',shls)
-            self.save_fdata('angs',angs)
+            self.save_fdata('syms',syms)
             self.save_fdata('engs',engs)
             self.save_fdata('occs',occs)
             self.save_fdata('CM'  ,CM)
-        return atms,shls,angs,engs,occs,CM
+        # 将潜在的球谐的转为笛卡尔的形式
+        atmList,shlList,symList,CM=toCart(atms,shls,syms,CM)
+        return atmList,shlList,symList,engs,occs,CM
 
     @lru_cache
     def read_SM(self):

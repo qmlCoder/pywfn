@@ -6,7 +6,6 @@
 设置函数阈值，不满足阈值的直接跳过，提高效率
 python做等值面提取还是太慢了，得想办法用fortran来实现
 """
-from pywfn.config import ROOT_DATA
 from pywfn.data.march import marchData
 from pywfn import utils
 

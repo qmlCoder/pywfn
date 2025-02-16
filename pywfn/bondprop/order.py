@@ -100,7 +100,6 @@ class Calculator:
         nebs=self.mol.atom(atm).neighbors
         obts=self.mol.O_obts
         result=[]
-        
         for d in range(len(dirs)):
             CMp=projCM(self.mol,obts,[atm],dirs[d,np.newaxis],True,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
@@ -109,7 +108,6 @@ class Calculator:
             for a1,a2,val in orders:
                 if int(a1) not in nebs+[atm]:continue
                 if int(a2) not in nebs+[atm]:continue
-                # print(a1,a2,x,y,z,val)
                 result.append([a1,a2,x,y,z,val])
         result=np.array(result)
         return result
@@ -258,9 +256,9 @@ class Calculator:
             for o in self.mol.O_obts:
                 coefDict=defaultdict(list) # 系数字典
                 for i in range(nmat):
-                    iatm=self.mol.obtAtms[i]
-                    ishl=self.mol.obtShls[i]
-                    iang=self.mol.obtAngs[i]
+                    iatm=self.mol.atoAtms[i]
+                    ishl=self.mol.atoShls[i]
+                    iang=self.mol.atoAngs[i]
                     key=(iatm,ishl,iang)
                     coefDict[key].append(self.mol.CM[i,o])
 
@@ -275,7 +273,7 @@ class Calculator:
                         tcoefs=rcoefs
                     assert len(rcoefs)==len(tcoefs),"长度对不上"
                     
-                    coefDict[key]=tcoefs.tolist()
+                    coefDict[key]=tcoefs.tolist() # type: ignore
                 values=list(coefDict.values())
                 CMt[:,o]=np.concatenate(values)
             CMs.append(CMt)

@@ -81,9 +81,11 @@ class Calculator:
         else:
             return direction/length
         
-    def sphAround(self)->np.ndarray|None:
+    def sphAround(self)->np.ndarray|None: # 直接用dft的角度网格算了
         """计算周围一圈的球形范围"""
-        pass
+        from pywfn.data import lebedev
+        lebedev.LD0074()
+        
 
     def reactions(self,atm:int)->np.ndarray:
         """ reaction around
@@ -263,6 +265,41 @@ class Calculator:
             vect/=np.linalg.norm(vect) # 单位化
             assert norm is not None,"原子法向量计算失败"
             if vector_angle(norm,vect)>0.5:norm*=-1
+            anyv=np.random.rand(3) # 任意向量
+            vz=norm/np.linalg.norm(norm) # 单位法向量
+            vx=np.cross(vz,anyv)
+            vx/=np.linalg.norm(vx)
+            vy=np.cross(vz,vx)
+            vy/=np.linalg.norm(vy)
+            base[atm]=np.array([vx,vy,vz]).T # 原子局部坐标系的基坐标向量
+        return base
+    
+    def hmoBases(self)->dict[int,np.ndarray]:
+        """休克尔分子轨道法原子的方向"""
+        from pywfn.orbtprop import popul
+        NM=popul.Calculator(self.mol).piEleMatDecom('atom',False)
+        eles=np.sum(NM,axis=0)
+        piIdx=0 # 第一个pi分子轨道的索引
+        for i,each in enumerate(eles):
+            if abs(each-2)>0.5:continue
+            piIdx=i
+            break
+
+        atms=self.mol.heavyAtoms
+        base={}
+        for i,atm in enumerate(atms):
+            atom=self.mol.atom(atm)
+            norm=self.normal(atom.idx) # 原子法向量
+            if norm is None:continue
+            u,l=atom.obtBorder
+            coefs=self.mol.CM[u:l,piIdx]
+            syms=self.mol.obtSyms[u:l]
+            piCoefs=[]
+            for s,c in zip(syms,coefs):
+                if 'P' not in s:continue
+                piCoefs.append(c)
+            piDir=np.array(piCoefs).reshape(-1,3).sum(axis=0)
+            if vector_angle(piDir,norm)>0.5:norm*=-1 # type: ignore
             anyv=np.random.rand(3) # 任意向量
             vz=norm/np.linalg.norm(norm) # 单位法向量
             vx=np.cross(vz,anyv)

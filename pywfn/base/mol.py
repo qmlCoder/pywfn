@@ -22,6 +22,7 @@ from typing import Any
 from pywfn import maths
 from pywfn.base.atom import Atom,Atoms
 from pywfn.base.bond import Bond,Bonds
+from pywfn.base.basis import Basis
 from pywfn import reader
 from pywfn import data
 from pywfn.data.elements import elements
@@ -61,27 +62,34 @@ class Mol:
         """
         self._atoms:Atoms=Atoms(self)
         self._bonds:Bonds=Bonds(self)
+        self._props:Props=Props()
         self.reader:"reader.Reader"=reader
-        self.props:Props=Props()
+        
         self.bohr:bool=False # 是否使用波尔坐标
     
     @cached_property
     def basis(self)->data.Basis: # 设为属性，可以保证用不到的时候不被实例化
-        return self.reader.get_basis()
+        basName,basData=self.reader.get_basData()
+        basis=Basis(self)
+        basis.name=basName
+        basis.data=basData
+        return basis
     
-    # @cached_property
-    # def gto(self)->"maths.Gto":
-    #     return maths.Gto(self)
+    @property
+    def nele(self)->tuple[int,int]:
+        elea,eleb=self._props.get('nele',self.reader.get_nele)
+        return elea,eleb
 
     @property
     def charge(self)->int:
-        charge=self.props.get('charge',self.reader.get_charge)
-        return charge
+        total=sum(self.atoms.atomics)
+        nela,nelb=self.nele
+        return nela+nelb-total
     
     @property
     def spin(self)->int:
-        spin=self.props.get('spin',self.reader.get_spin)
-        return spin
+        nela,nelb=self.nele
+        return nela-nelb
 
     @property
     def open(self)->bool:
@@ -92,12 +100,12 @@ class Mol:
     @property
     def energy(self)->float:
         """获取分子能量"""
-        return self.props.get('energy',self.reader.get_energy)
+        return self._props.get('energy',self.reader.get_energy)
 
     @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        occs=self.props.get('obtOccs',self.reader.get_obtOccs)
+        occs=self._props.get('obtOccs',self.reader.get_obtOccs)
         return occs
 
     @cached_property
@@ -123,30 +131,48 @@ class Mol:
         return strs
     
     @cached_property
-    def obtAtms(self)->list[int]:
-        return self.reader.get_obtAtms()
+    def atoAtms(self)->list[int]:
+        return self.reader.get_atoAtms()
     
     @cached_property
-    def obtShls(self)->list[int]:
-        return self.reader.get_obtShls()
+    def atoShls(self)->list[int]:
+        return self.reader.get_atoShls()
 
     @cached_property
-    def obtSyms(self)->list[str]:
-        return self.reader.get_obtSyms()
+    def atoSyms(self)->list[str]:
+        return self.reader.get_atoSyms()
     
     @cached_property
-    def obtAngs(self)->list[int]:
-        syms=self.obtSyms
+    def atoAngs(self)->list[int]: # 轨道角动量
+        syms=self.atoSyms
         angs=[self.basis.sym2ang(sym) for sym in syms]
         return angs
+    
+    @property
+    def atoKeys(self)->list[str]:
+        atms=self.atoAtms
+        shls=self.atoShls
+        syms=self.atoSyms
+        keys=[]
+        for atm,shl,sym in zip(atms,shls,syms):
+            keys.append(f'{atm}-{shl}{sym}')
+        return keys
+    
+    @cached_property
+    def atoXyzs(self):
+        idxs=self.atoAtms
+        idxs=[e-1 for e in idxs]
+        return self.atoms.xyzs[idxs].copy()
+    
+    
 
     @property
     def atoms(self)->Atoms:
         """获取所有原子"""
         if self._atoms:return self._atoms
-        symbols=self.props.get('symbols',self.reader.get_symbols)
-        coords=self.props.get('coords',self.reader.get_coords)
-        for s,c in zip(symbols,coords):
+        atmSyms=self._props.get('atmSyms',self.reader.get_atmSyms)
+        atmXyzs=self._props.get('atmXyzs',self.reader.get_atmXyzs)
+        for s,c in zip(atmSyms,atmXyzs):
             self._atoms.add(symbol=s,coord=c)
         return self._atoms
     
@@ -159,7 +185,6 @@ class Mol:
                 r=np.linalg.norm(atom2.coord-atom1.coord)
                 r1=elements[atom1.symbol].radius
                 r2=elements[atom2.symbol].radius
-                # if r>config.BOND_LIMIT:continue
                 if r>(r1+r2)*1.1:continue
                 self._bonds.add(atom1.idx,atom2.idx)
         return self._bonds
@@ -199,12 +224,22 @@ class Mol:
     @property
     def CM(self)->np.ndarray:
         """分子轨道系数矩阵"""
-        return self.props.get('CM',self.reader.get_CM)
+        return self._props.get('CM',self.reader.get_CM)
     
     @property
-    def SM(self):
-        """重叠矩阵"""
+    def SM_(self)->np.ndarray: # 老代码，从log文件中读重叠矩阵
+        """重叠矩阵，重叠矩阵不是读出来的，而是算出来的"""
         return self.reader.get_SM()
+    
+    @property
+    def SM(self)->np.ndarray: # 新代码，直接计算重叠矩阵
+        """计算重叠矩阵"""
+        from pywfn.maths import flib
+        atos,coes,alps,lmns=self.basis.matMap()
+        
+        xyzs=self.atoXyzs
+        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
+        return SM
     
     @property
     def PM(self):

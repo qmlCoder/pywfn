@@ -9,6 +9,8 @@ from pywfn.utils import printer
 from pywfn.maths import march
 from pywfn.base import Mol
 from pathlib import Path
+from pywfn.maths import flib
+import time
 
 class Grid:
     def __init__(self):
@@ -35,36 +37,38 @@ class LineGrid(Grid):
 class RectGrid(Grid):
     def __init__(self):
         self.type:str='Rect'
-        self.nx=1
-        self.ny=1
-        self.grid=np.array([[0,0,0]])
+        self.grids=np.array([[0,0,0]])
     
     def set_v1(self,cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float):
-        shape,grid=rectGrid(cent,norm,vx,size) # type: ignore
-        self.grid=grid
-        self.nx=shape[0]
-        self.ny=shape[1]
-        self.size=shape
+        shape,grids=rectGrid(cent,norm,vx,size) # type: ignore
+        self.grids=grids
+        self.shape=shape
         return self
 
     def set_v2(self,p0:np.ndarray,p1:np.ndarray,p2:np.ndarray): # 根据三个原子的坐标生成网格
         vx=p1-p0
-        vn=p2-p0
+        vn=p1-p2
         vx/=np.linalg.norm(vx)
         vn/=np.linalg.norm(vn)
         norm=np.cross(vx,vn)
+        norm/=np.linalg.norm(norm)
         vy=np.cross(vx,norm)
         dist=np.linalg.norm(p1-p0).item() #两点之间的距离
+        print('dist',dist)
+        print('vx',vx)
+        print('vy',vy)
+        print('norm',norm)
         # start=p0-vx*4-vy*4 #设置起始点位置
         cent=p0+vx*dist/2+vy*dist/2
         size=dist+8
+        print(cent,norm,vx,size)
         shape,grids=rectGrid(cent,norm,vx,size)
-        self.size=shape
-        self.grid=grids
+        self.shape=shape
+        self.grids=grids
         return self
 
     def get(self):
-        return [self.nx,self.ny],self.grid
+        return self.shape,self.grids
 
 class CubeGrid(Grid):
     def __init__(self):
@@ -181,24 +185,30 @@ class SpaceCaler:
     
     @staticmethod
     def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,iosv:float,limit:tuple[float,float]|None=None,gt:bool=True):
-        faces=[]
+        # faces=[]
         voxelData  =march.grids2voxel(shape,grids,vals)
         verts=march.cube2vert(voxelData,iosv,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
 
         if verts is not None:
             print('vert.shape',verts.shape)
             ## 不过滤
-            face=np.arange(len(verts)).reshape(-1,3)
-            faces.append(face)
+            # t0=time.time()
+            # verts=flib.vertsShift(verts) # 平移顶点
+            # t1=time.time()
+            # print('顶点平移耗时',t1-t0)
+            verts,faces=flib.vertsMerge(verts,0.1) # 合并顶点
+            faces=faces.reshape(-1,3)
+            # face=np.arange(len(verts)).reshape(-1,3)
+            # faces.append(face)
             ## 过滤
             # verts,face=march.filtVerts(verts) # 过滤掉重复的点
             # face+=npos
             # verts.append(vert)
             # faces.append(face)
-
-        if verts is not None:
-            faces=np.concatenate(faces)
+            print(verts)
+            print(faces)
             return verts,faces
+        
         else:
             return None,None
 

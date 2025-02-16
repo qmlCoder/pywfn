@@ -13,8 +13,10 @@ Fortran函数的流程
 数值在前，数组在后
 """
 from typing import Any
+import ctypes
 import ctypes as ct
 from ctypes import c_int,c_double,POINTER,byref
+
 from pathlib import Path
 import numpy as np
 import os
@@ -24,31 +26,39 @@ ftype=np.float64 # 使用的浮点数类型
 itype=np.int32   # 使用的整数类型
 Array=np.ndarray
 
-def trans_dtype(paras:list):
+def trans_dtype(paras:list): # 将参数列表转为ctypes需要的类型
     fparas=[]
     ftypes=[]
     for para in paras:
-        if type(para)==int:
+        if isinstance(para, int): # 如果是整数输入，则转换为c_int
             fparas.append(c_int(para))
             ftypes.append(c_int)
-        elif type(para)==float:
+            # print('整数标量',para)
+        elif isinstance(para, float):
             fparas.append(c_double(para))
             ftypes.append(c_double)
-        elif type(para)==np.ndarray:
+            # print('小数标量',para)
+        elif isinstance(para, np.ndarray):
             if para.dtype in ['int32','int64']:
                 if para.dtype!=itype:
                     para=para.astype(itype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
-                # print(para.dtype)
                 fparas.append(para.ctypes.data_as(POINTER(c_int)))
                 ftypes.append(POINTER(c_int))
+                # print('整数数组',para.shape)
             elif para.dtype in ['float32','float64']:
-                if para.dtype!=ftype:para=para.astype(ftype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
+                if para.dtype!=ftype:
+                    para=para.astype(ftype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
                 fparas.append(para.ctypes.data_as(POINTER(c_double)))
                 ftypes.append(POINTER(c_double))
+                # print('小数数组',para.shape)
             else:
                 raise TypeError("Unsupported type")
+        elif str(type(para))=="<class 'CArgObject'>":
+            fparas.append(para)
+            ftypes.append(POINTER(c_int))
         else:
-            raise TypeError(f"Unsupported type: {type(para)}")
+            # raise TypeError(f"Unsupported type: {type(para)}")
+            print(f"类型转换失败: {type(para)}")
     return fparas,ftypes
 
 def call_flib(func:str,ipts:list,outs:list):
@@ -126,7 +136,7 @@ def atoWfns(
         ngrid:int,
         grids:Array,
         nmat:int,
-        cords:Array,
+        cords:Array, # 原子坐标
         cmax:int,
         ncgs:Array,
         alpl:Array,
@@ -154,6 +164,12 @@ def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns0:np.ndarray,wfns1:np.
     dens2=np.zeros(shape=(ngrid,3,3),dtype=ftype)
     call_flib('moldens_',paras,[dens0,dens1,dens2])
     return dens0,dens1,dens2
+
+def atmDens(ngrid:int,nmat:int,matP,wfns):
+    """计算所有原子轨道的电子密度"""
+    dens=np.zeros(shape=(nmat,ngrid))
+    call_flib('atmdens_',[ngrid,nmat,matP,wfns],[dens])
+    return dens
 
 def a2mWeight(
         atm:int,
@@ -227,11 +243,66 @@ def elePotential(cords:Array,grids:Array,weits:Array,dens:Array):
     """计算势能"""
     assert chkArray(cords,[None,3]),"形状不匹配"
     assert chkArray(grids,[None,3]),"形状不匹配"
-    assert chkArray(weits,[None,]),"形状不匹配"
-    assert chkArray(dens,[None,]),"形状不匹配"
     ncord=cords.shape[0]
     ngrid=grids.shape[0]
     paras=[ncord,cords,ngrid,grids,weits,dens]
     vals=np.zeros(ncord,dtype=ftype)
     call_flib('elePotential_',paras,[vals])
     return vals
+
+def vertsShift(verts:Array)->Array:
+    """顶点向质心移动"""
+    assert chkArray(verts,[None,3]),"形状不匹配"
+    nvert=verts.shape[0]
+    paras=[nvert]
+    call_flib('vertsShift_',paras,[verts])
+    return verts
+
+def vertsMerge(old_verts:Array,thval:float):
+    """合并顶点"""
+    assert chkArray(old_verts,[None,3]),"形状不匹配"
+    nvert=old_verts.shape[0]
+    new_verts=np.zeros((nvert,3),dtype=ftype)
+    faces=np.zeros(nvert,dtype=itype)
+    vCount=c_int(0)
+    fCount=c_int(0)
+    call_flib('vertsMerge_',[thval,nvert,old_verts],[new_verts,faces,byref(vCount),byref(fCount)])
+    # print(vCount.value)
+    new_verts=new_verts[:vCount.value,:].copy()
+    faces=faces[:fCount.value*3].copy()
+    return new_verts,faces-1
+
+def matInteg(atos:Array,coes:Array,alps:Array,lmns:Array,xyzs:Array):
+    """计算重叠矩阵
+
+    Args:
+        atos (Array): 基函数对应的原子轨道
+        coes (Array): 基函数的系数
+        alps (Array): 基函数的指数
+        lmns (Array): 基函数的角动量
+        xyzs (Array): 基函数的坐标
+
+    Returns:
+        Array: 重叠矩阵
+    """
+    nato=len(xyzs)
+    nbas=len(coes)
+    assert chkArray(xyzs,[nato,3]),"形状不匹配"
+    assert chkArray(lmns,[nbas,3]),"形状不匹配"
+    # paras=[nato,nbas,atos,coes,alps,lmns,xyzs]
+    # 将系数转为归一化之后的系数
+    facs = [1., 1., 3.]
+    for i in range(nbas):
+        l,m,n=lmns[i]
+        fac = facs[l]*facs[m]*facs[n]
+        ang=l+m+n
+        alp=alps[i]
+        Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
+        coes[i]=Nm*coes[i]
+        # print(f'{alp:>10.4f}->{Nm:>10.4f}|{coes[i]:>10.4f}')
+    # print('atos',atos)
+    paras=[nato,nbas,atos,coes,alps,lmns,xyzs]
+    SM=np.zeros(shape=(nato,nato),dtype=ftype)
+    # print('atos',atos.shape,atos)
+    call_flib('matInteg_',paras,[SM])
+    return SM

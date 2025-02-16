@@ -100,15 +100,15 @@ class Reader:
     def getlines(self,idx1:int,idx2:int)->list[str]:
         lines=[]
         for i in range(idx1,idx2):
-            lines.append(self.getline(i))
+            lines.append(self.getline(i,keepEnd=False))
         return lines
 
 
-    def get_coords(self)->np.ndarray:
+    def get_atmXyzs(self)->np.ndarray:
         """原子坐标[n,3]"""
         raise ValueError("未继承的函数")
 
-    def get_symbols(self)->list[str]:
+    def get_atmSyms(self)->list[str]:
         """原子符号[n]"""
         raise ValueError("未继承的函数")
 
@@ -116,12 +116,8 @@ class Reader:
         """获取分子能量"""
         raise ValueError("未继承的函数")
 
-    def get_charge(self)->int:
-        """获取分子电荷"""
-        raise ValueError("未继承的函数")
-
-    def get_spin(self)->int:
-        """获取分子自旋"""
+    def get_nele(self)->tuple[int,int]:
+        """获取分子电子数"""
         raise ValueError("未继承的函数")
 
     def get_CM(self)->np.ndarray:
@@ -140,21 +136,21 @@ class Reader:
         """获取轨道类型，占据|非占据[m]"""
         raise
 
-    def get_obtAtms(self)->list[int]:
+    def get_atoAtms(self)->list[int]:
         """获取轨道系数每一行对应的原子[m]"""
         raise ValueError("未继承的函数")
 
-    def get_obtShls(self)->list[int]:
+    def get_atoShls(self)->list[int]:
         """获取轨道系数每一行对应的原子层[m]"""
         raise ValueError("未继承的函数")
     
-    def get_obtSyms(self)->list[str]:
+    def get_atoSyms(self)->list[str]:
         """获取轨道系数每一行对应的轨道符号(S,PX,PY...)"""
         raise ValueError("未继承的函数")
     
-    def get_basis(self)->"data.Basis":
-        """获取基组数据[m,4]
-        元素,层数,角动量,指数,系数
+    def get_basData(self)->tuple[str,list["base.BasisData"]]:
+        """获取每个原子的基组数据
+        原子：壳层，角动量，系数，指数
         """
         raise ValueError("未继承的函数")
     

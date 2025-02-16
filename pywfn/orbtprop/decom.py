@@ -24,9 +24,9 @@ class Calculator:
         for o in range(nobt): # 遍历轨道
             coefDict=defaultdict(list) # 系数字典
             for i in range(nmat):
-                iatm=self.mol.obtAtms[i]
-                ishl=self.mol.obtShls[i]
-                iang=self.mol.obtAngs[i]
+                iatm=self.mol.atoAtms[i]
+                ishl=self.mol.atoShls[i]
+                iang=self.mol.atoAngs[i]
                 key=(iatm,ishl,iang)
                 coefDict[key].append(self.mol.CM[i,o])
 
@@ -38,7 +38,7 @@ class Calculator:
                     tcoefs=decomOrbitals(T,rcoefs,keeps[iang],dtype)
                 else:
                     tcoefs=np.zeros_like(rcoefs)
-                coefDict[key]=tcoefs.tolist()
+                coefDict[key]=tcoefs.tolist() # type: ignore
             values=list(coefDict.values())
             CMt[:,o]=np.concatenate(values)
         return CMt

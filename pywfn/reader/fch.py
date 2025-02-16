@@ -6,10 +6,20 @@ import re
 import numpy as np
 
 from pywfn import base
+from pywfn.base.basis import BasisData
 from pywfn.data.elements import elements
 from pywfn import reader
+from pywfn.reader.utils import toCart
 from collections import defaultdict
 import math
+from functools import lru_cache
+
+SHL2SYM={
+    -2:['D 0','D+1','D-1','D+2','D-2'],
+    -1:['S','PX','PY','PZ'],
+    0: ['S'],
+    2: ['XX','YY','ZZ','XY','XZ','YZ']
+}
 
 class Title:
     def __init__(self,lineNum:int,dataNum:int,dataType:str,hasData:bool) -> None:
@@ -30,19 +40,23 @@ class FchReader(reader.Reader):
         self.needs=[
             'Atomic numbers', # 原子种类
             'Current cartesian coordinates', # 原子坐标
-            'Shell to atom map',
             'Primitive exponents',
             'Contraction coefficients',
             'Alpha Orbital Energies',
-            'Alpha MO coefficients',
-            'Total Energy', # 分子能量
-            'Charge', # 分子电荷
-            'Multiplicity', # 自旋多重度
+            'Total Energy',              # 分子能量
             'Alpha MO coefficients',
             'Beta MO coefficients',
+            'Number of alpha electrons', # alpha电子数
+            'Number of beta electrons', # beta电子数
             'Mulliken Chrgs',
             'Total SCF Density',
-            'Orthonormal basis'
+            'Orthonormal basis',
+            'Shell types', # 壳层类型
+            'Number of primitives per shell',
+            'Shell to atom map',
+            'Primitive exponents', # 基函数指数
+            'Contraction coefficients',
+            'P(S=P) Contraction coefficients',
         ]
         self.titles:dict[str,int]={k:0 for k in self.needs}
         self.marks=[
@@ -64,33 +78,38 @@ class FchReader(reader.Reader):
             title=line[0:40].strip()
             if title not in self.needs:continue
             self.titles[title]=l
-            
-    def parse_title(self,title:str):
+    
+    @lru_cache
+    def parse_title(self,title:str)->list[int]|list[float]: # 解析区块内容
         lineNum=self.titles[title]
         line=self.getline(lineNum)
         finds=[line[u:l] for u,l in self.marks]
-        _,_,dtype,hasData,dataNum=finds
+        _,_,dtype,hasData,dataNum=finds # 数据类型，是否包含更多数据，数据数量
         dtype=dtype.strip()
         hasData=bool(hasData)
-        dataNum=int(dataNum)
-        lineSpan=dataNum//6+(0 if dataNum%6==0 else 1)
-        tpmap={'I':rf'\d+','R':rf'-?\d+.\d+'}
-        text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan+1))
-        values=re.findall(tpmap[dtype],text)
+        dataNum=int(dataNum)  # 数据的量
         if dtype=='I':
-            values=[int(v) for v in values]
+            lineSpan=dataNum//6+(0 if dataNum%6==0 else 1)
+            text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan))
+            vals=re.findall(rf'-?\d+',text)
+            vals=[int(v) for v in vals]
+            # print(text)
         if dtype=='R':
-            values=[float(v) for v in values]
-        return values
+            lineSpan=dataNum//5+(0 if dataNum%5==0 else 1)
+            text='\n'.join(self.getlines(lineNum+1,lineNum+1+lineSpan))
+            vals=re.findall(rf'-?\d+\.\d+E[+-]\d+',text)
+            vals=[float(v) for v in vals]
+            # print(text)
+        return vals
     
-    def get_symbols(self) -> list[str]:
+    def get_atmSyms(self) -> list[str]:
         atomics:list[str]=self.read_atoms() # type: ignore
         symbols=[elements[a].symbol for a in atomics]
         return symbols
     
-    def get_coords(self) -> np.ndarray:
+    def get_atmXyzs(self) -> np.ndarray:
         coords=self.read_coord()
-        return coords
+        return coords*1.889
     
     def get_energy(self) -> float:
         lineNum=self.titles['Total Energy']
@@ -98,36 +117,12 @@ class FchReader(reader.Reader):
         energy=float(line[45:71])
         return energy
     
-    def get_charge(self)->int:
-        lineNum=self.titles['Charge']
-        line=self.getline(lineNum)
-        charge=int(line[45:71])
-        return charge
+    def get_nele(self) -> tuple[int, int]:
+        elea=int(self.getline(self.titles['Number of alpha electrons'])[45:71])
+        eleb=int(self.getline(self.titles['Number of beta electrons'])[45:71])
+        return elea,eleb
     
-    def get_spin(self)->int:
-        lineNum=self.titles['Multiplicity']
-        line=self.getline(lineNum)
-        charge=int(line[45:71])
-        return charge
     
-    def get_CM(self) -> np.ndarray:
-        lineNumA=self.titles['Alpha MO coefficients']
-        lineNumB=self.titles['Beta MO coefficients']
-        CMs=[]
-        for lineNum in [lineNumA,lineNumB]:
-            if lineNum==0:continue
-            line=self.getline(lineNum)
-            # print(line)
-            find=re.search(rf'N= +(\d+)',line)
-            assert find is not None,"不能找到系数矩阵"
-            nval=int(find.groups()[0])
-            nmat=int(nval**0.5)
-            nline=math.ceil(nval/5)
-            lines=self.getlines(lineNumA+1,lineNumA+1+nline)
-            vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
-            CM=np.array(vals,dtype=float).reshape(nmat,nmat).T
-            CMs.append(CM)
-        return np.concatenate(CMs,axis=0)
 
     def get_OB(self):
         lineNum=self.titles['Orthonormal basis']
@@ -159,9 +154,12 @@ class FchReader(reader.Reader):
                 DM[j,i]=vals[idx]
                 idx+=1
         return DM
+    
+    def get_basData(self)->tuple[str,list[BasisData]]:
+        basData=self.read_basis()
+        basName=self.getline(1)[40:90].strip()
+        return basName,basData
 
-
-        
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')
         return values
@@ -171,4 +169,95 @@ class FchReader(reader.Reader):
         values=np.array(values,dtype=np.float32).reshape(-1,3)/1.889726
         return values
     
+    def read_basis(self):
+        shlTypes:list[int]=self.parse_title('Shell types') # type: ignore
+        shlNums:list[int]=self.parse_title('Number of primitives per shell') # type: ignore
+        shlAtms:list[int]=self.parse_title('Shell to atom map') # type: ignore
+        pmexps=self.parse_title('Primitive exponents')
+        pmcoes=self.parse_title('Contraction coefficients')
+        assert len(pmcoes)!=0,"没有找到系数"
+        assert len(pmexps)!=0,"没有找到指数"
+        if self.titles['P(S=P) Contraction coefficients']:
+            spcoes=self.parse_title('P(S=P) Contraction coefficients')
+        basisDatas:list[BasisData]=[]
+        atm=1
+        shl=1
+        idx=0
+        for i in range(len(shlTypes)):
+            shlType=shlTypes[i]
+            shlNum=shlNums[i]
+            shlAtm=shlAtms[i]
+            
+            if atm!=shlAtm:
+                atm=shlAtm
+                shl=1
+            for j in range(shlNum): # type: ignore
+                if shlType==-1:
+                    basisDatas.append(BasisData(shlAtm,shl,0,pmcoes[idx],pmexps[idx]))
+                    basisDatas.append(BasisData(shlAtm,shl,1,spcoes[idx],pmexps[idx]))
+                else:
+                    basisDatas.append(BasisData(shlAtm,shl,abs(shlType),pmcoes[idx],pmexps[idx]))
+                idx+=1
+            shl+=1
+        # for each in basisData:
+        #     print(each)
+        basisDatas.sort(key=lambda b:(b.atm,b.shl,b.ang))
+        return basisDatas
+
     
+    
+    def get_atoAtms(self) -> list[int]:
+        atms,shls,syms,CM=self.read_CMs()
+        return atms
+    
+    def get_atoShls(self) -> list[int]:
+        atms,shls,syms,CM=self.read_CMs()
+        return shls
+    
+    def get_atoSyms(self) -> list[str]:
+        atms,shls,syms,CM=self.read_CMs()
+        return syms
+    
+    def get_CM(self) -> np.ndarray:
+        atms,shls,syms,CM=self.read_CMs()
+        return CM
+    
+    def read_CM(self) -> np.ndarray:
+        lineNumA=self.titles['Alpha MO coefficients']
+        lineNumB=self.titles['Beta MO coefficients']
+        CMs=[]
+        for lineNum in [lineNumA,lineNumB]:
+            if lineNum==0:continue
+            line=self.getline(lineNum)
+            # print(line)
+            find=re.search(rf'N= +(\d+)',line)
+            assert find is not None,"不能找到系数矩阵"
+            nval=int(find.groups()[0])
+            nmat=int(nval**0.5)
+            nline=math.ceil(nval/5)
+            lines=self.getlines(lineNumA+1,lineNumA+1+nline)
+            vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
+            CM=np.array(vals,dtype=float).reshape(nmat,nmat).T
+            CMs.append(CM)
+        return np.concatenate(CMs,axis=0)
+    
+    def read_CMs(self):
+        shlTypes:list[int]=self.parse_title('Shell types') # type: ignore
+        shlAtms:list[int]=self.parse_title('Shell to atom map') # type: ignore
+        atms=[]
+        shls=[]
+        syms=[]
+        shl=1
+        atm=0
+        for i,st in enumerate(shlTypes):
+            assert st in SHL2SYM.keys(),"不认识的shell类型"
+            syms+=SHL2SYM[st]
+            atms+=[shlAtms[i]]*len(SHL2SYM[st])
+            if atm!=shlAtms[i]:
+                shl=1
+                atm=shlAtms[i]
+            else:
+                shl+=1
+            shls+=[shl]*len(SHL2SYM[st])
+        CM=self.read_CM()
+        return toCart(atms,shls,syms,CM)

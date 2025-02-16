@@ -18,8 +18,14 @@ def dihedralAngle(mol:Mol,idxs:list[int]):
     angle=vector_angle(vi,vj)
     return angle
 
-def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:np.ndarray,
-           akeep:bool,lkeep:bool,akeeps=None,keeps:str|None=None)->np.ndarray:
+def projCM(mol:Mol,
+           obts:list[int],
+           atms:list[int],
+           dirs:np.ndarray,
+           akeep:bool,
+           lkeep:bool,
+           akeeps:list[int]|None=None,
+           keeps:str|None=None)->np.ndarray:
     """
     获取投影后的系数矩阵
     atms:需要投影的原子
@@ -30,7 +36,6 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:np.ndarray,
     akeeps:额外保留的原子，不进行投影但是保留
     lkeeps:额外保留的轨道，可以使用正则表达式匹配
     """
-    # assert len(dirs.shape)==2,"方向为二维数组"
     assert chkArray(dirs,[None,3]),"方向数组形状不对"
     assert len(atms)==len(dirs),"原子和方向数量不同"
     if akeep:
@@ -42,7 +47,7 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:np.ndarray,
         atom=mol.atom(atom)
         nebNum=len(atom.neighbors)
         u,l=atom.obtBorder
-        syms=mol.obtSyms[u:l] #该原子的轨道符号
+        syms=mol.atoSyms[u:l] #该原子的轨道符号
         
         pIdx=[i for i,s in enumerate(syms) if 'P' in s] # p轨道的索引
         if len(pIdx)==0:continue # 没有p轨道则跳过
@@ -57,7 +62,6 @@ def projCM(mol:Mol,obts:list[int],atms:list[int],dirs:np.ndarray,
                 Co[idxs]=Cos
             Cop=atom.get_pProj(vect,obt)
             Cop=np.concatenate(Cop)
-            # if len(Cop)>6:Cop[:3]=0 # 只要价层轨道
             Co[pIdx]=Cop
             CMp[u:l,obt]=Co.copy()
     if akeeps is not None: # 保留一些指定的原子的系数
@@ -76,10 +80,14 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     Returns:
         tuple[np.ndarray,np.ndarray,np.ndarray]: 距离矩阵，能量，系数矩阵
     """
+    from pywfn.atomprop import direction
+    dirCaler=direction.Calculator(mol)
+    atomBases=dirCaler.hmoBases()
     # 1.建立键连矩阵
     atms=mol.heavyAtoms # 重原子列表
     natm=len(atms) # 重原子数量
     BM=np.zeros(shape=(natm,natm)) # 键连矩阵
+    # DM=np.zeros(shape=(natm,natm)) # 距离矩阵
     for i,ai in enumerate(atms):
         for j,aj in enumerate(atms):
             if ai>=aj:continue
@@ -87,7 +95,13 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
             if dist>1.7*1.889:continue
             BM[i,j]=1.0
             BM[j,i]=1.0
-    # 2.求解
+            vi=atomBases[ai][:,-1]
+            vj=atomBases[aj][:,-1]
+            if vector_angle(vi,vj)>0.5:
+                print(f'原子{ai}和{aj}的法向量夹角大于90度',vi,vj)
+                BM[i,j]=-1.0
+                BM[j,i]=-1.0
+            
     es,CM=np.linalg.eigh(BM) # 矩阵对角化
     idxs=np.argsort(-es) # 占据轨道
     es=es[idxs].copy()

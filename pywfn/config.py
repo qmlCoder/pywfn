@@ -27,7 +27,10 @@ IF_DEBUG=True # 是否开启debug,控制项目中所有的打印,避免与shell�
 IF_SHELL=False # 是否在shell中执行
 IF_BUFF=get_config('if_buff',True) # 是否生成缓存
 
-BASE_VECTOR=np.array([0,0,1]) # 标准向量，求原子法向量和轨道方向的时候要与该向量夹角小于90°
+# BASE_VECTOR=np.array([1,0,0]) # 标准向量，求原子法向量和轨道方向的时候要与该向量夹角小于90°
+BASE_VECTOR=np.random.rand(3) # 标准向量，求原子法向量和轨道方向的时候要与该向量夹角小于90°
+BASE_VECTOR/=np.linalg.norm(BASE_VECTOR)
+
 
 IF_ORBITAL_ORDER=False #是否计算键级中每个轨道的成分，尤其是mayer键级拆分成每个轨道的成分很麻烦
 

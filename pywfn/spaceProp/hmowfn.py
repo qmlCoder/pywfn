@@ -31,7 +31,7 @@ class Calculator:
         """
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol)
-        base=dirCaler.bases()
+        base=dirCaler.hmoBases()
         atms=self.mol.heavyAtoms
         natm=len(atms)
         wfns=np.zeros(shape=(natm,len(grids)))
@@ -45,7 +45,7 @@ class Calculator:
     def ato_wfn(self,grids,atm:int):
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol)
-        base=dirCaler.bases()
+        base=dirCaler.hmoBases()
         atom=self.mol.atom(atm)
         grid=(grids-atom.coord)@base[atm] # 将空间格点转为以原子为中心的坐标
         wfn=hmoWfn(atom.atomic,grid)

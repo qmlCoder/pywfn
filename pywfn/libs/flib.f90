@@ -2,6 +2,7 @@
 
 module flib
   use iso_c_binding
+  use data
 contains
 
   subroutine info() bind(c, name='info_')
@@ -10,7 +11,6 @@ contains
 
 ! 生成网格点坐标
   subroutine grid_pos(Nx, Ny, Nz, pos) bind(C, name="grid_pos_")
-    use iso_c_binding
     implicit none
     integer(c_int), intent(in), value :: Nx, Ny, Nz
     real(c_double), intent(out) ::  pos(3, Nx*Ny*Nz)
@@ -34,7 +34,6 @@ contains
   subroutine gtf(alp, ngrid, grids, coord, l, m, n, level, wfn0, wfn1, wfn2) bind(C, name="gtf_") ! 计算某些点处的高斯函数值，基函数
     ! 高斯指数，坐标数量，坐标值，坐标平方和，角动量分量，返回值
     ! 直接传入平方和防止重复计算，减少计算量
-    use iso_c_binding
     implicit none
     integer(c_int), intent(in), value::ngrid
     real(c_double), intent(in) :: grids(3, ngrid)
@@ -135,7 +134,7 @@ contains
       else
         wfn2(3, 1, i) = x**(l - 1)*y**m*z**(n - 1)*(4*alp**2*x**2*z**2 - 2*alp*l*z**2 - 2*alp*n*x**2 + l*n)*exv*Nm
       end if
-    !   ! dyz
+      !   ! dyz
       if (m == 0 .and. n == 0) then
         wfn2(3, 2, i) = 4*alp**2*x**l*y*z*exv*Nm
       else if (m == 0) then
@@ -221,16 +220,16 @@ contains
     end do
   end subroutine atoWfns
 
-! 计算分子电子密度及梯度，轨道的电子密度直接就是波函数的平方
+  ! 计算分子电子密度及梯度，轨道的电子密度直接就是波函数的平方
   subroutine molDens(ngrid, nmat, nobt, matC, wfns0, wfns1, wfns2, level, dens0, dens1, dens2) bind(C, name="moldens_")
     use iso_c_binding
-    integer(c_int), intent(in), value::ngrid
+    integer(c_int), intent(in), value :: ngrid
     integer(c_int), intent(in), value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
     integer(c_int), intent(in), value :: nobt ! 占据轨道数量，稀疏矩阵的列数
     real(c_double), intent(in) :: matC(nobt, nmat) ! 轨道系数矩阵
-    real(c_double), intent(inout)::wfns0(ngrid, nmat) !波函数
-    real(c_double), intent(inout)::wfns1(3, ngrid, nmat) !波函数梯度
-    real(c_double), intent(inout)::wfns2(3, 3, ngrid, nmat) !波函数二阶导
+    real(c_double), intent(in) :: wfns0(ngrid, nmat) !波函数
+    real(c_double), intent(in) :: wfns1(3, ngrid, nmat) !波函数梯度
+    real(c_double), intent(in) :: wfns2(3, 3, ngrid, nmat) !波函数二阶导
 
     real(c_double), intent(inout)::dens0(ngrid)
     real(c_double), intent(inout)::dens1(3, ngrid)
@@ -275,31 +274,33 @@ contains
       end do
     end do
     dens0 = sum(den0, dim=2)
+    if (level == 0) return
     dens1 = sum(den1, dim=3)
+    if (level == 1) return
     dens2 = sum(den2, dim=4)
   end subroutine molDens
 
-! 计算原子电子密度
-  subroutine atmDens(ngrid, nmat, matP, u, l, wfns, dens) bind(C, name="atmdens_")
+! 计算所有原子轨道的电子密度
+  subroutine atmDens(ngrid, nmat, matP, wfns, dens) bind(C, name="atmdens_")
     integer(c_int), intent(in), value::ngrid ! 网格数量
     integer(c_int), intent(in), value::nmat ! 矩阵大小
-    integer(c_int), intent(in), value::u, l ! 该原子在矩阵中的上下界
     real(c_double), intent(in):: matP(nmat, nmat)
     real(c_double), intent(in)::wfns(ngrid, nmat) ! 将每个原子轨道的波函数存储下来
-    real(c_double), intent(inout)::dens(ngrid)
+    real(c_double), intent(inout)::dens(ngrid, nmat)
 
     integer::i, j
 
     dens = 0.0
-    do i = u, l
+    do i = 1, nmat
       do j = 1, nmat
-        dens = dens + wfns(:, i)*wfns(:, j)*matP(j, i)
+        if (matP(j,i) == 0.0) cycle
+        dens(:,i) = dens(:,i) + wfns(:, i)*wfns(:, j)*matP(j, i)
       end do
     end do
 
   end subroutine atmDens
 
-! 计算原子在分子格点的权重
+! 计算原子DFT格点在分子格点的权重
 subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis, a2mGrid, a2mWeit, total) bind(C, name="a2mWeight_")
     use iso_c_binding
     implicit none
@@ -322,9 +323,7 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
     real(c_double) :: miu_ij, chi, nu_ij, a_ij, u_ij, rat
     real(c_double) :: wt(natm), weit
     integer::g, i, j
-    ! do i=1,natm ! 打印原子坐标
-    !     write(*,*)'atmPos',atmPos(:,i)
-    ! end do
+
     total = 0
     do g = 1, nGrid
       gp = atmGrid(:, g)
@@ -336,12 +335,7 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
           if (i == j) cycle
           pj = atmPos(:, j)
           rj = sqrt(dot_product(pj - gp, pj - gp)) !两点之间的距离
-          ! write(*,*)'gp',gp
-          ! write(*,*)'ip',pi
-          ! write(*,*)'jp',pj
-          ! write(*,*)'ri,rj',ri,rj
           miu_ij = (ri - rj)/atmDis(j, i)
-          ! write(*,*)'miu_ij',g,i,j,miu_ij
           chi = atmRad(i)/atmRad(j) !两原子半径之比
           if (abs(chi - 1) < 1e-6) then
             nu_ij = miu_ij
@@ -358,19 +352,14 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
           nu_ij = 1.5*nu_ij - 0.5*nu_ij**3
 
           S_u(j, i) = 0.5*(1 - nu_ij)
-          ! write(*,*)'i,j,nu_ij',i,j,nu_ij
         end do
       end do
-      ! write(*,*)'S_u',S_u
       wt = 1.0
       do i = 1, natm
         wt = wt*S_u(i, :)
       end do
-      ! write(*,*)'wt',wt
       rat = wt(atm)/sum(wt)
-      ! write(*,*)'atm,g,rat',atm,g,rat
       weit = atmWeit(g)*rat
-      ! if (abs(weit)>1e-7) then
       if (.true.) then
         a2mWeit(g) = weit
         a2mGrid(:, g) = atmGrid(:, g)
@@ -390,9 +379,6 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
     real(c_double), intent(inout) ::  NM(nobt, nmat) ! 电子数量矩阵
     integer::i, j, b
     real(c_double)::val
-    ! write(*,*)nmat,nobt
-    ! write(*,*)'CM',CM(:,1)
-    ! write(*,*)'SM',SM(:,1)
     NM = 0.0
     do b = 1, nmat
       do j = 1, nobt
@@ -448,5 +434,212 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
       vals(i) = sum(wdens/dists)
     end do
   end subroutine elePotential
+
+  subroutine vertsMerge(thval, nvert, old_verts, new_verts, faces, vcount, fcount) bind(c, name="vertsMerge_") ! 合并顶点，改变顶点的数量但不改变三角形的数量
+    integer(c_int), intent(in),value :: nvert !顶点的数量, 阈值
+    real(c_double), intent(in),value :: thval !顶点的数量, 阈值
+    real(c_double), intent(inout) :: old_verts(3, nvert)
+    real(c_double), intent(inout) :: new_verts(3, nvert)
+    integer(c_int), intent(inout) :: faces(nvert) !原始的面索引就是 1,2,3,4,5...nvert
+    integer(c_int), intent(out) :: vcount,fcount !合并后顶点的数量
+
+    real(c_double) :: vector(3) !计算两个顶点之间的向量
+    integer(c_int) :: vertMap(nvert) !顶点映射表，新旧顶点之间的映射
+    integer(c_int) :: vertTag(nvert) !顶点标签，用于标记顶点是否被合并
+    integer(c_int) :: i,j,idx
+    real(c_double) :: dist !计算每两个顶点之间的距离
+    ! write(*,*) "vertsMerge",thval
+    vertTag=0
+    idx=1
+    vcount=0
+    do i=1,nvert
+      if (vertTag(i) == 1) cycle
+      new_verts(:, idx) = old_verts(:, i)
+      vcount = vcount+1
+      do j=1,nvert
+        vector = old_verts(:, i) - old_verts(:, j) !计算两个顶点之间的向量
+        dist = sqrt(dot_product(vector, vector)) !计算两个顶点之间的距离
+        if (dist < thval) then
+          vertMap(j) = idx
+          vertTag(j) = 1
+        end if
+      end do
+      idx = idx+1
+    end do
+    ! write(*,*)'顶点数量', vcount
+    idx=1
+    fcount=0
+    do i=1,nvert,3
+      ! write(*,*) i, vertMap(i),vertMap(i+1),vertMap(i+2)
+      if (vertMap(  i)==vertMap(i+1)) cycle
+      if (vertMap(  i)==vertMap(i+2)) cycle
+      if (vertMap(i+1)==vertMap(i+2)) cycle
+      faces(idx)   = vertMap(i)
+      faces(idx+1) = vertMap(i+1)
+      faces(idx+2) = vertMap(i+2)
+      fcount=fcount+1
+      idx = idx+3
+    end do
+    ! write(*,*)'', fcount
+  end subroutine vertsMerge
+
+  subroutine vertsShift(nvert, verts) bind(c, name="vertsShift_") ! 顶点位移
+    integer(c_int), intent(in), value :: nvert
+    real(c_double), intent(inout) :: verts(3, nvert)
+
+    real(c_double) :: distMat(nvert, nvert) !计算每两个顶点之间的距离
+    real(c_double) :: dist !两个顶点之间的距离
+    real(c_double) :: center(3) ! 一个顶点周围的顶点的中心坐标
+    integer(c_int) :: ncent !周围顶点的数量
+    integer :: i, j
+    do i = 1, nvert
+      do j = 1, nvert
+        dist = sqrt(dot_product(verts(:, i) - verts(:, j), verts(:, i) - verts(:, j))) !计算两个顶点之间的距离
+        distMat(i, j) = dist
+        distMat(j, i) = dist
+      end do
+    end do
+    do i = 1, nvert
+      center = [0.0, 0.0, 0.0]
+      ncent = 0
+      do j = 1, nvert
+        if (distMat(i, j) > 0.05) cycle
+        ncent = ncent + 1
+        center = center + verts(:, j)
+      end do
+      if (ncent == 0) cycle
+      center = center/ncent
+      verts(:, i) = verts(:, i) + (center - verts(:, i))*0.5
+    end do
+
+  end subroutine vertsShift
+
+  subroutine gftInteg(k,l,alps,xyzs,lmns,val) !bind(c, name="gftInteg_") ! 计算两个基函数之间的积分
+    integer(c_int), intent(in) :: k,l !两个基函数的编号
+    real(c_double), intent(in) :: alps(2) !两个基函数的指数
+    real(c_double), intent(in) :: xyzs(3, 2) !两个基函数的坐标
+    integer(c_int), intent(in) :: lmns(3, 2) !两个基函数的轨道角动量
+    real(c_double), intent(out) :: val !两个基函数之间的积分
+
+    real(c_double):: x1,y1,z1,x2,y2,z2
+    integer(c_int):: l1,m1,n1,l2,m2,n2
+    real(c_double):: e1,e2,alp,expv,sqrv,tmpv
+    integer(c_int):: nx,ny,nz
+    real(c_double):: sx,sy,sz
+    real(c_double):: px,py,pz
+    integer :: i
+
+    e1=alps(1)
+    e2=alps(2)
+    alp=e1+e2 ! 新的高斯指数
+    
+    x1 = xyzs(1,1) ! 原坐标
+    y1 = xyzs(2,1)
+    z1 = xyzs(3,1)
+    x2 = xyzs(1,2)
+    y2 = xyzs(2,2)
+    z2 = xyzs(3,2)
+
+    px = (e1*x1+e2*x2)/alp ! 新的坐标
+    py = (e1*y1+e2*y2)/alp
+    pz = (e1*z1+e2*z2)/alp
+
+    l1 = lmns(1,1) ! 轨道角动量
+    m1 = lmns(2,1)
+    n1 = lmns(3,1)
+
+    l2 = lmns(1,2)
+    m2 = lmns(2,2)
+    n2 = lmns(3,2)
+
+    expv=dexp(-e1*e2*((x1-x2)**2+(y1-y2)**2+(z1-z2)**2)/alp)
+    nx=ceiling((l1 + l2 + 1)/2.0)
+    ny=ceiling((m1 + m2 + 1)/2.0)
+    nz=ceiling((n1 + n2 + 1)/2.0)
+    sqrv=dsqrt(alp)
+
+    sx=0.0
+    do i=1,nx
+      tmpv = Rhm(nx,i)/sqrv + px
+      sx = sx + Whm(nx,i)*(tmpv-x1)**l1 * (tmpv-x2)**l2
+    end do
+    sx=sx/sqrv
+
+    sy=0.0
+    do i=1,ny
+      tmpv = Rhm(ny,i)/sqrv + py
+      sy = sy + Whm(ny,i)*(tmpv-y1)**m1 * (tmpv-y2)**m2
+      ! if (k==10 .and. l==10) write(*,'(A,3F10.4)')'sy',sy,Rhm(ny,i),Whm(ny,i)
+    end do
+    sy=sy/sqrv
+
+    sz=0.0
+    do i=1,nz
+      tmpv = Rhm(nz,i)/sqrv + pz
+      sz = sz + Whm(nz,i)*(tmpv-z1)**n1 * (tmpv-z2)**n2
+    end do
+    sz=sz/sqrv
+    
+    val=sx*sy*sz*expv
+    ! if (k==10 .and. l==10) then
+    !   write(*,'(3I5)')nx,ny,nz
+    !   write(*,'(A,3I5)')'lmn1',l1,m1,n1
+    !   write(*,'(A,3I5)')'lmn2',l2,m2,n2
+    !   write(*,'(3F10.4)') sx,sy,sz
+    !   write(*,'(2F10.4)') expv,sqrv
+    ! end if
+    ! write()
+  end subroutine gftInteg
+
+  ! subroutine matInteg(nato,nbas,atos,coes,alps,lmns,xyzs,mats) bind(c, name="matInteg_") ! 计算笛卡尔型的重叠矩阵
+  subroutine matInteg(nato,nbas,atos,coes,alps,lmns,xyzs,mats) bind(c, name="matInteg_") ! 计算笛卡尔型的重叠矩阵
+    integer(c_int), intent(in),value :: nato ! 原子轨道数量
+    integer(c_int), intent(in),value :: nbas ! 基函数  数量
+    integer(c_int), intent(in) :: atos(nbas) ! 每个基函数属于第几个原子轨道
+    real(c_double), intent(in) :: coes(nbas) ! 每个基函数的系数
+    real(c_double), intent(in) :: alps(nbas) ! 每个基函数的指数
+    integer(c_int), intent(in) :: lmns(3,nbas) ! 每个基函数的轨道角动量
+    real(c_double), intent(in) :: xyzs(3,nato) ! 每个基函数的坐标
+    real(c_double), intent(inout) :: mats(nato,nato) ! 重叠矩阵
+    
+    integer(c_int) :: bas_ul(2,nato) ! 每个原子轨道对应的基函数矩阵的上下界
+    real(c_double) :: sval ! 两个基函数之间的积分
+    real(c_double) :: alpl(2),xyzl(3,2)
+    integer(c_int) :: lmnl(3,2)
+    integer :: i,j,k,l
+
+    bas_ul=0 ! 获取原子轨道对应的基函数数据数组的上下界
+    do i=1,nbas
+      iato=atos(i)+1
+      if (bas_ul(1,iato)==  0) bas_ul(1,iato)=i
+    end do
+    bas_ul(2,1:iato-1)=bas_ul(1,2:iato)-1
+    bas_ul(2,iato)=nbas
+    ! do i=1,nato
+    !   write(*,'(3I5)') i,bas_ul(1,i),bas_ul(2,i)
+    ! end do
+    ! do i=1,nbas
+    !   write(*,'(A,I5,3I5)')'lmn',i,lmns(:,i)
+    ! end do
+
+    do i=1,nato
+      do j=1,nato
+        xyzl(:,1)=xyzs(:,i)
+        xyzl(:,2)=xyzs(:,j)
+        do k=bas_ul(1,i),bas_ul(2,i)
+          do l=bas_ul(1,j),bas_ul(2,j)
+            ! write(*,*) i,j,k,l
+            alpl(1)=alps(k)
+            alpl(2)=alps(l)
+            lmnl(:,1)=lmns(:,k)
+            lmnl(:,2)=lmns(:,l)
+            call gftInteg(k,l,alpl,xyzl,lmnl,sval)
+            mats(i,j)=mats(i,j)+coes(k)*coes(l)*sval
+            ! if (i==3 .and. j==3) write(*,'(2I5,3F10.4)')k,l,coes(k),coes(l),sval
+          end do
+        end do
+      end do
+    end do
+  end subroutine matInteg
 
 end module flib

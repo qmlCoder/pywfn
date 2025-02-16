@@ -6,7 +6,6 @@
 
 空间中一个格点的权重是否应该对所有分子都一致？
 """
-from cycler import K
 from pywfn.base import Mol
 from pywfn.spaceprop import wfnfunc
 from functools import cached_property,lru_cache
@@ -14,6 +13,7 @@ from pywfn.spaceprop import dftgrid
 from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,EarthGrid
 from pywfn import spaceprop
 from pywfn.data import radDens
+from pywfn.maths import flib
 from pywfn import utils
 import numpy as np
 import time
@@ -45,10 +45,10 @@ class Calculator(spaceprop.SpaceCaler):
         t0=time.time()
         wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grid,level) # 原子轨道波函数
         t1=time.time()
-        print('原子轨道波函数计算完成',t1-t0)
+        # print('原子轨道波函数计算完成',t1-t0)
         dens0,dens1,dens2=flib.molDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
         t2=time.time()
-        print('分子电子密度计算完成',t2-t1)
+        # print('分子电子密度计算完成',t2-t1)
         # return dens0*self.mol.oE
         dens0*=self.mol.oE
         dens1*=self.mol.oE
@@ -96,19 +96,18 @@ class Calculator(spaceprop.SpaceCaler):
             dens0,dens1,_=self.molDens(grid,1)
         return np.linalg.norm(dens1,axis=1)/dens0**a
    
-    def atmDens(self,grid:np.ndarray,atms:list[int]):
+    def atmDens(self,grids:np.ndarray,atms:list[int]|None=None):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
+        if atms is None:atms=self.mol.atoms.atms
         nmat=self.mol.CM.shape[0]
-        dens=np.zeros((len(grid)))
+        dens=np.zeros(shape=(len(atms),len(grids)))
+        atowfns,_,_=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
+        ngrid=grids.shape[0]
+        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM,atowfns)
         for a,atm in enumerate(atms):
             atom=self.mol.atom(atm)
             u,l = atom.obtBorder
-            atowfns,_,_=self.wfnCaler.atoWfns(grid,level=0)
-            for i in range(u,l):
-                wfn_i=atowfns[i]
-                for j in range(nmat):
-                    wfn_j=atowfns[j]
-                    dens+=wfn_i*wfn_j*self.PM[i,j]
+            atmDens[u:l,:].sum(axis=0,out=dens[a,:])
         return dens
     
     def piMolDens(self,grid:np.ndarray):
