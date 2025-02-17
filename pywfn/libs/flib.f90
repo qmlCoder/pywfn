@@ -435,87 +435,10 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
     end do
   end subroutine elePotential
 
-  subroutine vertsMerge(thval, nvert, old_verts, new_verts, faces, vcount, fcount) bind(c, name="vertsMerge_") ! 合并顶点，改变顶点的数量但不改变三角形的数量
-    integer(c_int), intent(in),value :: nvert !顶点的数量, 阈值
-    real(c_double), intent(in),value :: thval !顶点的数量, 阈值
-    real(c_double), intent(inout) :: old_verts(3, nvert)
-    real(c_double), intent(inout) :: new_verts(3, nvert)
-    integer(c_int), intent(inout) :: faces(nvert) !原始的面索引就是 1,2,3,4,5...nvert
-    integer(c_int), intent(out) :: vcount,fcount !合并后顶点的数量
 
-    real(c_double) :: vector(3) !计算两个顶点之间的向量
-    integer(c_int) :: vertMap(nvert) !顶点映射表，新旧顶点之间的映射
-    integer(c_int) :: vertTag(nvert) !顶点标签，用于标记顶点是否被合并
-    integer(c_int) :: i,j,idx
-    real(c_double) :: dist !计算每两个顶点之间的距离
-    ! write(*,*) "vertsMerge",thval
-    vertTag=0
-    idx=1
-    vcount=0
-    do i=1,nvert
-      if (vertTag(i) == 1) cycle
-      new_verts(:, idx) = old_verts(:, i)
-      vcount = vcount+1
-      do j=1,nvert
-        vector = old_verts(:, i) - old_verts(:, j) !计算两个顶点之间的向量
-        dist = sqrt(dot_product(vector, vector)) !计算两个顶点之间的距离
-        if (dist < thval) then
-          vertMap(j) = idx
-          vertTag(j) = 1
-        end if
-      end do
-      idx = idx+1
-    end do
-    ! write(*,*)'顶点数量', vcount
-    idx=1
-    fcount=0
-    do i=1,nvert,3
-      ! write(*,*) i, vertMap(i),vertMap(i+1),vertMap(i+2)
-      if (vertMap(  i)==vertMap(i+1)) cycle
-      if (vertMap(  i)==vertMap(i+2)) cycle
-      if (vertMap(i+1)==vertMap(i+2)) cycle
-      faces(idx)   = vertMap(i)
-      faces(idx+1) = vertMap(i+1)
-      faces(idx+2) = vertMap(i+2)
-      fcount=fcount+1
-      idx = idx+3
-    end do
-    ! write(*,*)'', fcount
-  end subroutine vertsMerge
 
-  subroutine vertsShift(nvert, verts) bind(c, name="vertsShift_") ! 顶点位移
-    integer(c_int), intent(in), value :: nvert
-    real(c_double), intent(inout) :: verts(3, nvert)
-
-    real(c_double) :: distMat(nvert, nvert) !计算每两个顶点之间的距离
-    real(c_double) :: dist !两个顶点之间的距离
-    real(c_double) :: center(3) ! 一个顶点周围的顶点的中心坐标
-    integer(c_int) :: ncent !周围顶点的数量
-    integer :: i, j
-    do i = 1, nvert
-      do j = 1, nvert
-        dist = sqrt(dot_product(verts(:, i) - verts(:, j), verts(:, i) - verts(:, j))) !计算两个顶点之间的距离
-        distMat(i, j) = dist
-        distMat(j, i) = dist
-      end do
-    end do
-    do i = 1, nvert
-      center = [0.0, 0.0, 0.0]
-      ncent = 0
-      do j = 1, nvert
-        if (distMat(i, j) > 0.05) cycle
-        ncent = ncent + 1
-        center = center + verts(:, j)
-      end do
-      if (ncent == 0) cycle
-      center = center/ncent
-      verts(:, i) = verts(:, i) + (center - verts(:, i))*0.5
-    end do
-
-  end subroutine vertsShift
-
-  subroutine gftInteg(k,l,alps,xyzs,lmns,val) !bind(c, name="gftInteg_") ! 计算两个基函数之间的积分
-    integer(c_int), intent(in) :: k,l !两个基函数的编号
+  subroutine gftInteg(alps,xyzs,lmns,val) !bind(c, name="gftInteg_") ! 计算两个基函数之间的积分
+    ! integer(c_int), intent(in) :: k,l !两个基函数的编号
     real(c_double), intent(in) :: alps(2) !两个基函数的指数
     real(c_double), intent(in) :: xyzs(3, 2) !两个基函数的坐标
     integer(c_int), intent(in) :: lmns(3, 2) !两个基函数的轨道角动量
@@ -581,14 +504,6 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
     sz=sz/sqrv
     
     val=sx*sy*sz*expv
-    ! if (k==10 .and. l==10) then
-    !   write(*,'(3I5)')nx,ny,nz
-    !   write(*,'(A,3I5)')'lmn1',l1,m1,n1
-    !   write(*,'(A,3I5)')'lmn2',l2,m2,n2
-    !   write(*,'(3F10.4)') sx,sy,sz
-    !   write(*,'(2F10.4)') expv,sqrv
-    ! end if
-    ! write()
   end subroutine gftInteg
 
   ! subroutine matInteg(nato,nbas,atos,coes,alps,lmns,xyzs,mats) bind(c, name="matInteg_") ! 计算笛卡尔型的重叠矩阵
@@ -633,7 +548,7 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
             alpl(2)=alps(l)
             lmnl(:,1)=lmns(:,k)
             lmnl(:,2)=lmns(:,l)
-            call gftInteg(k,l,alpl,xyzl,lmnl,sval)
+            call gftInteg(alpl,xyzl,lmnl,sval)
             mats(i,j)=mats(i,j)+coes(k)*coes(l)*sval
             ! if (i==3 .and. j==3) write(*,'(2I5,3F10.4)')k,l,coes(k),coes(l),sval
           end do

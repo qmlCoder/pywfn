@@ -27,18 +27,20 @@ def grids2voxel(shape:list[int],grids:np.ndarray,values:np.ndarray)->np.ndarray:
     Returns:
         np.ndarray: 体素数据
     """
+    # print(values)
     nx,ny,nz=shape
-    cube=np.zeros(shape=(nx,ny,nz,4))
+    voxel=np.zeros(shape=(nx,ny,nz,4))
     n=0
     for i in range(nx):
         for j in range(ny):
             for k in range(nz):
-                cube[i,j,k,:3]=grids[n]
-                cube[i,j,k,3]=values[n]
+                voxel[i,j,k,:3]=grids[n]
+                voxel[i,j,k,3]=values[n]
+                # print(i,j,k,values[n])
                 n+=1
-    return cube
+    return voxel
 
-def cube2vert(cube:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:bool=True)->np.ndarray|None: # 根据体素数据生成等值面的顶点 
+def voxel2verts(cube:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:bool=True)->np.ndarray|None: # 根据体素数据生成等值面的顶点 
     """获取体素数据的等值面坐标
 
     Args:
@@ -55,6 +57,7 @@ def cube2vert(cube:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:b
         for j in range(ny-1):
             for k in range(nz-1):
                 coords,values=get_around(cube,i,j,k)
+                # print(values)
                 minVal=values.min()
                 maxVal=values.max()
                 if limit is not None:
@@ -63,9 +66,9 @@ def cube2vert(cube:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:b
                 # print(i,j,k,minVal,maxVal)
                 if minVal< isov <maxVal: # 在正方形格点的极值之间代表在正方形内
                     keyP=''.join([str(int(v >  isov)) for v in values])
+                    # print(keyP,int(keyP,base=2)+1,len(marchData[keyP]))
                     posP=get_vertices(keyP,values,coords,isov,gt)
                     verts.append(posP)
-
     if verts:
         verts=np.concatenate(verts)
     else:
@@ -117,7 +120,8 @@ def get_around(cube,i,j,k):
     didx = [[0, 0, 0], [1, 0, 0], [1, 1, 0], [0, 1, 0], [0, 0, 1], [1, 0, 1], [1, 1, 1], [0, 1, 1]] # 周围8个点的相对索引
     values=[]
     coords=[]
-    for idx in didx:
+    # print(i,j,k)
+    for n,idx in enumerate(didx):
         di,dj,dk=idx
         i_ = i+di
         j_ = j+dj
@@ -129,6 +133,8 @@ def get_around(cube,i,j,k):
         v=cube[i_,j_,k_,3]
         values.append(v)
         coords.append([x,y,z])
+        # print(di,dj,dk)
+        # print(f'{n:>3}{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}{i_:>3}{j_:>3}{k_:>3}')
     values=np.array(values)
     coords=np.array(coords)
     return coords,values
@@ -137,11 +143,13 @@ def get_vertices(key:str,values:np.ndarray,coords:np.ndarray,isov:float,gt:bool)
     faces=fdata[key]
     verts=[]
     for f,face in enumerate(faces):
+        # print(f,face)
         for p in range(3): #每一个面对应的三个点
             e=face[p]
             a,b=bonds[e]
             pa,pb=coords[a],coords[b]
             va,vb=values[a],values[b]
+            # print(f,p,e,a,b,pa,pb,va,vb)
             if va==vb:
                 k=0.5
             else:
@@ -149,7 +157,6 @@ def get_vertices(key:str,values:np.ndarray,coords:np.ndarray,isov:float,gt:bool)
             dv = pb-pa
             point = pa+k*dv
             verts.append(point)
-        # if not gt:verts=verts[::-1]
-    # print(gt)
+            # print(len(verts),k,point,va,vb)
     verts=np.array(verts)
     return verts

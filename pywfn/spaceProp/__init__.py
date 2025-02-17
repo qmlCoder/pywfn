@@ -187,7 +187,7 @@ class SpaceCaler:
     def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,iosv:float,limit:tuple[float,float]|None=None,gt:bool=True):
         # faces=[]
         voxelData  =march.grids2voxel(shape,grids,vals)
-        verts=march.cube2vert(voxelData,iosv,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
+        verts=march.voxel2verts(voxelData,iosv,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
 
         if verts is not None:
             print('vert.shape',verts.shape)

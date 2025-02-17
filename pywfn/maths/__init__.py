@@ -20,26 +20,14 @@ def cubeGrid(
     x1, y1, z1 = p1
     lx,ly,lz=dp=p1-p0
     assert dp.min() > 0 , "x输入的坐标范围错误"
-    Nx=int((x1-x0)/step)
-    Ny=int((y1-y0)/step)
-    Nz=int((z1-z0)/step)
-    step=((lx*ly*lz)/(Nx*Ny*Nz))**(1/3)
+    Nx=int((x1-x0)/step)+1
+    Ny=int((y1-y0)/step)+1
+    Nz=int((z1-z0)/step)+1
+    # step=((lx*ly*lz)/(Nx*Ny*Nz))**(1/3)
     grid=flib.grid_pos(Nx,Ny,Nz)
     # print('rawGrid\n',grid)
     grid=grid*step+p0
     return [Nx,Ny,Nz],grid
-    # pos = []
-    # xs = np.arange(x0, x1, step)
-    # ys = np.arange(y0, y1, step)
-    # zs = np.arange(z0, z1, step)
-    # XS,YS,ZS=np.meshgrid(xs,ys,zs)
-    # Nx, Ny, Nz = len(xs), len(ys), len(zs)
-    # grid=np.zeros((Nx*Ny*Nz,3),dtype=np.float32)
-    # grid[:,0]=XS.flatten()
-    # grid[:,1]=YS.flatten()
-    # grid[:,2]=ZS.flatten()
-    # return [Nx, Ny, Nz], grid
-
 
 # 平面格点
 def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float)->tuple[list[int],np.ndarray]:

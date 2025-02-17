@@ -251,7 +251,7 @@ def elePotential(cords:Array,grids:Array,weits:Array,dens:Array):
     return vals
 
 def vertsShift(verts:Array)->Array:
-    """顶点向质心移动"""
+    """顶点移动"""
     assert chkArray(verts,[None,3]),"形状不匹配"
     nvert=verts.shape[0]
     paras=[nvert]
@@ -259,7 +259,7 @@ def vertsShift(verts:Array)->Array:
     return verts
 
 def vertsMerge(old_verts:Array,thval:float):
-    """合并顶点"""
+    """顶点合并"""
     assert chkArray(old_verts,[None,3]),"形状不匹配"
     nvert=old_verts.shape[0]
     new_verts=np.zeros((nvert,3),dtype=ftype)
@@ -271,6 +271,16 @@ def vertsMerge(old_verts:Array,thval:float):
     new_verts=new_verts[:vCount.value,:].copy()
     faces=faces[:fCount.value*3].copy()
     return new_verts,faces-1
+
+def marchCube(grids:Array,values:Array,shape:list[int],isov:float):
+    """顶点提取"""
+    nx,ny,nz=shape
+    voxel=np.zeros(shape=(nx,ny,nz,4),dtype=ftype) # 体素
+    call_flib('grids2voxel_',[nx,ny,nz,grids,values],[voxel])
+    verts=np.zeros(shape=(nx*ny*nz*24,3),dtype=ftype) # 顶点
+    count=c_int(0)
+    call_flib('voxel2verts_',[nx,ny,nz,voxel,isov],[verts,byref(count)])
+    return voxel,verts[:count.value]
 
 def matInteg(atos:Array,coes:Array,alps:Array,lmns:Array,xyzs:Array):
     """计算重叠矩阵
