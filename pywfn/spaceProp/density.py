@@ -34,25 +34,42 @@ class Calculator(spaceprop.SpaceCaler):
             dens[o]+=wfn**2*self.mol.oE
         return dens
     
-    def molDens(self,grid:np.ndarray,level:int): # 这种方式计算分子的电子密度更快
+    def atmDens(self,grids:np.ndarray,atms:list[int]|None=None):
+        """计算指定原子的电子密度加和，使用分子空间坐标"""
+        if atms is None:atms=self.mol.atoms.atms
+        nmat=self.mol.CM.shape[0]
+        dens=np.zeros(shape=(len(atms),len(grids)))
+        atowfns,_,_=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
+        ngrid=grids.shape[0]
+        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM,atowfns)
+        for a,atm in enumerate(atms):
+            atom=self.mol.atom(atm)
+            u,l = atom.obtBorder
+            atmDens[u:l,:].sum(axis=0,out=dens[a,:])
+        return dens
+    
+    def molDens(self,grids:np.ndarray,level:int): # 这种方式计算分子的电子密度更快
         """使用Fortran库计算电子密度"""
         from pywfn.maths import flib
-        ngrid=len(grid)
+        ngrid=len(grids)
         nmat=self.mol.CM.shape[0]
         nobt=len(self.mol.O_obts)
         obts=self.mol.O_obts
         CM=self.mol.CM[:,obts].copy()
-        t0=time.time()
-        wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grid,level) # 原子轨道波函数
-        t1=time.time()
+        # t0=time.time()
+        wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grids,level) # 原子轨道波函数
+        # t1=time.time()
         # print('原子轨道波函数计算完成',t1-t0)
+        
         dens0,dens1,dens2=flib.molDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
-        t2=time.time()
+        # t2=time.time()
         # print('分子电子密度计算完成',t2-t1)
         # return dens0*self.mol.oE
+        print(np.sum(wfns0),np.sum(dens0))
         dens0*=self.mol.oE
         dens1*=self.mol.oE
         dens2*=self.mol.oE
+        
         return dens0,dens1,dens2
     
     def proMolDens(self,grid:np.ndarray): # 第一种方式，使用插值计算
@@ -96,19 +113,7 @@ class Calculator(spaceprop.SpaceCaler):
             dens0,dens1,_=self.molDens(grid,1)
         return np.linalg.norm(dens1,axis=1)/dens0**a
    
-    def atmDens(self,grids:np.ndarray,atms:list[int]|None=None):
-        """计算指定原子的电子密度加和，使用分子空间坐标"""
-        if atms is None:atms=self.mol.atoms.atms
-        nmat=self.mol.CM.shape[0]
-        dens=np.zeros(shape=(len(atms),len(grids)))
-        atowfns,_,_=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
-        ngrid=grids.shape[0]
-        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM,atowfns)
-        for a,atm in enumerate(atms):
-            atom=self.mol.atom(atm)
-            u,l = atom.obtBorder
-            atmDens[u:l,:].sum(axis=0,out=dens[a,:])
-        return dens
+    
     
     def piMolDens(self,grid:np.ndarray):
         """计算分子空间π电子密度"""

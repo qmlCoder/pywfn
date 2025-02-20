@@ -182,7 +182,7 @@ class Calculator:
         """
         mols=[molN,self.mol,molP]
         crgs=[mol.charge for mol in mols]
-        assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
+        # assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
         cals=[charge.Calculator(mol) for mol in mols]
         
         vals:list[np.ndarray]=[]

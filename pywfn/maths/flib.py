@@ -78,9 +78,9 @@ def call_flib(func:str,ipts:list,outs:list):
     flib[func](*fparas)
 
 from pywfn import config
-print('动态链接库目录',config.ROOT_LIBS)
+# print('动态链接库目录',config.ROOT_LIBS)
 if os.name=='nt': # Windows系统
-    print(f'当前系统:windows, 动态链接库目录{config.ROOT_LIBS}')
+    # print(f'当前系统:windows, 动态链接库目录{config.ROOT_LIBS}')
     os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
 elif os.name=='posix': # Linux系统
@@ -259,8 +259,8 @@ def vertsShift(verts:Array)->Array:
     return verts
 
 def vertsMerge(old_verts:Array,thval:float):
-    """顶点合并"""
-    assert chkArray(old_verts,[None,3]),"形状不匹配"
+    """顶点合并""" 
+    assert chkArray(old_verts,[None,3]),f"形状不匹配,{old_verts.shape}"
     nvert=old_verts.shape[0]
     new_verts=np.zeros((nvert,3),dtype=ftype)
     faces=np.zeros(nvert,dtype=itype)
@@ -316,3 +316,11 @@ def matInteg(atos:Array,coes:Array,alps:Array,lmns:Array,xyzs:Array):
     # print('atos',atos.shape,atos)
     call_flib('matInteg_',paras,[SM])
     return SM
+
+def lagIntpol(xs:Array,ys:Array,ts:Array):
+    """拉格朗日插值"""
+    nx=len(xs)
+    nt=len(ts)
+    vs=np.zeros_like(ts)
+    call_flib('lagIntpol_',[nx,xs,ys,nt,ts],[vs])
+    return vs

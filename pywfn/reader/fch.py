@@ -13,11 +13,13 @@ from pywfn.reader.utils import toCart
 from collections import defaultdict
 import math
 from functools import lru_cache
+from pywfn.data import consts
 
 SHL2SYM={
     -2:['D 0','D+1','D-1','D+2','D-2'],
     -1:['S','PX','PY','PZ'],
     0: ['S'],
+    1: ['PX','PY','PZ'],
     2: ['XX','YY','ZZ','XY','XZ','YZ']
 }
 
@@ -57,6 +59,9 @@ class FchReader(reader.Reader):
             'Primitive exponents', # 基函数指数
             'Contraction coefficients',
             'P(S=P) Contraction coefficients',
+            'Alpha Orbital Energies',
+            'Beta Orbital Energies'
+
         ]
         self.titles:dict[str,int]={k:0 for k in self.needs}
         self.marks=[
@@ -82,6 +87,7 @@ class FchReader(reader.Reader):
     @lru_cache
     def parse_title(self,title:str)->list[int]|list[float]: # 解析区块内容
         lineNum=self.titles[title]
+        if lineNum==0:return []
         line=self.getline(lineNum)
         finds=[line[u:l] for u,l in self.marks]
         _,_,dtype,hasData,dataNum=finds # 数据类型，是否包含更多数据，数据数量
@@ -109,7 +115,7 @@ class FchReader(reader.Reader):
     
     def get_atmXyzs(self) -> np.ndarray:
         coords=self.read_coord()
-        return coords*1.889
+        return coords
     
     def get_energy(self) -> float:
         lineNum=self.titles['Total Energy']
@@ -166,7 +172,7 @@ class FchReader(reader.Reader):
 
     def read_coord(self):
         values=self.parse_title('Current cartesian coordinates')
-        values=np.array(values,dtype=np.float32).reshape(-1,3)/1.889726
+        values=np.array(values,dtype=np.float32).reshape(-1,3)
         return values
     
     def read_basis(self):
@@ -204,7 +210,8 @@ class FchReader(reader.Reader):
         basisDatas.sort(key=lambda b:(b.atm,b.shl,b.ang))
         return basisDatas
 
-    
+    def read_method(self)->str:
+        return self.getline(1)[10:20].strip()
     
     def get_atoAtms(self) -> list[int]:
         atms,shls,syms,CM=self.read_CMs()
@@ -218,29 +225,27 @@ class FchReader(reader.Reader):
         atms,shls,syms,CM=self.read_CMs()
         return syms
     
+    def get_obtEngs(self):
+        aengs=self.parse_title('Alpha Orbital Energies')
+        bengs=self.parse_title('Beta Orbital Energies')
+        return aengs+bengs
+    
     def get_CM(self) -> np.ndarray:
         atms,shls,syms,CM=self.read_CMs()
         return CM
     
     def read_CM(self) -> np.ndarray:
-        lineNumA=self.titles['Alpha MO coefficients']
-        lineNumB=self.titles['Beta MO coefficients']
-        CMs=[]
-        for lineNum in [lineNumA,lineNumB]:
-            if lineNum==0:continue
-            line=self.getline(lineNum)
-            # print(line)
-            find=re.search(rf'N= +(\d+)',line)
-            assert find is not None,"不能找到系数矩阵"
-            nval=int(find.groups()[0])
-            nmat=int(nval**0.5)
-            nline=math.ceil(nval/5)
-            lines=self.getlines(lineNumA+1,lineNumA+1+nline)
-            vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
-            CM=np.array(vals,dtype=float).reshape(nmat,nmat).T
-            CMs.append(CM)
-        return np.concatenate(CMs,axis=0)
+        acoefs=self.parse_title('Alpha MO coefficients')
+        bcoefs=self.parse_title('Beta MO coefficients')
+        nmat=int(len(acoefs)**0.5)
+        CMA=np.array(acoefs).reshape(nmat,nmat).T
+        if len(bcoefs)==0:
+            return CMA
+        else:
+            CMB=np.array(bcoefs).reshape(nmat,nmat).T
+            return np.concatenate([CMA,CMB],axis=1)
     
+    @lru_cache
     def read_CMs(self):
         shlTypes:list[int]=self.parse_title('Shell types') # type: ignore
         shlAtms:list[int]=self.parse_title('Shell to atom map') # type: ignore

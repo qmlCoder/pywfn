@@ -94,8 +94,8 @@ class Mol:
     @property
     def open(self)->bool:
         """是否为开壳层"""
-        w,h=self.CM.shape
-        return w!=h
+        m,n=self.CM.shape
+        return m<n
     
     @property
     def energy(self)->float:
@@ -105,7 +105,14 @@ class Mol:
     @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        occs=self._props.get('obtOccs',self.reader.get_obtOccs)
+        aele,bele=self.nele
+        nobt=self.CM.shape[1]
+        occs=[False]*nobt
+        if self.open:
+            occs[:aele]=[True]*aele
+            occs[nobt//2:nobt//2+bele]=[True]*bele
+        else:
+            occs[:aele]=[True]*aele
         return occs
 
     @cached_property
@@ -163,8 +170,6 @@ class Mol:
         idxs=self.atoAtms
         idxs=[e-1 for e in idxs]
         return self.atoms.xyzs[idxs].copy()
-    
-    
 
     @property
     def atoms(self)->Atoms:
@@ -299,17 +304,17 @@ class Mol:
         else:
             raise ValueError("参数数量错误")
     
-    @property
-    def eleNum(self)->tuple[int,int]:
-        """获取alpha,beta电子数"""
-        obts=self.O_obts
-        if self.open:
-            nbas=self.CM.shape[0]
-            na=sum([1 for o in obts if o<nbas])
-            nb=len(obts)-na
-            return na,nb
-        else:
-            return len(obts),len(obts)
+    # @property
+    # def eleNum(self)->tuple[int,int]:
+    #     """获取alpha,beta电子数"""
+    #     obts=self.O_obts
+    #     if self.open:
+    #         nbas=self.CM.shape[0]
+    #         na=sum([1 for o in obts if o<nbas])
+    #         nb=len(obts)-na
+    #         return na,nb
+    #     else:
+    #         return len(obts),len(obts)
     
     @cached_property
     def DM(self):

@@ -200,8 +200,10 @@ class LogReader(reader.Reader):
         syms=self.get_atmSyms()
         from pywfn.data.elements import elements
         total=sum([elements[sym].atomic for sym in syms]) # 总核电荷数
-        elea=(spin+total+charge)/2
-        eleb=elea+spin
+        elea=(spin-charge+total-1)/2
+        eleb=elea+1-spin
+        assert elea==int(elea),"电子数必须是整数"
+        assert eleb==int(eleb),"电子数必须是整数"
         return int(elea),int(eleb)
     
     def get_energy(self)->float:

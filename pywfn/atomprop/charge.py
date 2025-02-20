@@ -54,7 +54,6 @@ class Calculator():
             u,l=atom.obtBorder
             elect=EV[u:l].sum()
             elects[a]=elect
-            # charges[a]=atom.atomic-elect
         if self.numForm:
             return elects
         else:
@@ -108,24 +107,43 @@ class Calculator():
         from pywfn.spaceprop import dftgrid
         from pywfn.spaceprop import density
         gridCaler=dftgrid.Calculator(self.mol) # 格点计算器
+        gridCaler.nrad=75
+        gridCaler.nsph=434
         densCaler=density.Calculator(self.mol) # 电子密度计算器
         natm=self.mol.atoms.natm
-        Ps=np.zeros(natm)
-        Zs=np.zeros(natm)
         chargs=np.zeros(natm)
-        for i,atom in enumerate(self.mol.atoms):
-            grid,weit=gridCaler.atmGrid(atom.idx)
-            npos=len(grid)
+        grids,weits,gcuts=gridCaler.dftGrid(1)
+        npos=len(grids)
+        for i,atom in enumerate(self.mol.atoms): # 循环每个原子
+            # x,y,z=atom.coord
+            # print(f'{x:>10.4f}{y:>10.4f}{z:>10.4f}')
+            atmGrids=grids+atom.coord.reshape(1,3)
             pdens=np.zeros(npos) # 前体电子密度
-            fdensl=[] # 原子自由电子密度
+            idens=np.zeros(shape=(natm,npos)) # 原子自由电子密度
             for j,atom in enumerate(self.mol.atoms):
-                radius=np.linalg.norm(grid-atom.coord,axis=1) # 所有格点到当前原子的距离
-                fdens=radDens.get_radDens(atom.atomic,radius) # 自由原子电子密度
-                pdens+=fdens
-                fdensl.append(fdens)
-            mdens,_,_=densCaler.molDens(grid,0) #分子电子密度
-            res=fdensl[i]/pdens*mdens*weit
+                dists=np.linalg.norm(atmGrids-atom.coord.reshape(1,3),axis=1) # 所有格点到当前原子的距离
+                fdens=radDens.get_radDens(atom.atomic,dists) # 自由原子电子密度
+                # for k in range(npos):
+                #     x,y,z=atmGrids[k]
+                #     r=dists[k]
+                #     print(f'{k:>3}{x:>20.6E}{y:>20.6E}{z:>20.6E}{r:>20.6E}{fdens[k]:>20.6E}')
+                pdens+=fdens #*gcuts
+                if i==j:idens=fdens
+            # mdens=densCaler.molDens(atmGrids,0)[0] #分子电子密度
+            mdens=densCaler.atmDens(atmGrids).sum(axis=0)
+            
+            # res=idens/pdens*mdens*weits*gcuts
+            # res=np.zeros(npos)
+            res=np.divide(idens,pdens,where=pdens!=0)*mdens*weits*gcuts
+            # print(res)
+            # res=re
+            # print(np.sum(idens),np.sum(pdens),np.sum(mdens),np.sum(weits))
+            for j in range(npos):
+                x,y,z=atmGrids[j]
+                # print(f'{i+1:>3}{j+1:>7}{x:>20.6E}{y:>20.6E}{z:>20.6E}{weits[j]:>20.6E}{mdens[j]:20.6E}{pdens[j]:20.6E}{idens[j]:>20.6E}{res[j]:>20.6E}{gcuts[j]:>20.6f}')
+            # idxs=np.argwhere(pdens!=0)
             chargs[i]=np.sum(res)
+            # print(i,chargs[i])
         if self.numForm:
             return chargs
         else:

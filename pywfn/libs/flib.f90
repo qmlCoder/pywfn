@@ -221,63 +221,63 @@ contains
   end subroutine atoWfns
 
   ! 计算分子电子密度及梯度，轨道的电子密度直接就是波函数的平方
-  subroutine molDens(ngrid, nmat, nobt, matC, wfns0, wfns1, wfns2, level, dens0, dens1, dens2) bind(C, name="moldens_")
+  subroutine molDens(ngrid, nmat, nobt, matC, atoWfns0, atoWfns1, atoWfns2, level, molDens0, molDens1, molDens2) bind(C, name="moldens_")
     use iso_c_binding
     integer(c_int), intent(in), value :: ngrid
     integer(c_int), intent(in), value :: nmat ! 原子轨道数量，每一个原子轨道对应一个cgf
     integer(c_int), intent(in), value :: nobt ! 占据轨道数量，稀疏矩阵的列数
     real(c_double), intent(in) :: matC(nobt, nmat) ! 轨道系数矩阵
-    real(c_double), intent(in) :: wfns0(ngrid, nmat) !波函数
-    real(c_double), intent(in) :: wfns1(3, ngrid, nmat) !波函数梯度
-    real(c_double), intent(in) :: wfns2(3, 3, ngrid, nmat) !波函数二阶导
+    real(c_double), intent(in) :: atoWfns0(ngrid, nmat) !波函数
+    real(c_double), intent(in) :: atoWfns1(3, ngrid, nmat) !波函数梯度
+    real(c_double), intent(in) :: atoWfns2(3, 3, ngrid, nmat) !波函数二阶导
 
-    real(c_double), intent(inout)::dens0(ngrid)
-    real(c_double), intent(inout)::dens1(3, ngrid)
-    real(c_double), intent(inout)::dens2(3, 3, ngrid)
+    real(c_double), intent(inout)::molDens0(ngrid)
+    real(c_double), intent(inout)::molDens1(3, ngrid)
+    real(c_double), intent(inout)::molDens2(3, 3, ngrid)
     integer(c_int), intent(in), value :: level ! 0表示不计算导数
-    real(c_double) ::wfn0(ngrid, nobt), wfn1(3, ngrid, nobt), wfn2(3, 3, ngrid, nobt)
-    real(c_double) ::den0(ngrid, nobt), den1(3, ngrid, nobt), den2(3, 3, ngrid, nobt)
+    real(c_double) ::obtWfns0(ngrid, nobt), obtWfns1(3, ngrid, nobt), obtWfns2(3, 3, ngrid, nobt)
+    real(c_double) ::obtDens0(ngrid, nobt), obtDens1(3, ngrid, nobt), obtDens2(3, 3, ngrid, nobt)
     integer :: obt, ato, i, j
     ! 提前算出所有原子轨道的波函数并存储起来，分子轨道的波函数只是原子轨道波函数的线性组合
-    dens0 = 0.0
-    dens1 = 0.0
-    dens2 = 0.0
+    molDens0 = 0.0
+    molDens1 = 0.0
+    molDens2 = 0.0
 
-    wfn0 = 0.0
-    wfn1 = 0.0
-    wfn2 = 0.0
-    den0 = 0.0
-    den1 = 0.0
-    den2 = 0.0
+    obtWfns0 = 0.0
+    obtWfns1 = 0.0
+    obtWfns2 = 0.0
+    obtDens0 = 0.0
+    obtDens1 = 0.0
+    obtDens2 = 0.0
     do obt = 1, nobt !循环每一个分子轨道
-      !$omp parallel do default(none), private(ato), shared(wfn0,wfn1,wfn2,matC,wfns0,wfns1,wfns2,obt,level,nmat)
-      do ato = 1, nmat ! 循环每一个原子轨道，计算分子轨道波函数
-        if (abs(matC(obt, ato)) < 1e-4) cycle
-        wfn0(:, obt) = wfn0(:, obt) + wfns0(:, ato)*matC(obt, ato)
-        if (level == 0) cycle
-        wfn1(:, :, obt) = wfn1(:, :, obt) + wfns1(:, :, ato)*matC(obt, ato)
-        if (level == 1) cycle
-        wfn2(:, :, :, obt) = wfn2(:, :, :, obt) + wfns2(:, :, :, ato)*matC(obt, ato)
+      !$omp parallel do default(none), private(ato), shared(atoWfns0,atoWfns1,atoWfns2,matC,obtWfns0,obtWfns1,obtWfns2,obt,level,nmat)
+      do ato = 1, nmat ! 循环每一个原子轨道，构造分子轨道波函数
+        ! if (abs(matC(obt, ato)) < 1e-4) cycle
+        obtWfns0(:, obt) = obtWfns0(:, obt) + atoWfns0(:, ato)*matC(obt, ato)
+        if (level == 0) cycle ! 计算一阶导数
+        obtWfns1(:, :, obt) = obtWfns1(:, :, obt) + atoWfns1(:, :, ato)*matC(obt, ato)
+        if (level == 1) cycle ! 计算二阶导数
+        obtWfns2(:, :, :, obt) = obtWfns2(:, :, :, obt) + atoWfns2(:, :, :, ato)*matC(obt, ato)
       end do
       !$omp end parallel do
 
-      den0(:, obt) = den0(:, obt) + wfn0(:, obt)*wfn0(:, obt) !电子密度是波函数的平方
-      if (level == 0) cycle
+      obtDens0(:, obt) = obtDens0(:, obt) + obtWfns0(:, obt)*obtWfns0(:, obt) !电子密度是波函数的平方
+      if (level == 0) cycle ! 计算一阶导数
       do i = 1, 3
-        den1(i, :, obt) = den1(i, :, obt) + 2*wfn0(:, obt)*wfn1(i, :, obt)
+        obtDens1(i, :, obt) = obtDens1(i, :, obt) + 2*obtWfns0(:, obt)*obtWfns1(i, :, obt)
       end do
-      if (level == 1) cycle
+      if (level == 1) cycle ! 计算二阶导数
       do i = 1, 3
         do j = 1, 3
-          den2(i, j, :, obt) = 2*wfn1(i, :, obt)*wfn1(j, :, obt) + 2*wfn0(:, obt)*wfn2(i, j, :, obt)
+          obtDens2(i, j, :, obt) = 2*obtWfns1(i, :, obt)*obtWfns1(j, :, obt) + 2*obtWfns0(:, obt)*obtWfns2(i, j, :, obt)
         end do
       end do
     end do
-    dens0 = sum(den0, dim=2)
+    molDens0 = sum(obtDens0, dim=2)
     if (level == 0) return
-    dens1 = sum(den1, dim=3)
+    molDens1 = sum(obtDens1, dim=3)
     if (level == 1) return
-    dens2 = sum(den2, dim=4)
+    moldens2 = sum(obtDens2, dim=4)
   end subroutine molDens
 
 ! 计算所有原子轨道的电子密度
@@ -287,7 +287,7 @@ contains
     real(c_double), intent(in):: matP(nmat, nmat)
     real(c_double), intent(in)::wfns(ngrid, nmat) ! 将每个原子轨道的波函数存储下来
     real(c_double), intent(inout)::dens(ngrid, nmat)
-
+    
     integer::i, j
 
     dens = 0.0
@@ -297,7 +297,6 @@ contains
         dens(:,i) = dens(:,i) + wfns(:, i)*wfns(:, j)*matP(j, i)
       end do
     end do
-
   end subroutine atmDens
 
 ! 计算原子DFT格点在分子格点的权重
@@ -557,4 +556,41 @@ subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis,
     end do
   end subroutine matInteg
 
+  subroutine lagIntpol(nx,xs,ys,nt,ts,vs) bind(c,name='lagIntpol_')!拉格朗日插值
+    integer(c_int),intent(in),value :: nx,nt ! 数据点和插值点数量
+    real(c_double),intent(in) :: xs(nx),ys(nx),ts(nt) ! 数据点和插值点
+    real(c_double),intent(out) :: vs(nt) ! 插值结果
+    real(c_double)::tv,pv,slop
+    integer :: up,lo !内层循环的上下界
+    integer::i,j,t,loc !loc:目标最近的点
+    do t=1,nt
+      ! 找到离目标点最近的点
+      do i=1,nx
+        if (xs(i) > ts(t)) then
+          loc=i
+          exit
+        end if
+      end do
+      up=max( 1,loc-3)
+      lo=min(nx,loc+2)
+      if (ts(t)<xs(1)) then !如果小于最小值，使用线性插值
+        slop=(ys(2)-ys(1))/(xs(2)-xs(1))
+        vs(t)=ys(1)-slop*(xs(1)-ts(t))
+      else if (ts(t)>xs(nx)) then !如果大于最大值，直接设为0，因为是对电子密度插值
+        vs(t)=0.0
+      else
+        tv=0.0
+        do i=up,lo
+          pv=1.0
+          do j=up,lo
+            if (i==j) cycle
+            pv=pv*(ts(t)-xs(j))/(xs(i)-xs(j))
+          end do
+          tv=tv+ys(i)*pv
+        end do
+        vs(t)=tv
+      end if
+      ! write(*,'(4I5,2F10.4)')t,loc,up,lo,ts(t),vs(t)
+    end do
+  end subroutine lagintpol
 end module flib

@@ -184,10 +184,11 @@ class SpaceCaler:
         writer.save(path)
     
     @staticmethod
-    def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,iosv:float,limit:tuple[float,float]|None=None,gt:bool=True):
+    def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:bool=True):
         # faces=[]
-        voxelData  =march.grids2voxel(shape,grids,vals)
-        verts=march.voxel2verts(voxelData,iosv,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
+        # voxelData  =march.grids2voxel(shape,grids,vals)
+        # verts=march.voxel2verts(voxelData,isov,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
+        verts:np.ndarray=flib.marchCube(grids,vals,shape,isov)[1] # type: ignore 
 
         if verts is not None:
             print('vert.shape',verts.shape)

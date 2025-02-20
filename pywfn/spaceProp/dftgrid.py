@@ -11,25 +11,36 @@ class Calculator:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.nrad=74 # 径向格点数量
-        self.nsph=434 # 球面格点数量
+        self.nsph=86 # 球面格点数量
 
     def radGrid(self,atmic:int):
         pi=np.pi
         R=elements[atmic].radius
-        # print(f'{R=}')
         if atmic!=1:R/=2.
+        R=1.0
         rs=[]
         ws=[]
+        icut=0
         for i in range(1,self.nrad+1):
-            xi=np.cos(pi*i/(self.nrad+1))
-            ri=R*(1.+xi)/(1.-xi)
-            wi=2.*pi/(self.nrad+1)*R**3.*(1.+xi)**2.5/(1.-xi)**3.5
-            if ri>15:continue
+            xi=np.cos(i*pi/(self.nrad+1))
+            ri=R*(1. + xi)/(1. - xi)
+            wi=2*pi/(self.nrad+1)*R**3*(1+xi)**2.5/(1.-xi)**3.5*4*pi
+            # if ri>15:continue # 径向截断距离
             rs.append(ri)
             ws.append(wi)
+            if ri<10 and icut==0:
+                icut=i-1
+            # print(f'radPos,{i:>10}{ri:>20.4f}{wi:>20.4f}')
         rs=np.array(rs)
-        ws=np.array(ws)*4.*pi
-        return rs,ws
+        ws=np.array(ws)
+        cuts=np.ones(self.nrad)
+        cuts[:icut]=0.
+        # idxs=np.argwhere(rs>10)
+        # cuts[idxs]=0. # 根据multiwfn中的径向截断点得到的
+        # ws[idxs]=0.   # 根据multiwfn中的径向截断点得到的
+        # for i in range(self.nrad):
+        #     print(f'radpos,{rs[i]:>20.4f}{ws[i]:>20.4f}{cuts[i]:>6.0f}')
+        return rs,ws,cuts
 
     def sphGrid(self)->tuple[np.ndarray,np.ndarray]:
         """计算lebdev球面格点
@@ -43,30 +54,41 @@ class Calculator:
             case 26:result=lebedev.LD0026()
             case 74:result=lebedev.LD0074()
             case 86:result=lebedev.LD0086()
+            case 230:result=lebedev.LD0230()
             case 434:result=lebedev.LD0434()
             case _:
                 print("原子角度格点数量不匹配!!")
                 sys.exit(1)
+        # nsph=len(result)
+        # for i in range(nsph):
+        #     x,y,z,w=result[i]
+        #     print(f'sphPos,{i+1:>5}{x:>10.4f}{y:>10.4f}{z:>10.4f}{w:>10.4f}')
         return result[:,:3],result[:,-1]
 
     def dftGrid(self,atm:int):
         """计算原子DFT格点"""
         cords=[]
         weits=[]
+        gcuts=[]
         atom=self.mol.atom(atm)
-        radRs,radWs=self.radGrid(atom.atomic)
+        radRs,radWs,rcuts=self.radGrid(atom.atomic)
         sphCs,sphWs=self.sphGrid()
-        for rr,rw in zip(radRs,radWs):
+        # print('radRs',radRs.shape)
+        # print('sphCs',sphCs.shape)
+        # print(self.nrad,self.nsph)
+
+        for rr,rw,ic in zip(radRs,radWs,rcuts):
             for sc,sw in zip(sphCs,sphWs):
                 cords.append(sc*rr)
                 weits.append(rw*sw)
-        cords=np.array(cords,dtype=np.float32)
-        weits=np.array(weits,dtype=np.float32)
-        return cords,weits
+                gcuts.append(ic)
+        cords=np.array(cords,dtype=np.float64)
+        weits=np.array(weits,dtype=np.float64)
+        return cords,weits,gcuts
     
     def atmGrid(self,atm:int):
         """单个原子的网格点坐标，以原子为中心"""
-        atmGrid,atmWeit=self.dftGrid(atm)
+        atmGrid,atmWeit,gcuts=self.dftGrid(atm)
         atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3) #移动到以原子为中心
         return atmGrid,atmWeit
     
