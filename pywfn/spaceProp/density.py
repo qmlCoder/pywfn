@@ -24,11 +24,11 @@ class Calculator(spaceprop.SpaceCaler):
         self.wfnCaler=wfnfunc.Calculator(mol)
         self.PM=self.mol.PM.copy()
     
-    def obtDens(self,grid:np.ndarray): # 以分子轨道的方式计算电子密度，可以计算每个分子轨道的电子密度
+    def obtDens(self,grids:np.ndarray): # 以分子轨道的方式计算电子密度，可以计算每个分子轨道的电子密度
         """根据分子轨道电子密度计算分子电子密度"""
         obts=self.mol.O_obts
-        dens=np.zeros((len(obts),len(grid)))
-        wfns=self.wfnCaler.obtWfns(grid,obts) #分子轨道波函数
+        dens=np.zeros((len(obts),len(grids)))
+        wfns=self.wfnCaler.obtWfns(grids,obts) #分子轨道波函数
         for o,obt in enumerate(obts):
             wfn=wfns[o]
             dens[o]+=wfn**2*self.mol.oE
@@ -41,7 +41,7 @@ class Calculator(spaceprop.SpaceCaler):
         dens=np.zeros(shape=(len(atms),len(grids)))
         atowfns,_,_=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
         ngrid=grids.shape[0]
-        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM,atowfns)
+        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM.copy(),atowfns.copy())
         for a,atm in enumerate(atms):
             atom=self.mol.atom(atm)
             u,l = atom.obtBorder
@@ -65,18 +65,18 @@ class Calculator(spaceprop.SpaceCaler):
         # t2=time.time()
         # print('分子电子密度计算完成',t2-t1)
         # return dens0*self.mol.oE
-        print(np.sum(wfns0),np.sum(dens0))
+        # print(np.sum(wfns0),np.sum(dens0))
         dens0*=self.mol.oE
         dens1*=self.mol.oE
         dens2*=self.mol.oE
         
         return dens0,dens1,dens2
     
-    def proMolDens(self,grid:np.ndarray): # 第一种方式，使用插值计算
+    def proMolDens(self,grids:np.ndarray): # 第一种方式，使用插值计算
         """计算前体分子电子密度 promol"""
-        dens=np.zeros((len(grid)))
+        dens=np.zeros((len(grids)))
         for atom in self.mol.atoms:
-            radius=np.linalg.norm(grid-atom.coord,axis=1)
+            radius=np.linalg.norm(grids-atom.coord,axis=1)
             dens+=radDens.get_radDens(atom.atomic,radius)
         return dens
     

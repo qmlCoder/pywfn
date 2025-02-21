@@ -61,7 +61,7 @@ class Reader:
         self.cache=cache
         dataFold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}' # 数据存储路径
         self.dataFold=f'{dataFold}' # 数据存储路径
-        if self.cache: #如果生成缓存
+        if config.CACHE: #如果生成缓存
             if not dataFold.exists():
                 os.mkdir(f'{dataFold}')
             else:

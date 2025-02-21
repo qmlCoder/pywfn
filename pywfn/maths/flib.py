@@ -16,6 +16,7 @@ from typing import Any
 import ctypes
 import ctypes as ct
 from ctypes import c_int,c_double,POINTER,byref
+# import faulthandler
 
 from pathlib import Path
 import numpy as np
@@ -26,19 +27,23 @@ ftype=np.float64 # 使用的浮点数类型
 itype=np.int32   # 使用的整数类型
 Array=np.ndarray
 
+
+# faulthandler.enable()
+
 def trans_dtype(paras:list): # 将参数列表转为ctypes需要的类型
     fparas=[]
     ftypes=[]
     for para in paras:
         if isinstance(para, int): # 如果是整数输入，则转换为c_int
-            fparas.append(c_int(para))
-            ftypes.append(c_int)
+            fparas.append(byref(c_int(para)))
+            ftypes.append(POINTER(c_int))
             # print('整数标量',para)
         elif isinstance(para, float):
-            fparas.append(c_double(para))
-            ftypes.append(c_double)
+            fparas.append(byref(c_double(para)))
+            ftypes.append(POINTER(c_double))
             # print('小数标量',para)
         elif isinstance(para, np.ndarray):
+            para=np.copy(para) # 防止对原始数据的修改
             if para.dtype in ['int32','int64']:
                 if para.dtype!=itype:
                     para=para.astype(itype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
@@ -83,10 +88,12 @@ if os.name=='nt': # Windows系统
     # print(f'当前系统:windows, 动态链接库目录{config.ROOT_LIBS}')
     os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
+    flib.init_()
 elif os.name=='posix': # Linux系统
     print('当前系统:linux')
     os.environ['LD_LIBRARY_PATH'] = rf"{config.ROOT_LIBS}" + os.environ.get('LD_LIBRARY_PATH', '')
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.so')
+    flib.init_()
 else:
     raise OSError("Unsupported OS")
 # call_flib('info_',[],[])
@@ -110,7 +117,7 @@ def grid_pos(Nx: int, Ny: int, Nz: int)->np.ndarray:
     return pos
 
 def gtf(alp: float,ngrid:int, grids: np.ndarray,coord:np.ndarray,l:int,m:int,n:int,level:int):
-    assert chkArray(coord,[3]),"形状或类型不匹配"
+    assert chkArray(coord,[3,]),"形状或类型不匹配"
     ipts=[alp,ngrid,grids,coord,l,m,n,level]
     wfn0=np.zeros(shape=(ngrid,),dtype=ftype)
     wfn1=np.zeros(shape=(ngrid,3),dtype=ftype)
@@ -136,7 +143,7 @@ def atoWfns(
         ngrid:int,
         grids:Array,
         nmat:int,
-        cords:Array, # 原子坐标
+        coords:Array, # 原子坐标
         cmax:int,
         ncgs:Array,
         alpl:Array,
@@ -147,10 +154,11 @@ def atoWfns(
     计算所有原子轨道波函数
     """
     assert chkArray(grids,[ngrid,3]),"形状不匹配"
+    assert chkArray(coords,[nmat,3]),"形状不匹配"
     wfns0=np.zeros(shape=(nmat,ngrid),dtype=ftype)
     wfns1=np.zeros(shape=(nmat,ngrid,3))
     wfns2=np.zeros(shape=(nmat,ngrid,3,3))
-    ipts=[ngrid,grids,nmat,cords,cmax,ncgs,alpl,coel,lmns,level]
+    ipts=[ngrid,grids,nmat,coords,cmax,ncgs,alpl,coel,lmns,level]
     outs=[wfns0,wfns1,wfns2]
     call_flib('atoWfns_',ipts,outs)
     return wfns0,wfns1,wfns2
@@ -165,10 +173,14 @@ def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns0:np.ndarray,wfns1:np.
     call_flib('moldens_',paras,[dens0,dens1,dens2])
     return dens0,dens1,dens2
 
-def atmDens(ngrid:int,nmat:int,matP,wfns):
+def atmDens(ngrid:int,nmat:int,matP:np.ndarray,wfns:np.ndarray):
     """计算所有原子轨道的电子密度"""
+    chkArray(matP,[nmat,nmat])
+    chkArray(wfns,[nmat,ngrid])
     dens=np.zeros(shape=(nmat,ngrid))
     call_flib('atmdens_',[ngrid,nmat,matP,wfns],[dens])
+    # np.savetxt('atmDens_matP.txt',matP)
+    # np.savetxt('atmDens_wfns.txt',wfns)
     return dens
 
 def a2mWeight(

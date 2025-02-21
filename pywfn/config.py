@@ -57,3 +57,5 @@ MARCH_ISOV_WFNS = get_config('march.isov',0.03) # Marching Cubes算法波函数�
 MARCH_ISOV_DENS = get_config('march.dens',0.001) # Marching Cubes算法电子密度等值面阈值
 
 # os.add_dll_directory(rf"{ROOT_LIBS}") # 添加动态链接库目录
+
+CACHE=False # 是否使用缓存
