@@ -39,33 +39,27 @@ class Calculator(spaceprop.SpaceCaler):
         if atms is None:atms=self.mol.atoms.atms
         nmat=self.mol.CM.shape[0]
         dens=np.zeros(shape=(len(atms),len(grids)))
-        atowfns,_,_=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
+        atowfns0,atowfns1,atowfns2=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
         ngrid=grids.shape[0]
-        atmDens=flib.atmDens(ngrid,nmat,self.mol.PM.copy(),atowfns.copy())
+        atoDens=flib.atoDens(ngrid,nmat,self.mol.PM,atowfns0,atowfns1,atowfns2,0)[0]
         for a,atm in enumerate(atms):
             atom=self.mol.atom(atm)
             u,l = atom.obtBorder
-            atmDens[u:l,:].sum(axis=0,out=dens[a,:])
+            atoDens[u:l,:].sum(axis=0,out=dens[a,:])
         return dens
     
-    def molDens(self,grids:np.ndarray,level:int): # 这种方式计算分子的电子密度更快
+    def molDens(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]: # 这种方式计算分子的电子密度更快
         """使用Fortran库计算电子密度"""
         from pywfn.maths import flib
         ngrid=len(grids)
-        nmat=self.mol.CM.shape[0]
-        nobt=len(self.mol.O_obts)
         obts=self.mol.O_obts
         CM=self.mol.CM[:,obts].copy()
-        # t0=time.time()
+        nmat,nobt=CM.shape
         wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grids,level) # 原子轨道波函数
-        # t1=time.time()
-        # print('原子轨道波函数计算完成',t1-t0)
-        
-        dens0,dens1,dens2=flib.molDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
-        # t2=time.time()
-        # print('分子电子密度计算完成',t2-t1)
-        # return dens0*self.mol.oE
-        # print(np.sum(wfns0),np.sum(dens0))
+        dens0,dens1,dens2=flib.obtDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
+        dens0=dens0.sum(axis=0)
+        dens1=dens1.sum(axis=0)
+        dens2=dens2.sum(axis=0)
         dens0*=self.mol.oE
         dens1*=self.mol.oE
         dens2*=self.mol.oE
@@ -92,12 +86,12 @@ class Calculator(spaceprop.SpaceCaler):
             dens2+=rho2
         return dens0,dens1,dens2
             
-    def RDG(self,grid:np.ndarray,pro:bool=False): # reduced density gradient
-        assert utils.chkArray(grid,[None,3]),"格点的形状应为: (n,3)"
+    def RDG(self,grids:np.ndarray,pro:bool=False): # reduced density gradient
+        assert utils.chkArray(grids,[None,3]),"格点的形状应为: (n,3)"
         if pro: # 如果使用预分子
-            dens0,dens1,_=self.proMolDens_v2(grid,1) # type: ignore
+            dens0,dens1,_=self.proMolDens_v2(grids,1) # type: ignore
         else: # 使用真实电子密度及梯度
-            dens0,dens1,_=self.molDens(grid,1)
+            dens0,dens1,_=self.molDens(grids,1)
         idxs=np.where(dens0>0.1)
         L=np.linalg.norm(dens1,axis=1)
         K=1/(2*(3*np.pi**2)**(1/3))
@@ -105,13 +99,18 @@ class Calculator(spaceprop.SpaceCaler):
         # rdg[idxs]=0.0
         return rdg
     
-    def IRI(self,grid:np.ndarray,pro:bool=False,a=1.1): # 
-        assert utils.chkArray(grid,[None,3]),"格点的形状应为: (n,3)"
+    def IRI(self,grids:np.ndarray,pro:bool=False,a=1.1): # 
+        assert utils.chkArray(grids,[None,3]),"格点的形状应为: (n,3)"
         if pro: # 如果使用预分子
-            dens0,dens1,_=self.proMolDens_v2(grid,1) # type: ignore
+            dens0,dens1,_=self.proMolDens_v2(grids,1) # type: ignore
         else:
-            dens0,dens1,_=self.molDens(grid,1)
-        return np.linalg.norm(dens1,axis=1)/dens0**a
+            dens0,dens1,_=self.molDens(grids,1)
+        L=np.linalg.norm(dens1,axis=1)
+        # return L/dens0**a
+        
+        vals=L/dens0**a
+        print(np.min(vals),np.max(vals))
+        return vals
    
     
     

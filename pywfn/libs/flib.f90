@@ -72,15 +72,22 @@ contains
     wfn0 = 0.0
     wfn1 = 0.0
     wfn2 = 0.0
-    !$omp parallel do default(none), private(i,x,y,z,r2,exv), shared(ngrid,grids,coord,l,m,n,alp,level,Nm,wfn0,wfn1,wfn2) num_threads(1)
+    !$omp parallel do default(none), private(i,x,y,z,r2,exv), shared(ngrid,grids,coord,l,m,n,alp,level,Nm,wfn0,wfn1,wfn2)
+    ! write(*,'(4I3,ES20.8)')level,l,m,n,alp
     do i = 1, ngrid
+      
       x = grids(1, i) - coord(1)
       y = grids(2, i) - coord(2)
       z = grids(3, i) - coord(3)
+      ! write(*,'(6ES20.8)')grids,coord
       r2 = x**2 + y**2 + z**2
       exv = exp(-alp*r2)
-      wfn0(i) = Nm*x**l*y**m*z**n*exv
-      if (level == 1) then ! 计算一阶导数
+      
+      if (level >= 0) then ! 计算波函数值
+        wfn0(i) = Nm*x**l*y**m*z**n*exv
+      end if
+
+      if (level >= 1) then ! 计算一阶导数
         ! 计算波函数梯度
         wfn1(1, i) = -2*alp*x*wfn0(i)
         wfn1(2, i) = -2*alp*y*wfn0(i)
@@ -94,8 +101,9 @@ contains
         if (m == 2) wfn1(2, i) = wfn1(2, i) + x**l*y*z**n*exv*Nm*2
         if (n == 2) wfn1(3, i) = wfn1(3, i) + x**l*y**m*z*exv*Nm*2
       end if
+      ! write(*,'(3ES20.8)')wfn1(:,1)
 
-      if (level == 2) then ! 计算二阶导数
+      if (level >= 2) then ! 计算二阶导数
         ! 计算波函数二阶导数
         ! dxx
         select case (l)
@@ -144,7 +152,7 @@ contains
         else
           wfn2(3, 1, i) = x**(l - 1)*y**m*z**(n - 1)*(4*alp**2*x**2*z**2 - 2*alp*l*z**2 - 2*alp*n*x**2 + l*n)*exv*Nm
         end if
-        !   ! dyz
+        ! dyz
         if (m == 0 .and. n == 0) then
           wfn2(3, 2, i) = 4*alp**2*x**l*y*z*exv*Nm
         else if (m == 0) then
@@ -181,10 +189,14 @@ contains
     real(c_double)::alp, coe, val0(ngrid), val1(3, ngrid), val2(3, 3, ngrid)
     integer::i
     wfn0 = 0.0
+    wfn1 = 0.0
+    wfn2 = 0.0
     do i = 1, nc
       alp = alps(i)
       coe = coes(i)
       val0 = 0.0
+      val1 = 0.0
+      val2 = 0.0
       call gtf(alp, ngrid, grids, coord, l, m, n, level, val0, val1, val2)
       wfn0 = wfn0 + coe*val0
       wfn1 = wfn1 + coe*val1
@@ -213,7 +225,13 @@ contains
     real(c_double) ::coord(3)
     real(c_double) ::alps(cmax), coes(cmax)
     integer::i
+    wfn0 = 0.0
+    wfn1 = 0.0
+    wfn2 = 0.0
 
+    wfns0 = 0.0
+    wfns1 = 0.0
+    wfns2 = 0.0
     ! write(*,*)'Fortran atoWfns start'
     do i = 1, nmat
       l = lmns(1, i)
@@ -223,10 +241,6 @@ contains
       alps = alpl(:, i)
       coes = coel(:, i)
       nc = ncgs(i)
-      ! write(*,'(6I5)')i,l,m,n,nc,cmax
-      ! write(*,'(3ES20.6)')coord
-      ! write(*,'(6F10.4)')alps
-      ! write(*,'(6F10.4)')coes
       call cgf(cmax, nc, alps, coes, ngrid, grids, coord, l, m, n, level, wfn0, wfn1, wfn2)
       wfns0(:, i) = wfn0
       wfns1(:, :, i) = wfn1
@@ -254,9 +268,6 @@ contains
     real(c_double) ::obtDens0(ngrid, nobt), obtDens1(3, ngrid, nobt), obtDens2(3, 3, ngrid, nobt)
     integer :: obt, ato, i, j
     ! 提前算出所有原子轨道的波函数并存储起来，分子轨道的波函数只是原子轨道波函数的线性组合
-    molDens0 = 0.0
-    molDens1 = 0.0
-    molDens2 = 0.0
 
     obtWfns0 = 0.0
     obtWfns1 = 0.0
@@ -265,16 +276,20 @@ contains
     obtDens1 = 0.0
     obtDens2 = 0.0
     do obt = 1, nobt !循环每一个分子轨道
-      !$omp parallel do default(none), private(ato), shared(atoWfns0,atoWfns1,atoWfns2,matC,obtWfns0,obtWfns1,obtWfns2,obt,level,nmat)
       do ato = 1, nmat ! 循环每一个原子轨道，构造分子轨道波函数
         ! if (abs(matC(obt, ato)) < 1e-4) cycle
-        obtWfns0(:, obt) = obtWfns0(:, obt) + atoWfns0(:, ato)*matC(obt, ato)
-        if (level == 0) cycle ! 计算一阶导数
-        obtWfns1(:, :, obt) = obtWfns1(:, :, obt) + atoWfns1(:, :, ato)*matC(obt, ato)
-        if (level == 1) cycle ! 计算二阶导数
-        obtWfns2(:, :, :, obt) = obtWfns2(:, :, :, obt) + atoWfns2(:, :, :, ato)*matC(obt, ato)
+        if (level >= 0) then
+          obtWfns0(:, obt) = obtWfns0(:, obt) + atoWfns0(:, ato)*matC(obt, ato)
+        end if
+        
+        if (level >= 1) then ! 计算一阶导数
+          obtWfns1(:, :, obt) = obtWfns1(:, :, obt) + atoWfns1(:, :, ato)*matC(obt, ato)
+        end if
+
+        if (level >= 2) then ! 计算二阶导数
+          obtWfns2(:, :, :, obt) = obtWfns2(:, :, :, obt) + atoWfns2(:, :, :, ato)*matC(obt, ato)
+        end if
       end do
-      !$omp end parallel do
 
       obtDens0(:, obt) = obtDens0(:, obt) + obtWfns0(:, obt)*obtWfns0(:, obt) !电子密度是波函数的平方
       if (level == 0) cycle ! 计算一阶导数
@@ -295,27 +310,114 @@ contains
     moldens2 = sum(obtDens2, dim=4)
   end subroutine molDens
 
-! 计算所有原子轨道的电子密度
-  subroutine atmDens(ngrid, nmat, matP, wfns, dens) bind(C, name="atmdens_")
+  subroutine obtDens(ngrid,nmat,nobt,matC,atowfns0,atowfns1,atowfns2,level,obtDens0,obtDens1,obtDens2) bind(C, name="obtDens_")
+    integer(c_int), intent(in)::ngrid,nmat,nobt,level ! 网格数量，矩阵大小，分子轨道数量，计算导数的阶数
+    real(c_double), intent(in)::matC(nobt,nmat) ! 轨道系数矩阵
+    real(c_double), intent(in)::atowfns0(ngrid,nmat) ! 原子轨道波函数
+    real(c_double), intent(in)::atowfns1(3,ngrid,nmat) ! 原子轨道波函数的一阶导数
+    real(c_double), intent(in)::atowfns2(3,3,ngrid,nmat) ! 原子轨道波函数的二阶导数
+    real(c_double), intent(inout)::obtDens0(ngrid,nobt) ! 分子轨道的电子密度
+    real(c_double), intent(inout)::obtDens1(3,ngrid,nobt) ! 分子轨道的电子密度的一阶导数
+    real(c_double), intent(inout)::obtDens2(3,3,ngrid,nobt) ! 分子轨道的电子密度的二阶导数
+
+    real(c_double) :: obtWfns0(ngrid,nobt) ! 分子轨道波函数
+    real(c_double) :: obtWfns1(3,ngrid,nobt)! 分子轨道波函数的一阶导数
+    real(c_double) :: obtWfns2(3,3,ngrid,nobt) ! 分子轨道波函数的二阶导数
+    
+    integer :: obt,ato
+
+    obtWfns0 = 0.0
+    obtWfns1 = 0.0
+    obtWfns2 = 0.0
+
+    obtDens0 = 0.0
+    obtDens1 = 0.0
+    obtDens2 = 0.0
+
+    do obt = 1, nobt !循环每一个分子轨道
+      !!$omp parallel do default(none) private(ato) shared(atoWfns0, atoWfns1, atoWfns2, matC, obt, level, nmat) &
+      !!$omp reduction(+:obtWfns0, obtWfns1, obtWfns2)
+      do ato = 1, nmat ! 循环每一个原子轨道，构造分子轨道波函数
+        if (matC(obt,ato)==0.0) cycle
+        if (level >= 0) then ! 计算一阶导数
+          obtWfns0(:, obt) = obtWfns0(:, obt) + atoWfns0(:, ato)*matC(obt, ato)
+        end if
+        
+        if (level >= 1) then ! 计算一阶导数
+          obtWfns1(:, :, obt) = obtWfns1(:, :, obt) + atoWfns1(:, :, ato)*matC(obt, ato)
+        end if
+
+        if (level >= 2) then ! 计算二阶导数
+          obtWfns2(:, :, :, obt) = obtWfns2(:, :, :, obt) + atoWfns2(:, :, :, ato)*matC(obt, ato)
+        end if
+      end do
+      !!$omp end parallel do
+
+      
+      if (level >= 0) then ! 计算电子密度
+        obtDens0(:, obt) = obtDens0(:, obt) + obtWfns0(:, obt)*obtWfns0(:, obt) !电子密度是波函数的平方
+      end if
+
+      if (level >= 1) then ! 计算一阶导数
+        do i = 1, 3
+          obtDens1(i, :, obt) = obtDens1(i, :, obt) + 2*obtWfns0(:, obt)*obtWfns1(i, :, obt)
+        end do
+      end if
+      
+      if (level >= 2) then ! 计算二阶导数
+        do i = 1, 3
+          do j = 1, 3
+            obtDens2(i, j, :, obt) = obtDens2(i, j, :, obt) + 2*obtWfns1(i, :, obt)*obtWfns1(j, :, obt) + 2*obtWfns0(:, obt)*obtWfns2(i, j, :, obt)
+          end do
+        end do
+      end if
+
+    end do
+  end subroutine obtDens
+
+  ! 计算所有原子轨道的电子密度
+  subroutine atoDens(ngrid, nmat, matP, atowfns0,atowfns1,atowfns2,level,obtDens0,obtDens1,obtDens2) bind(C, name="atoDens_")
     integer(c_int), intent(in)::ngrid ! 网格数量
     integer(c_int), intent(in)::nmat ! 矩阵大小
+    integer(c_int), intent(in)::level ! 
     real(c_double), intent(in):: matP(nmat, nmat)
-    real(c_double), intent(in)::wfns(ngrid, nmat) ! 将每个原子轨道的波函数存储下来
-    real(c_double), intent(inout)::dens(ngrid, nmat)
+    real(c_double), intent(in) :: atowfns0(ngrid, nmat) ! 原子轨道波函数
+    real(c_double), intent(in) :: atowfns1(3, ngrid, nmat) ! 原子轨道波函数的一阶导数
+    real(c_double), intent(in) :: atowfns2(3,3, ngrid, nmat) ! 原子轨道波函数的二阶导数
+    real(c_double), intent(inout)::obtDens0(ngrid, nmat)
+    real(c_double), intent(inout)::obtDens1(3, ngrid, nmat)
+    real(c_double), intent(inout)::obtDens2(3,3, ngrid, nmat)
     
-    integer::i, j
+    integer::i, j, k, l
+    
+    obtDens0 = 0.0
+    obtDens1 = 0.0
+    obtDens2 = 0.0
 
-    dens = 0.0
     do i = 1, nmat
       do j = 1, nmat
         if (matP(j,i) == 0.0) cycle
-        dens(:,i) = dens(:,i) + wfns(:, i)*wfns(:, j)*matP(j, i)
+        if (level >= 0) then
+          obtDens0(:,i) = obtDens0(:,i) + atowfns0(:, i)*atowfns0(:, j)*matP(j, i)
+        end if
+        if (level >= 1) then
+          do k=1,3
+            obtDens1(k,:,i) = obtDens1(k,:,i) + (atowfns0(:,i)*atowfns1(k,:,j)+atowfns0(:, j)*atowfns1(k,:,i))*matP(j, i)
+          end do
+        end if
+        if (level >= 2) then
+          do k=1,3
+            do l=1,3
+              obtDens2(l, k,:, i) = obtDens2(l, k,:, i) + (atowfns2(l,k,:,i)*atowfns0(:,j) + atowfns1(k,:,i)*atowfns1(l,:,j) + atowfns1(l,:,i)*atowfns1(k,:,j) + atowfns0(:,i)*atowfns2(l,k,:,j) )*matP(j, i)
+            end do
+          end do
+        end if
       end do
     end do
-  end subroutine atmDens
+  end subroutine atoDens
 
-! 计算原子DFT格点在分子格点的权重
-subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis, a2mGrid, a2mWeit, total) bind(C, name="a2mWeight_")
+  ! 计算原子DFT格点在分子格点的权重
+  subroutine a2mWeight(atm, nGrid, atmGrid, atmWeit, natm, atmPos, atmRad, atmDis, a2mGrid, a2mWeit, total) bind(C, name="a2mWeight_")
     use iso_c_binding
     implicit none
     integer(c_int), intent(in) :: atm ! 第多少个原子

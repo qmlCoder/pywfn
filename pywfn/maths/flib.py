@@ -30,20 +30,23 @@ Array=np.ndarray
 
 # faulthandler.enable()
 
-def trans_dtype(paras:list): # 将参数列表转为ctypes需要的类型
+def trans_dtype(paras:list,intent='in'): # 将参数列表转为ctypes需要的类型
     fparas=[]
     ftypes=[]
     for para in paras:
         if isinstance(para, int): # 如果是整数输入，则转换为c_int
-            fparas.append(byref(c_int(para)))
+            if intent=='in':
+                fparas.append(byref(c_int(para)))
             ftypes.append(POINTER(c_int))
             # print('整数标量',para)
         elif isinstance(para, float):
-            fparas.append(byref(c_double(para)))
+            if intent=='in':
+                fparas.append(byref(c_double(para)))
             ftypes.append(POINTER(c_double))
             # print('小数标量',para)
         elif isinstance(para, np.ndarray):
-            para=np.copy(para) # 防止对原始数据的修改
+            # if intent=='in':
+            # para=np.copy(para) # 防止对原始数据的修改
             if para.dtype in ['int32','int64']:
                 if para.dtype!=itype:
                     para=para.astype(itype) # 对于输出来说，不能进行类型转换，否则对原本对象的引用会改变
@@ -75,8 +78,8 @@ def call_flib(func:str,ipts:list,outs:list):
         outs (list): 输出参数
     """
     # print(func)
-    iparas,itypes=trans_dtype(ipts)
-    oparas,otypes=trans_dtype(outs)
+    iparas,itypes=trans_dtype(ipts,'in')
+    oparas,otypes=trans_dtype(outs,'out')
     ftypes=itypes+otypes
     flib[func].argtypes=ftypes # 指定函数参数的类型
     fparas=iparas+oparas  # 指定函数参数的值
@@ -163,25 +166,23 @@ def atoWfns(
     call_flib('atoWfns_',ipts,outs)
     return wfns0,wfns1,wfns2
 
-def molDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns0:np.ndarray,wfns1:np.ndarray,wfns2:np.ndarray,level:int):
-    """计算分子电子密度"""
-    # print(grids[:3,:])
+def obtDens(ngrid:int,nmat:int,nobt:int,CM:np.ndarray,wfns0:np.ndarray,wfns1:np.ndarray,wfns2:np.ndarray,level:int):
     paras=[ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level]
-    dens0=np.zeros(shape=(ngrid,),dtype=ftype)
-    dens1=np.zeros(shape=(ngrid,3),dtype=ftype)
-    dens2=np.zeros(shape=(ngrid,3,3),dtype=ftype)
-    call_flib('moldens_',paras,[dens0,dens1,dens2])
+    dens0=np.zeros(shape=(nobt,ngrid,),dtype=ftype)
+    dens1=np.zeros(shape=(nobt,ngrid,3),dtype=ftype)
+    dens2=np.zeros(shape=(nobt,ngrid,3,3),dtype=ftype)
+    # print(dens0.size+dens1.size+dens2.size)
+    call_flib('obtDens_',paras,[dens0,dens1,dens2])
     return dens0,dens1,dens2
 
-def atmDens(ngrid:int,nmat:int,matP:np.ndarray,wfns:np.ndarray):
-    """计算所有原子轨道的电子密度"""
-    chkArray(matP,[nmat,nmat])
-    chkArray(wfns,[nmat,ngrid])
-    dens=np.zeros(shape=(nmat,ngrid))
-    call_flib('atmdens_',[ngrid,nmat,matP,wfns],[dens])
-    # np.savetxt('atmDens_matP.txt',matP)
-    # np.savetxt('atmDens_wfns.txt',wfns)
-    return dens
+def atoDens(ngrid:int,nmat:int,PM:np.ndarray,wfns0:np.ndarray,wfns1:np.ndarray,wfns2:np.ndarray,level:int):
+    paras=[ngrid,nmat,PM,wfns0,wfns1,wfns2,level]
+    dens0=np.zeros(shape=(nmat,ngrid,),dtype=ftype)
+    dens1=np.zeros(shape=(nmat,ngrid,3),dtype=ftype)
+    dens2=np.zeros(shape=(nmat,ngrid,3,3),dtype=ftype)
+    # print(dens0.size+dens1.size+dens2.size)
+    call_flib('atoDens_',paras,[dens0,dens1,dens2])
+    return dens0,dens1,dens2
 
 def a2mWeight(
         atm:int,
@@ -289,6 +290,7 @@ def marchCube(grids:Array,values:Array,shape:list[int],isov:float):
     nx,ny,nz=shape
     voxel=np.zeros(shape=(nx,ny,nz,4),dtype=ftype) # 体素
     call_flib('grids2voxel_',[nx,ny,nz,grids,values],[voxel])
+    # print(voxel)
     verts=np.zeros(shape=(nx*ny*nz*24,3),dtype=ftype) # 顶点
     count=c_int(0)
     call_flib('voxel2verts_',[nx,ny,nz,voxel,isov],[verts,byref(count)])

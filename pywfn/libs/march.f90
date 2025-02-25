@@ -317,12 +317,12 @@ module march
   data bonds(:, 12)/7, 4/
 contains
   subroutine grids2voxel(nx, ny, nz, grids, values, voxels) bind(c, name='grids2voxel_') !将格点数据转为体素数据
-    integer(c_int), intent(in), value :: nx, ny, nz
+    integer(c_int), intent(in) :: nx, ny, nz
     real(c_double), intent(in) :: grids(3, nx*ny*nz), values(nx*ny*nz)
     real(c_double), intent(inout) :: voxels(4, nz, ny, nx)
 
     integer:: i, j, k, n
-    !$omp parallel do private(i, j, k, n) collapse(3)
+    !$omp parallel do private(i, j, k, n)
     do i = 1, nx
       do j = 1, ny
         do k = 1, nz
@@ -336,9 +336,9 @@ contains
   end subroutine grids2voxel
 
   subroutine voxel2verts(nx,ny,nz,voxel,isov,verts,count) bind(c,name='voxel2verts_') !将体素数据转为顶点数据
-    integer(c_int), intent(in),value :: nx,ny,nz
+    integer(c_int), intent(in) :: nx,ny,nz
     real(c_double), intent(in) :: voxel(4,nz,ny,nx)
-    real(c_double), intent(in),value :: isov
+    real(c_double), intent(in) :: isov
     real(c_double),intent(inout) :: verts(3,nx*ny*nz*24) !最多这么多顶点
     integer(c_int),intent(inout) :: count !顶点数量
 
@@ -346,19 +346,21 @@ contains
     real(c_double) :: boxVerts(3,24)
     integer:: i,j,k,l,idx
     integer(c_int) :: key
+    write(*,'(3I5,F10.4)')nx,ny,nz,isov
     idx=1
-    count=0
+    ! count=0
     do i=1,nx-1
       do j=1,ny-1
         do k=1,nz-1
           call get_around(voxel,nx,ny,nz,i,j,k,xyzs,vals)
-          if ( minval(vals) < isov .and. maxval(vals) > isov ) then
+          if ( minval(vals) < isov .and. isov < maxval(vals) ) then
             key=1
             do l=1,8
               key=key+merge(1,0,vals(9-l)>isov)*2**(l-1)
             end do
             call get_boxVerts(key,xyzs,vals,isov,boxVerts)
-            verts(:,idx:idx+nums(key)*3)=boxVerts(:,:nums(key)*3)
+            ! write(*,'(A,4I3)')'key=',key,idx,idx+nums(key)*3,count
+            verts(:,idx:idx+nums(key)*3-1)=boxVerts(:,:nums(key)*3)
             idx=idx+nums(key)*3
             count=count+nums(key)*3
           end if
@@ -368,7 +370,7 @@ contains
   end subroutine voxel2verts
 
   subroutine get_around(voxel, nx, ny, nz, i, j, k, xyzs, vals) !获取周围格点坐标和数值
-    integer(c_int), intent(in), value :: nx, ny, nz, i, j, k
+    integer(c_int), intent(in) :: nx, ny, nz, i, j, k
     real(c_double), intent(in) :: voxel(4, nz, ny, nx)
     real(c_double), intent(out) :: xyzs(3, 8)
     real(c_double), intent(out) :: vals(8)
@@ -386,9 +388,9 @@ contains
 
   subroutine get_boxVerts(key, xyzs, vals, isov, boxVerts) !获取顶点坐标和数值
     ! 传入正方体八个顶点的坐标和数值，以及等值面值，返回等值面顶点坐标
-    integer(c_int), intent(in), value :: key
+    integer(c_int), intent(in) :: key
     real(c_double), intent(in) :: xyzs(3, 8), vals(8)
-    real(c_double), intent(in), value :: isov
+    real(c_double), intent(in) :: isov
     real(c_double), intent(out) :: boxVerts(3, 24)
     integer(c_int)::nface ! 面的数量，最多为8个面，24个点
     integer(c_int)::face(3) !面的顶点索引
@@ -419,8 +421,8 @@ contains
   end subroutine get_boxVerts
 
   subroutine vertsMerge(thval, nvert, old_verts, new_verts, faces, vcount, fcount) bind(c, name="vertsMerge_") ! 合并顶点，改变顶点的数量但不改变三角形的数量
-    integer(c_int), intent(in), value :: nvert !顶点的数量, 阈值
-    real(c_double), intent(in), value :: thval !顶点的数量, 阈值
+    integer(c_int), intent(in) :: nvert !顶点的数量, 阈值
+    real(c_double), intent(in) :: thval !顶点的数量, 阈值
     real(c_double), intent(inout) :: old_verts(3, nvert)
     real(c_double), intent(inout) :: new_verts(3, nvert)
     integer(c_int), intent(inout) :: faces(nvert) !原始的面索引就是 1,2,3,4,5...nvert
@@ -463,7 +465,7 @@ contains
   end subroutine vertsMerge
 
   subroutine vertsShift(nvert, verts) bind(c, name="vertsShift_") ! 顶点位移
-    integer(c_int), intent(in), value :: nvert
+    integer(c_int), intent(in) :: nvert
     real(c_double), intent(inout) :: verts(3, nvert)
 
     real(c_double) :: distMat(nvert, nvert) !计算每两个顶点之间的距离
