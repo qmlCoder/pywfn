@@ -32,4 +32,6 @@ print(result) # 打印结果
 ## 功能
 ![](./docs/pywfn_xmind.png)
 
-gfortran -shared -ffree-form -ffree-line-length-none -fopenmp  flib.f90 -o flib.dll
+gfortran -shared -ffree-form -ffree-line-length-none -fopenmp data.f90 march.f90 flib.f90 -o flib.dll
+
+ifx -dll -free -qopenmp data.f90 march.f90 flib.f90 -o flib.dll

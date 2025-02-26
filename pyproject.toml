@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+# [project.dependencies]
+# numpy = "2.2.3"
+
+[project]
+name = "pywfn"
+version = "1.0.0"
+authors = [
+  { name="shixiaofei", email="1103275712@qq.com" },
+]
+description = "A python package for wave function analysis"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Fortran",
+    "Operating System :: OS Independent",
+]
+license = "MIT"
+license-files = ["LICENCE"]
+keywords = ["chemistry", "wave function"]
+
+
+
+[tool.hatch.build]
+include = [
+    "pywfn/*.py",
+    "pywfn/**/*.py",
+    "pywfn/libs/*.so",
+    "pywfn/libs/*.dll"]  # 确保打包编译好的动态库文件
+
+[tool.hatch.build.targets.wheel]
+shared-data = {"pywfn/libs/" = "pywfn/libs/","pywfn/" = "pywfn/"}  # 假设动态库存放在lib目录
+
+[project.urls]
+Homepage = "https://github.com/qmlCoder/pywfn"
+Issues = "https://github.com/qmlCoder/pywfn/issues"

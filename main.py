@@ -6,7 +6,7 @@ config.IF_SHELL=True
 config.IF_DEBUG=(__file__==RF'd:\code\pywfn\main.py') # 只有在开发环境才输出log信息
 # 以程序方式运行时，需要将数据文件拷贝出来，并改变默认的加载位置
 if Path('pywfn').exists():
-    if not Path('data').exists():Path('data').mkdir()
+    # if not Path('data').exists():Path('data').mkdir()
     if not Path('libs').exists():Path('libs').mkdir()
     cwd=Path().cwd()
     for root,dirs,files in os.walk(f'{cwd}/pywfn/data'):

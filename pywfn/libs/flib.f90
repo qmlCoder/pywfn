@@ -10,8 +10,6 @@ contains
   subroutine init() bind(c, name='init_')
     ! integer::deviceNumber
     write (*, *) 'Hello from Fortran'
-    ! call omp_set_num_threads(2)
-    ! call omp_set_max_active_levels(1)
     write(*,*) 'Number of threads', omp_get_max_threads()
     write (*, *) 'Using device', omp_get_device_num()
     write(*,*)'openmp_version',openmp_version
@@ -510,11 +508,11 @@ contains
 
   subroutine nucPotential(ncord, cords, natm, nucs, xyzs, vals) bind(c, name="nucPotential_")!计算原子势
     integer(c_int), intent(in) :: ncord !要计算的点的数量
-    real(c_double), intent(out) ::  cords(3, ncord) !要计算的点的坐标
+    real(c_double), intent(in) ::  cords(3, ncord) !要计算的点的坐标
     integer(c_int), intent(in) :: natm !原子数量
     integer(c_int), intent(in) :: nucs(natm) !原子核电荷
     real(c_double), intent(in) :: xyzs(3, natm) !原子坐标
-    real(c_double), intent(out) :: vals(ncord) !要计算的点的势能值
+    real(c_double), intent(inout) :: vals(ncord) !要计算的点的势能值
     integer::i, j
     real(c_double)::dist !原子与格点之间的距离
     do i = 1, ncord

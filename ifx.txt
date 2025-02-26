@@ -1,0 +1,1223 @@
+Intel(R) Fortran Compiler for applications running on Intel(R) 64, Version 2025.0.4 Build 20241205
+Copyright (C) 1985-2024 Intel Corporation. All rights reserved.
+
+                         Intel(R) Fortran Compiler Help
+                         ==============================
+  Intel(R) Compiler includes compiler options that optimize for instruction
+  sets that are available in both Intel(R) and non-Intel microprocessors, but
+  may perform additional optimizations for Intel microprocessors than for
+  non-Intel microprocessors. In addition, certain compiler options for
+  Intel(R) Compiler are reserved for Intel microprocessors.
+  For a detailed description of these compiler options, including the
+  instructions they implicate, please refer to "Intel(R) Fortran Compiler
+  Classic and Intel(R) Fortran Compiler Developer Guide and Reference >
+  Compiler Reference > Compiler Options."
+   usage: ifx [options] file1 [file2 ...] [/link linker_options]
+      where options represents zero or more compiler options
+      fileN is a Fortran source (.f .for .ftn .f90 .fpp .i .i90),
+      assembly (.asm), object (.obj), static library (.lib), or
+      other linkable file
+      linker_options represents zero or more linker options
+Notes
+-----
+1. Many FL32 options are supported; a warning is printed for unsupported
+   options.
+2. Intel Fortran compiler options may be placed in your ifx.cfg file.
+   Some options listed are only available on a specific system
+   i32 indicates the feature is available on systems based on IA-32
+          architecture
+   i64em indicates the feature is available on systems using Intel(R) 64
+[press RETURN to continue]
+          architecture
+   (*0) indicates non-customer options (stripped from production build)
+                             Compiler Option List
+                             --------------------
+Optimization
+------------
+/O1       optimize for maximum speed, but disable some optimizations which
+          increase code size for a small speed benefit
+/O2       optimize for maximum speed (DEFAULT)
+/O3       optimize for maximum speed and enable more aggressive optimizations
+          that may not improve performance on some programs
+/Ox       enable maximum optimizations (same as /O2)
+/Os       enable speed optimizations, but disable some optimizations which
+          increase code size for small speed benefit (overrides /Ot)
+/Ot       enable speed optimizations (overrides /Os)
+/Od       disable optimizations
+/Oy[-]    enable/disable using EBP as a general purpose register (no frame
+          pointer) (i32 only)
+/Ofast    enable /O3 /Qprec-div- /fp:fast=2 optimizations
+/Oa[-]    assume no aliasing in program
+Code Generation
+---------------
+/Qm64     generate code for Intel(R) 64 architecture
+/Qx<code>
+          generate specialized code to run exclusively on processors
+          indicated by <code> as described below
+[press RETURN to continue]
+            SSE3 May generate Intel(R) SSE3, SSE2, and SSE instructions for
+                    Intel processors. Optimizes for the enhanced Pentium(R) M
+                    processor microarchitecture and Intel NetBurst(R)
+                    microarchitecture.
+            SSSE3 May generate Intel(R) SSSE3, SSE3, SSE2, and SSE
+                    instructions for Intel processors. Optimizes for the
+                    Intel(R) Core(TM) microarchitecture.
+            SSE4.1 May generate Intel(R) SSE4 Vectorizing Compiler and Media
+                    Accelerator instructions for Intel processors. May
+                    generate Intel(R) SSSE3, SSE3, SSE2, and SSE instructions
+                    and it may optimize for Intel(R) 45nm Hi-k next generation
+                    Intel Core(TM) microarchitecture.
+            SSE4.2 May generate Intel(R) SSE4 Efficient Accelerated String
+                    and Text Processing instructions supported by Intel(R)
+                    Core(TM) i7 processors. May generate Intel(R) SSE4
+                    Vectorizing Compiler and Media Accelerator, Intel(R) SSSE3,
+                    SSE3, SSE2, and SSE instructions and it may optimize for
+                    the Intel(R) Core(TM) processor family.
+            AVX May generate Intel(R) Advanced Vector Extensions (Intel(R)
+                    AVX), Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3,
+                    SSE2, and SSE instructions for Intel(R) processors.
+            CORE-AVX2
+                    May generate Intel(R) Advanced Vector Extensions 2
+                    (Intel(R) AVX2), Intel(R) AVX, SSE4.2, SSE4.1, SSSE3, SSE3,
+                    SSE2, and SSE instructions for Intel(R) processors.
+            CORE-AVX-I
+[press RETURN to continue]
+                    May generate Intel(R) Advanced Vector Extensions (Intel(R)
+                    AVX), including instructions in Intel(R) Core 2(TM)
+                    processors in process technology smaller than 32nm,
+                    Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3, SSE2, and SSE
+                    instructions for Intel(R) processors.
+            ATOM_SSE4.2
+                    May generate MOVBE instructions for Intel(R) processors,
+                    depending on the setting of option /Qinstruction.
+                    May also generate Intel(R) SSE4.2, SSE3, SSE2, and SSE
+                    instructions for Intel processors. Optimizes for Intel(R)
+                    Atom(TM) processors that support Intel(R) SSE4.2 and MOVBE
+                    instructions.
+            ATOM_SSSE3
+                    May generate MOVBE instructions for Intel(R) processors,
+                    depending on the setting of option /Qinstruction.
+                    May also generate Intel(R) SSSE3, SSE3, SSE2, and SSE
+                    instructions for Intel processors. Optimizes for the
+                    Intel(R) Atom(TM) processor that support Intel(R) SSE
+                    and MOVBE instructions.
+            CORE-AVX512
+                    May generate Intel(R) Advanced Vector Extensions 512
+                    (Intel(R) AVX-512) Foundation instructions, Intel(R)
+                    AVX-512 Conflict Detection instructions, Intel(R) AVX-512
+                    Doubleword and Quadword instructions, Intel(R) AVX-512
+                    Byte and Word instructions and Intel(R) AVX-512 Vector
+                    Length Extensions for Intel(R) processors, and the
+[press RETURN to continue]
+                    instructions enabled with CORE-AVX2. Optimizes for Intel(R)
+                    processors that support Intel(R) AVX-512 instructions.
+            COMMON-AVX512
+                    May generate Intel(R) Advanced Vector Extensions 512
+                    (Intel(R) AVX-512) Foundation instructions, Intel(R)
+                    AVX-512 Conflict Detection instructions, as well as the
+                    instructions enabled with CORE-AVX2. Optimizes for Intel(R)
+                    processors that support Intel(R) AVX-512 instructions.
+            BROADWELL
+            CANNONLAKE
+            HASWELL
+            ICELAKE-CLIENT (or ICELAKE)
+            ICELAKE-SERVER
+            IVYBRIDGE
+            SANDYBRIDGE
+            SILVERMONT
+            GOLDMONT
+            GOLDMONT-PLUS
+            TREMONT
+            SKYLAKE
+            SKYLAKE-AVX512
+            CASCADELAKE
+            KABYLAKE
+            COFFEELAKE
+            AMBERLAKE
+            WHISKEYLAKE
+[press RETURN to continue]
+            TIGERLAKE
+            SAPPHIRERAPIDS
+                    May generate instructions for processors that support the
+                    specified Intel(R) microarchitecture code name. Optimizes
+                    for Intel(R) processors that support the specified Intel(R)
+                    microarchitecture code name.
+                    Keyword SILVERMONT is only available on Windows*
+                    and Linux* systems.
+/QxHost   generate instructions for the highest instruction set and processor
+          available on the compilation host machine
+/Qax<code1>[,<code2>,...]
+          generate multiple, processor-specific, auto-dispatched code paths
+          for Intel(R) processors, specified by <codes>, if there is a
+          performance benefit.
+          <codes> includes one or more of the following:
+            SSE3 May generate Intel(R) SSE3, SSE2, and SSE instructions for
+                    Intel processors.
+            SSSE3 May generate Intel(R) SSSE3, SSE3, SSE2, and SSE
+                    instructions for Intel processors.
+            SSE4.1 May generate Intel(R) SSE4.1, SSSE3, SSE3, SSE2, and SSE
+                    instructions for Intel processors.
+            SSE4.2 May generate Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3, SSE2,
+                    and SSE instructions for Intel processors.
+            AVX May generate Intel(R) Advanced Vector Extensions
+                   (Intel(R) AVX), Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3,
+                    SSE2, and SSE instructions for Intel(R) processors.
+[press RETURN to continue]
+            CORE-AVX-I
+                    May generate Intel(R) Advanced Vector Extensions
+                    (Intel(R) AVX), including instructions in
+                    Intel(R) Core 2(TM) processors in process technology
+                    smaller than 32nm, Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3,
+                    SSE2, and SSE instructions for Intel(R) processors.
+            CORE-AVX2
+                    May generate Intel(R) Advanced Vector Extensions 2
+                    (Intel(R) AVX2), Intel(R) AVX, SSE4.2, SSE4.1, SSSE3, SSE3,
+                    SSE2, and SSE instructions for Intel(R) processors.
+            CORE-AVX512
+                    May generate Intel(R) Advanced Vector Extensions 512
+                    (Intel(R) AVX-512) Foundation instructions, Intel(R)
+                    AVX-512 Conflict Detection instructions, Intel(R) AVX-512
+                    Doubleword and Quadword instructions, Intel(R) AVX-512
+                    Byte and Word instructions and Intel(R) AVX-512 Vector
+                    Length Extensions for Intel(R) processors, and the
+                    instructions enabled with CORE-AVX2.
+            COMMON-AVX512
+                    May generate Intel(R) Advanced Vector Extensions 512
+                    (Intel(R) AVX-512) Foundation instructions,
+                    Intel(R) AVX-512 Conflict Detection Instructions (CDI),
+                    as well as the instructions enabled with CORE-AVX2.
+            ALDERLAKE
+            AMBERLAKE
+            BROADWELL
+[press RETURN to continue]
+            CANNONLAKE
+            CASCADELAKE
+            COFFEELAKE
+            COOPERLAKE
+            GOLDMONT
+            GOLDMONT-PLUS
+            HASWELL
+            ICELAKE-CLIENT (or ICELAKE)
+            ICELAKE-SERVER
+            IVYBRIDGE
+            KABYLAKE
+            ROCKETLAKE
+            SANDYBRIDGE
+            SAPPHIRERAPIDS
+            SILVERMONT
+            SKYLAKE
+            SKYLAKE-AVX512
+            TIGERLAKE
+            TREMONT
+            WHISKEYLAKE
+                    May generate instructions for processors that support the
+                    specified Intel(R) microarchitecture code name. Optimizes
+                    for Intel(R) processors that support the specified Intel(R)
+                    microarchitecture code name.
+/Qauto-arch:<code1>[,<code2>,...]
+          generate multiple, processor-specific, auto-dispatched code paths
+[press RETURN to continue]
+          for X86 architecture processors, specified by <codes>, if there is a
+          performance benefit. The accepted arguments are the same as those of
+          option '/Qax'
+/arch:<code>
+          generate specialized code to optimize for processors indicated by
+          <code> as described below
+            BROADWELL
+            CANNONLAKE
+            HASWELL
+            ICELAKE-CLIENT (or ICELAKE)
+            ICELAKE-SERVER
+            IVYBRIDGE
+            SANDYBRIDGE
+            SILVERMONT
+            GOLDMONT
+            GOLDMONT-PLUS
+            TREMONT
+            SKYLAKE-AVX512
+            SKYLAKE
+            CASCADELAKE
+            KABYLAKE
+            COFFEELAKE
+            AMBERLAKE
+            WHISKEYLAKE
+            TIGERLAKE
+            SAPPHIRERAPIDS
+[press RETURN to continue]
+                       May generate instructions for processors that support
+                       the specified Intel(R) microarchitecture code name
+            CORE-AVX2 May generate Intel(R) Advanced Vector Extensions 2
+                       (Intel(R) AVX2), Intel(R) AVX, SSE4.2, SSE4.1, SSE3,
+                       SSE2, SSE, and SSSE3 instructions
+            CORE-AVX-I May generate Float-16 conversion instructions and the
+                       RDRND instruction, Intel(R) Advanced Vector Extensions
+                       (Intel(R) AVX), Intel(R) SSE4.2, SSE4.1, SSE3, SSE2,
+                       SSE, and SSSE3 instructions
+            AVX May generate Intel(R) AVX, SSE4.2, SSE4.1, SSSE3, SSE3,
+                       SSE2 and SSE instructions
+            SSE4.2 May generate Intel(R) SSE4.2, SSE4.1, SSSE3, SSE3, SSE2
+                       and SSE instructions
+            SSE4.1 May generate Intel(R) SSE4.1, SSSE3, SSE3, SSE2 and SSE
+                       instructions
+            SSSE3 May generate Intel(R) SSSE3, SSE3, SSE2 and SSE
+                       instructions
+            SSE3 May generate Intel(R) SSE3, SSE2 and SSE instructions
+/tune:<cpu>
+          optimize for a specific <cpu>
+            generic - Optimizes code for the compiler's default behavior
+            broadwell
+            haswell
+            ivybridge
+            knl
+            knm
+[press RETURN to continue]
+            sandybridge
+            silvermont
+            cannonlake
+            icelake
+            skylake-avx512
+            skylake - Optimizes code for processors that support the
+                         specified Intel(R) microarchitecture code name.
+                         knl and silvermont are only available on Windows* and
+                         Linux* systems
+            core-avx2 - Optimizes code for processors that support Intel(R)
+                         Advanced Vector Extensions 2 (Intel(R) AVX2), Intel(R)
+                         AVX, SSE4.2 SSE4.1, SSE3, SSE2, SSE, and SSSE3
+                         instructions
+            core-avx-i - Optimizes code for processors that support Float-16
+                         conversion instructions and the RDRND instruction,
+                         Intel(R) Advanced Vector Extensions (Intel(R) AVX),
+                         Intel(R) SSE4.2, SSE4.1, SSE3, SSE2, SSE, and SSSE3
+                         instructions
+            corei7-avx - Optimizes code for processors that support Intel(R)
+                         Advanced Vector Extensions (Intel(R) AVX), Intel(R)
+                         SSE4.2, SSE4.1, SSE3, SSE2, SSE, and SSSE3
+                         instructions
+            corei7 - Optimizes code for processors that support Intel(R)
+                         SSE4 Efficient Accelerated String and Text Processing
+                         instructions. May also generate code for Intel(R) SSE4
+                         Vectorizing Compiler and Media Accelerator, Intel(R)
+[press RETURN to continue]
+                         SSE3, SSE2, SSE, and SSSE3 instructions
+            atom - Optimizes code for processors that support MOVBE
+                         instructions, depending on the setting of option
+                         -minstruction (Linux and macOS*) or /Qinstruction
+                         (Windows). May also generate code for SSSE3
+                         instructions and Intel(R) SSE3, SSE2, and SSE
+                         instructions
+            core2 - Optimizes for the Intel(R) Core(TM) 2 processor
+                         family, including support for MMX(TM), Intel(R) SSE,
+                         SSE2, SSE3, and SSSE3 instruction sets.
+            pentium-mmx - Optimizes for Intel(R) Pentium(R) with MMX technology
+            pentiumpro - Optimizes for Intel(R) Pentium(R) Pro, Intel Pentium
+                         II, and Intel Pentium III processors
+            pentium4m - Optimizes for Intel(R) Pentium(R) 4 processors with
+                         MMX technology
+            pentium-m
+            pentium4
+            pentium3
+            pentium - Optimizes code for Intel(R) Pentium(R) processors.
+                         Value pentium3 is only available on Linux systems
+/Qm[no-]apx-features:<arg>[,<arg2>,...]
+         Enable/disable feature of APX, args can be: egpr, push2pop2, ppx,
+         ndd, ccmp, nf, cf.
+/Qexceptions[-]
+          enable/disable(DEFAULT) exception handling, primarily
+          for mixed-language programming with C/C++
+[press RETURN to continue]
+/guard:cf
+          enable control flow protection mechanism
+/Qmspeculative-load-hardening
+          protects against information leaks by tracking the speculation state
+          and masks values when branch prediction selects the incorrect path
+/Qcf-protection[:<arg>]
+          Enables Control-flow Enforcement Technology (CET) protection, which
+          defends your program from certain attacks that exploit
+          vulnerabilities.
+            shadow_stack - Enables shadow stack protection
+            branch_tracking - Enables endbranch (EB) generation
+            full - Enables both shadow stack protection and
+                              endbranch (EB) generation (same as no <arg>)
+            none - Disables Control-flow Enforcement Technology
+                              protection
+/Qgather-
+          Disable generation of gather instructions in auto-vectorization.
+/Qscatter-
+          Disable generation of scatter instructions in auto-vectorization.
+Interprocedural Optimization (IPO)
+----------------------------------
+/Qipo[n]  enable multi-file IP optimization between files
+Advanced Optimizations
+----------------------
+/Qunroll[n]
+          set maximum number of times to unroll loops. Omit n to use default
+[press RETURN to continue]
+          heuristics. Use n=0 to disable the loop unroller
+/Qpad[-]  enable/disable(DEFAULT) changing variable and array memory layout
+/Qsafe-cray-ptr
+          Cray pointers do not alias with other variables
+/Qansi-alias[-]
+          enable(DEFAULT)/disable use of ANSI aliasing rules optimizations;
+          user asserts that the program adheres to these rules
+/reentrancy:<keyword>
+          specify whether the threaded, reentrant run-time support should be
+          used
+          Keywords: none (same as /noreentrancy), threaded(DEFAULT), async
+/noreentrancy
+          do not use threaded, reentrant run-time support
+/heap-arrays[:n]
+          temporary arrays of minimum size n (in kilobytes) are allocated in
+          heap memory rather than on the stack. If n is not specified,
+          all temporary arrays are allocated in heap memory.
+/heap-arrays-
+          temporary arrays are allocated on the stack (DEFAULT)
+/Qvec[-]  enables(DEFAULT)/disables vectorization
+/Qvec-threshold[n]
+          sets a threshold for the vectorization of loops based on the
+          probability of profitable execution of the vectorized loop in
+          parallel
+/Qvecabi:<arg>
+          select vector function ABI
+[press RETURN to continue]
+            legacy - use the legacy vector function ABI
+            compat - use the compatibility vector function ABI (DEFAULT)
+            cmdtarget - generate an extended set of vector functions
+/Qvec-with-mask[-]
+          Enable vectorization for short trip-count loops with masking
+/Qvec-peel-loops[-]
+          Enable peel loop vectorization
+/Qvec-remainder-loops[-]
+          Enable remainder loop vectorization
+/Qopt-jump-tables[-]
+          control the generation of jump tables
+/Qopt-streaming-stores:<arg>
+          specifies whether streaming stores are generated
+            always - enables generation of streaming stores under the
+                     assumption that the application is memory bound. Also,
+                     the user is responsible for inserting the right memory
+                     fences for synchronization
+            auto - compiler decides when streaming stores are used (DEFAULT)
+            never - disables generation of streaming stores
+/Qmkl[:<arg>]
+          link to the Intel(R) Math Kernel Library (Intel(R) MKL) and bring
+          in the associated headers
+            parallel - link using the threaded Intel(R) MKL libraries. This
+                         is the default when /Qmkl is specified
+            sequential - link using the non-threaded Intel(R) MKL libraries
+            cluster - link using the Intel(R) MKL Cluster libraries plus
+[press RETURN to continue]
+                         the sequential Intel(R) MKL libraries
+/Qmkl-ilp64[:<arg>]
+          link to the Intel(R) Math Kernel ILP64 variant Libraries
+          (Intel(R) MKL) and bring in the associated headers
+            parallel - link using the threaded Intel(R) MKL libraries. This
+                         is the default when /Qmkl-ilp64 is specified
+            sequential - link using the non-threaded Intel(R) MKL libraries
+            cluster - link using the Intel(R) MKL Cluster libraries plus
+                         the sequential Intel(R) MKL libraries
+/Qmkl-sycl-impl:<arg>[,<arg>,...]
+          Limit linking of SYCL-specific implementations of the Intel(R) Math
+          Kernel Library to specified in argument. Valid arguments:
+            blas, lapack, dft, sparse, rng, stats, vm
+/Qcoarray[:<keyword>]
+          enable/disable(DEFAULT) coarray syntax for data parallel
+          programming, and set the relationship between the coarray
+          images.
+          keywords: shared - default if keyword is omitted
+                    single - overrides any other keyword
+                    distributed
+/Qcoarray-num-images:n
+          set default number of coarray images
+/Qopt-mem-layout-trans[:<level>]
+          controls the level of memory layout transformations performed by the
+          compiler
+           0 - disable memory layout transformations (same as
+[press RETURN to continue]
+               /Qopt-mem-layout-trans-)
+           1 - enable basic memory layout transformations
+           2 - enable more memory layout transformations (DEFAULT when the
+               option is specified)
+           3 - enable aggressive memory layout transformations
+/Qopt-prefetch[:n]
+          enable levels of prefetch insertion, where 0 disables.
+          n may be 0 through 5 inclusive. Default is 2.
+/Qopt-prefetch-distance:n1
+          specify the prefetch distance to be used for compiler generated
+          prefetches inside loops. n1 indicates distance from memory to L2
+          cache.
+/Qopt-prefetch-loads-only
+          Only insert prefetches based on the loads inside the loop. Stores
+          are ignored.
+/Qopt-dynamic-align
+          enable dynamic data alignment optimizations. Specify
+          /Qopt-dynamic-align- to disable(DEFAULT)
+/Qopt-zmm-usage:<keyword>
+          Specifies the level of zmm registers usage. You can specify one of
+          the following:
+            low - Tells the compiler that the compiled program is unlikely to
+                   benefit from zmm registers usage. It specifies that the
+                   compiler should avoid using zmm registers unless it can
+                   prove the gain from their usage.
+            high - Tells the compiler to generate zmm code without restrictions
+[press RETURN to continue]
+/Qoverride-limits
+          provides a way to override certain internal compiler limits that are
+          intended to prevent excessive memory usage or compile times for very
+          large, complex compilation units.
+/Qopt-multiple-gather-scatter-by-shuffles[-]
+          Enables or disables the optimization for multiple adjacent
+          gather/scatter type vector memory references.
+/Qbranches-within-32B-boundaries[-]
+          align branches and fused branches on 32 byte boundaries
+/Qopt-for-throughput:<arg>
+          Using 'multi-job', which is the default, the compiler will optimize
+          for throughput performance, assuming multiple jobs are running.
+          The memory optimizations for single job versus multiple jobs can be
+          tuned in different ways by the compiler.
+/Qopt-dword-index-for-array-of-structs[:<val>]
+          When specified allows the compiler to use dword indexes to access
+          elements of arrays of structs which in size do not exceed val bytes.
+          The arrays in question should contain no more than
+          INT_MAX / sizeof(element) elements.
+          Allowed values for val are: 16, 32, default is 16.
+/Qvec-allow-scalar-stores[-]
+          When this option is set, an explicit simd loop (for example, one
+          set with #pragma omp simd) will be vectorized even if it contains a
+          store to a scalar variable that is not marked as private,
+          lastprivate, or reduction.
+Profile Guided Optimization (PGO)
+[press RETURN to continue]
+---------------------------------
+/fprofile-ml-use
+          Use pre-trained machine learning model for profile guided
+          optimizations. (deprecated)
+/Qinstrument-functions[-]
+          determine whether function entry and exit points are instrumented
+/Qinstrument-functions-after-inlining[-]
+          Like /Qinstrument-functions, but insert the calls after inlining
+Optimization Reports
+--------------------
+/Qopt-report[:n]
+          generate an optimization report. Default destination is
+          <target>.optrpt. Levels of 0 - 5 are valid.
+          Please see documentation for additional details of
+          information provided by phase per level.
+            0 disable optimization report output
+            2 DEFAULT when enabled
+/Qopt-report-file:[stdout | stderr | <file>]
+          specify the filename or output stream for the generated report
+/Qopt-report-stdout
+          specify the generated report should be directed to stdout
+/Qopt-report-phase:<phase>[,<phase>,...]
+          Specify one or more phases for which optimization reports
+          are generated
+              cg - The phase for code generation
+              ipo - The phase for Interprocedural optimization
+[press RETURN to continue]
+              loop - The Phase for loop nest optimization
+              openmp - The phase for openmp
+              pgo - The phase for profile guided optimization
+              vec - The phase for vectorization
+              all - All optimizer phases. (this is default if
+                                           nothing is passed)
+/Qopt-report-names:<keyword>
+          Specifies whether mangled or unmangled names should appear in the
+          optimization report.
+            mangled - use mangled names
+            unmangled - use unmangled names (DEFAULT)
+OpenMP* and Parallel Processing
+------------------------------
+/Qopenmp  enable the compiler to generate multi-threaded code based on the
+          OpenMP* directives (same as /openmp)
+          Use /Qopenmp- to disable
+/Qopenmp-stubs
+          enables the user to compile OpenMP programs in sequential mode. The
+          OpenMP directives are ignored and a stub OpenMP library is linked
+          (sequential)
+/Qopenmp-threadprivate:<ver>
+          choose which threadprivate implementation to use
+            compat - use the Microsoft compatible thread local storage
+            legacy - use the Intel compatible implementation
+                     (DEFAULT)
+/Qparallel
+          enable the auto-parallelizer to generate multi-threaded code for
+          loops that can be safely executed in parallel
+/Qparallel-source-info[:n]
+          enable(DEFAULT)/disable the emission of source location information
+          for parallel code generation with OpenMP and auto-parallelization
+            0 - disable (same as /Qparallel-source-info-)
+            1 - emit routine name and line information (DEFAULT)
+            2 - emit path, file, routine name and line information
+/Qopenmp-simd
+          Enables OpenMP* SIMD compilation. Enabled by default with
+          /Qopenmp. Use /Qopenmp-simd- to disable.
+/Qopenmp-offload-mandatory
+          Do not create a host fallback if offloading to the device fails
+/[no-]device-math-lib:<arg>
+          Control the addition of device math libraries when compiling for
+          OpenMP* offloading.
+            fp64 - FP64 based libraries
+            fp32 - FP32 based libraries
+/Qopenmp-concurrent-host-device-compile
+          Enable parallel compilation of host and device compilation steps
+          when performing OpenMP offload compiles using /Qopenmp-targets. (experimental)
+Floating Point
+--------------
+/fp:<name>
+          enable <name> floating point model variation
+            fast - enables more aggressive floating point optimizations
+[press RETURN to continue]
+            precise - allows value-safe optimizations
+                          also enables /Qprec-div
+            strict - enables /fp:precise, disables
+                          contractions and enables pragma stdc fenv_access
+/Qfp-speculation:<mode>
+          enable floating point speculations with the following <mode>
+          conditions:
+            fast - speculate floating point operations (DEFAULT)
+            safe - speculate only when safe
+            strict - same as off
+            off - disables speculation of floating-point operations
+/Qpc32    set internal FPU precision to 24 bit significand
+/Qprec-div[-]
+          improve precision of FP divides (some speed impact)
+          also enabled by /fp:precise
+/rounding-mode:chopped
+          set internal FPU rounding control to truncate
+/Qftz[-]  enable/disable flush denormal results to zero
+/fpe:{0|1|3}
+          specifies program-wide behavior on floating point exceptions
+/fpe-all:{0|1|3}
+          specifies floating point exception behavior on all functions
+          and subroutines. Also sets /assume:ieee_fpe_flags
+/[no]fltconsistency
+          specify that improved floating-point consistency should be used
+/Qfma[-]  enable/disable the combining of floating point multiplies and
+[press RETURN to continue]
+          add/subtract operations
+/[no]recursive
+          compile all procedures for possible recursive execution
+/Qimf-absolute-error:value
+          define the maximum allowable absolute error for math library
+          function results
+            value - a positive, floating-point number conforming to the
+                       format [digits][.digits][{e|E}[sign]digits]
+/Qimf-accuracy-bits:bits
+          define the relative error, measured by the number of correct bits,
+          for math library function results
+            bits - a positive, floating-point number
+/Qimf-arch-consistency:value
+          ensures that the math library functions produce consistent results
+          across different implementations of the same architecture
+            value - true or false
+/Qimf-max-error:ulps
+          defines the maximum allowable relative error, measured in ulps, for
+          math library function results
+            ulps - a positive, floating-point number conforming to the
+                       format [digits][.digits][{e|E}[sign]digits]
+/Qimf-precision:value
+          defines the accuracy (precision) for math library functions
+            value - defined as one of the following values
+                       high - equivalent to max-error = 1.0
+                       medium - equivalent to max-error = 4 (DEFAULT)
+[press RETURN to continue]
+                       low - equivalent to accuracy-bits = 11 (single
+                                precision); accuracy-bits = 26 (double
+                                precision)
+                       reference - equivalent to 'high' accuracy with correct
+                                signaling of exceptional conditions through
+                                the errno and status flags settings. This
+                                setting is initially available only on Linux*
+                                systems
+/Qimf-domain-exclusion:classlist
+          indicates the input arguments domain on which math functions
+          must provide correct results.
+            classlist - defined as one of the following values:
+                          nans, infinities, denormals, zeros
+                          all, none, common
+/Qfinite-math-only
+          Allow optimizations for floating point arithmetic that assume
+          arguments and results are not NaNs or Infinities
+Inlining
+--------
+/Ob<n>    control inline expansion:
+            n=0 disable inlining (same as /inline:none)
+            n=1 inline functions declared with ATTRIBUTES INLINE or
+                   FORCEINLINE
+            n=2 inline any function, at the compiler's discretion
+/Qinline-forceinline
+          treat inline routines as forceinline
+[press RETURN to continue]
+/inline[:keyword]
+          Specifies the level of inline function expansion
+            keywords: all (same as /Ob2 /Ot), size (same as /Ob2 /Os)
+                      speed (same as /Ob2 /Ot), none or manual (same as /Ob0)
+Output, Debug, PCH
+------------------
+/c        compile to object (.obj) only, do not link
+/nolink, /compile-only
+          same as /c
+/S        compile to assembly (.asm) only, do not link
+/FA       produce assembly file
+/Fa[file]
+          name assembly file (or directory for multiple files; i.e. /FaMYDIR\)
+/Fo[file]
+          name object file (or directory for multiple files; i.e. /FoMYDIR\)
+/Fe[file]
+          name executable file or directory
+/Fi[file]
+          name preprocessed file (or directory for multiple files; i.e.
+          /FiMYDIR\)
+/object:<filename>
+          specify the name of the object file, or the directory to which object
+          file(s) should be written. (e.g. /object:MYOBJ or /object:MYDIR\)
+/exe:<filename>
+          specifies the name to be used for the built program (.exe) or
+          dynamic-link (.dll) library
+[press RETURN to continue]
+/map:<filename>
+          specify that a link map file should be generated
+/list[:<filename>]
+          specify that a listing file should be generated
+/list-line-len:#
+          overrides the default line length (80) in a listing file
+/list-page-len:#
+          overrides the default page length (66) in a listing file
+/show:<keyword>
+          controls the contents of the listing file
+          keywords: all, none, [no]include, [no]map, [no]options
+/Zi, /ZI, /Z7
+          Produce symbolic debug information. The /Zi and /ZI flags emit the
+          debug information for types into a separate PDB file.
+/debug:offload
+          Generate debug information for offload target
+/nodebug  Disable emission of debug information.
+/debug-parameters[:keyword]
+          Control output of debug information for PARAMETERS.
+          Valid [keyword] values:
+             none - Disables generation of debug information for PARAMETERs.
+             used - Generates debug information for referenced PARAMETERs only.
+             all - Generates debug information for all PARAMETERs.
+/nodebug-parameters
+          Same as "/debug-parameters:none".
+/Qd-lines, /[no]d-lines
+[press RETURN to continue]
+          compile debug statements (indicated by D in column 1)
+/pdbfile[:filename]
+          Specify that debug related type information should be generated to a
+          program database file at link time.
+/nopdbfile
+          Do not generate debug related information to a program database file.
+/Qtrapuv  trap uninitialized variables
+/RTCu     report use of variable that was not initialized
+/Qmap-opts
+          enable option mapping tool
+/Qeliminate-unused-debug-types[-]
+          When disabled, debug information for all types present in the
+          sources will be emitted. Using this option may cause a large
+          increase in the size of the debug information.
+Preprocessor
+------------
+/D<name>[{=|#}<text>]
+          define macro
+/define:symbol[=<value>]
+          same as /D
+/nodefines
+          specifies that any /D macros go to the preprocessor only, and not to
+          the compiler
+/U<name>  remove predefined macro
+/undefine:<name>
+          remove predefined macro (same as /U)
+[press RETURN to continue]
+/allow:nofpp-comments
+          If a Fortran end-of-line comment is seen within a #define, treat it
+          as part of the definition. Default is allow:fpp-comments
+/E        preprocess to stdout
+/EP       preprocess to stdout, omitting #line directives
+/EP /P    preprocess to file, omitting #line directives
+/P        preprocess to file
+/preprocess-only
+          same as /P
+/[no]keep  keep/remove preprocessed file generated by preprocessor as input to
+           compiler stage. Not affected by /Qsave-temps. Default is /nokeep
+/[no]fpp   run Fortran preprocessor on source files prior to compilation
+/fpp-name:name
+           Name an alternate preprocessor executable. The name can
+           include the full path.
+/module:path
+           specify path where mod files should be placed and first location to
+           look for mod files
+/u        remove all predefined macros
+/I<dir>   add directory to include file search path
+/[no]include:<dir>
+          same as /I
+/X        remove standard directories from include file search path
+/gen-dep[:filename]
+          generate dependency information.
+          If no filename is specified, output is to stdout.
+[press RETURN to continue]
+           Similar to /QMD or /QMMD
+          If a filename is specified, output is to filename.
+           Similar to /QMF filename
+/gen-dep-
+          do not generate dependency information (default)
+/gen-depshow:keyword
+          control what dependency information is output.
+          [no]intr_mod Intrinsic modules. Default is nointr_mod.
+/gen-depformat:keyword
+          generate dependency information in the specified format.
+          One of: make, nmake
+Component Control
+-----------------
+/Qoption,<tool>,<opts>
+          pass options <opts> to tool specified by <tool>
+/Qlocation,<tool>,<dir>
+          set <dir> as the location of tool specified by <tool>
+-mllvm <arg>
+          pass '-mllvm <arg>' directly to the compiler invocation (*0)
+-mllvm-lto <arg>
+          pass '-mllvm <arg>' directly to the compiler invocation. This is
+          similar to using -mllvm <arg> except using -mllvm-lto will also push
+          the <arg> to the LTO step of the compilation. (*0)
+Language
+--------
+/[no]altparam
+[press RETURN to continue]
+          specify if alternate form of parameter constant declarations
+          (without parenthesis) is recognized. Default is to recognize
+/assume:<keyword>
+          specify assumptions made by the optimizer and code generator
+          keywords: none, [no]aligned_dummy_args,
+                    [no]byterecl, [no]buffered_io,
+                    [no]buffered_stdout,
+                    [no]bscc (nobscc same as /nbs),
+                    [no]contiguous_assumed_shape, [no]contiguous_pointer,
+                    [no]cc_omp, [no]failed_images, [no]minus0,
+                    [no]dummy_aliases (same as /Qcommon-args),
+                    [no]ieee_fpe_flags, [no]ieee_compares,
+                    [no]ieee_mode_restore, [no]fpe_summary, [no]nan_compares,
+                    [no]old_boz, [no]old_complex_align,
+                    [no]old_e0g0_format, [no]old_inquire_recl,
+                    [no]old_logical_ldio, [no]old_logical_assign,
+                    [no]old_ldout_format, [no]old_ldout_zero,
+                    [no]old_maxminloc, [no]old_unit_star, [no]old_xor,
+                    [no]protect_allocates,
+                    [no]protect_constants, [no]protect_parens,
+                    [no]recursion, [no]realloc_lhs, [no]2underscore,
+                    [no]underscore (same as /us),
+                    [no]std_intent_in, [no]std_minus0_rounding,
+                    [no]std_mod_proc_name, [no]std_value, [no]std_expon_output,
+                    [no]source_include,
+                    [no]split_common, [no]writeable_strings
+[press RETURN to continue]
+/ccdefault:<keyword>
+          specify default carriage control for units 6 and *
+          keywords: default, fortran, list or none
+/[no]check:<keyword>
+          check run-time conditions. Default is /nocheck
+          keywords: all,
+                    none (same as /nocheck),
+                    [no]arg_temp_created, [no]bounds (same as /CB),
+                    [no]assume, [no]contiguous,
+                    [no]format, [no]output_conversion,
+                    [no]pointers (same as /CA),
+                    [no]shape, [no]stack, [no]teams,
+                    [no]udio_iostat, [no]uninit (same as /CU) (Linux only)
+/Qcommon-args
+          assume "by reference" subprogram arguments may alias one
+          another. Same as /assume:dummy_aliases
+/[no]extend-source[:<keyword>]
+          specify rightmost column for fixed form sources
+          keywords: 72 (same as /noextend-source and /4L72),
+                    80 (same as /4L80),
+                   132 (same as /4L132. Default if you specify
+                        /extend-source without a keyword.)
+/fixed    specify source files are in fixed format. Same as /FI and /4Nf
+          /nofixed indicates free format
+/free     specify source files are in free format. Same as /FR and /4Yf
+          /nofree indicates fixed format
+[press RETURN to continue]
+/fsanitize=address
+          instrument the program with the address sanitizer to
+          detect buffer overflows/underflows at runtime.
+/names:<keyword>
+          specify how source code identifiers and external names are
+          interpreted.
+          keywords: as_is, lowercase, uppercase
+/[no]pad-source, /Qpad-source[-]
+          make compiler acknowledge blanks at the end of a line
+/stand[:<keyword>]
+          specifies level of conformance with ANSI standard to check
+          for. If keyword is not specified, level of conformance is f18
+          keywords: f90 (same as /4Ys), f95,
+                    f03, f08, f18, f23
+                    none (same as /nostand)
+                    Also accepted are: f2003, f2008, f2018, f2023
+/standard-semantics
+          explicitly sets /assume keywords to conform to the semantics
+          of the Fortran standard. The specific keywords will vary depending
+          on the standard level requested by the user.
+          /assume keywords always set by /standard-semantics:
+             byterecl, fpe_summary, noold_ldout_format, noold_unit_star,
+             noold_xor, protect_parens, and std_mod_proc_name
+          - Fortran 2003 or greater adds /assume keywords:
+             minus0, noold_ldout_zero, noold_maxminloc, std_minus0_rounding,
+             realloc_lhs, and ieee_restore_modes
+[press RETURN to continue]
+          - Fortran 2008 or greater adds /assume keyword:
+             std_value
+          - Fortran 2018 or greater adds /assume keywords:
+             failed_images, ieee_compares, noold-e0g0-format, noold_inquire_recl,
+             and recursion
+          - Fortran 2023 or greater adds /assume keyword:
+             std_expon_output
+         Note: /standard-semantics also always sets /fpscomp:logicals
+         Note: If /fp:strict or /fp:except is set
+            then this also sets /assume keyword ieee_fpe_flags
+         Note: Using /standard-semantics may result in performance loss.
+/[no]standard-realloc-lhs
+          explicitly sets assume keyword realloc_lhs to conform to the
+          standard, or to override the default. Sets /assume:[no]realloc_lhs
+/syntax-only, /Zs
+          perform syntax and semantic checking only (no object file produced)
+/wrap-margin[-]
+          controls right margin wrapping in list-directed output. By default,
+          list-directed output is wrapped at 80 characters.
+Compiler Diagnostics
+--------------------
+/w        disable all warnings
+/W<n>     disable warnings (n = 0) or show warnings (n = 1 DEFAULT, same as
+          /warn:general)
+/warn:<keyword>
+          specifies the level of warning messages issued
+[press RETURN to continue]
+            keywords: all, none (same as /nowarn)
+                      [no]alignments, [no]declarations,
+                      [no]errors, [no]externals,
+                      [no]general, [no]ignore_loc, [no]interfaces,
+                      [no]shape, [no]stderrors, [no]truncated_source,
+                      [no]uncalled, [no]unused, [no]usage
+/nowarn   suppress all warning messages
+/WB       turn a compile-time bounds check into a warning
+/[no]traceback
+          specify whether the compiler generates PC correlation data used to
+          display a symbolic traceback rather than a hexadecimal traceback at
+          runtime failure
+/[no]gen-interfaces [[no]source]
+          generate interface blocks for all routines in the file. Can be
+          checked using -warn interfaces
+          nosource indicates temporary source files should not be saved
+/error-limit:<size>
+          specify the maximum number of error-level or fatal-level compiler
+          errors allowed
+/noerror-limit
+          set no maximum number on error-level or fatal-level error messages
+          All diagnostic options (/Qdiag*) are only valid for driver specific
+          diagnostics.
+/Qdiag-enable:<v1>[,<v2>,...]
+          enable the specified diagnostics or diagnostic groups
+/Qdiag-disable:<v1>[,<v2>,...]
+[press RETURN to continue]
+          disable the specified diagnostics or diagnostic groups
+/Qdiag-error:<v1>[,<v2>,...]
+          output the specified diagnostics or diagnostic groups as errors
+/Qdiag-warning:<v1>[,<v2>,...]
+          output the specified diagnostics or diagnostic groups as warnings
+/Qdiag-remark:<v1>[,<v2>,...]
+          output the the specified diagnostics or diagnostic groups as remarks
+/Qdiag-dump
+          display the currently enabled diagnostic messages to stdout
+/Qdiag-file[:<file>]
+          <file> where diagnostics are emitted to. Not specifying this causes
+          messages to be output to stderr
+/Qdiag-file-append[:<file>]
+          <file> where diagnostics are emitted to. When <file> already exists,
+          output is appended to the file
+/Qdiag-id-numbers[-]
+          enable(DEFAULT)/disable the diagnostic specifiers to be output in
+          numeric form
+/Qdiag-error-limit:<num>
+          specify the maximum number of errors emitted
+Miscellaneous
+-------------
+/[no]logo
+          display compiler version information. /nologo disables the output
+/QV       display compiler version information
+/Qsave-temps
+[press RETURN to continue]
+          store the intermediate files in current directory and name them
+          based on the source file. Only saves files that are generated by
+          default
+/what     display detailed compiler version information
+/watch:<keyword>
+          tells the driver to output processing information
+            keywords: all, none (same as /nowatch), [no]source,
+                      [no]cmd
+                      [no]offload-cmd
+/nowatch  suppress processing information output (DEFAULT)
+/Tf<file>
+          compile file as Fortran source
+/extfor:<ext>
+           specify extension of file to be recognized as a Fortran file
+/extfpp:<ext>
+           specify extension of file to be recognized as a preprocessor file
+/libdir[:keyword]
+          control the library names that should be emitted into the object file
+            keywords: all, none (same as /nolibdir), [no]automatic, [no]user
+/nolibdir
+          no library names should be emitted into the object file
+/Qrm-objs
+          remove compiler-generated objects if linking and no /Fo (*0)
+/Qgsym    instruct linker to preserve global symbols in executable (*0)
+/MP[<n>]  create multiple processes that can be used to compile large numbers
+          of source files at the same time
+[press RETURN to continue]
+-f[no-]openmp-device-lib=<arg>
+          Control inclusion of device libraries into device binary linkage.
+          Valid arguments are: libc, libm-fp32, libm-fp64, all
+-fsycl    Enable SYCL kernel compilation for device. This is for link-time
+          only, consuming Fortran and DPC++ objects.
+-fsycl-device-code-split=<arg>
+          Perform SYCL device code split.
+            per_kernel - device code module is created for each SYCL kernel
+            per_source - device code module is created for each source
+                         (translation unit)
+            off - no device code split
+            auto - use heuristic to select the best way of splitting
+                         device code (DEFAULT)
+-f[no-]sycl-device-lib=<arg>
+          Control inclusion of device libraries into device binary linkage.
+          Valid arguments are: libc, libm-fp32, libm-fp64, all
+-f[no-]sycl-instrument-device-code
+          Add ITT instrumentation intrinsics calls
+-f[no-]sycl-dead-args-optimization
+          Enables elimination of DPC++ dead kernel arguments
+/nolibsycl
+          Do not link the SYCL runtime library
+/Qopenmp-targets:<arg>
+          Enables offloading to a specified GPU target if OpenMP* features have
+          been enabled.
+            spir64 - offload to SPIR64-based devices
+[press RETURN to continue]
+            spir64_x86_64 - offload to Intel(R) CPUs
+            spir64_gen - offload to Intel(R) Processor Graphics
+/Qopenmp-target-buffers:<arg>
+          Enables a way to overcome the problem where some OpenMP* offload
+          SPIR-V* devices produce incorrect code when a target object is
+          larger than 4GB.
+            default - use default heuristics
+            4GB - Allow access to target objects of 4GB or larger in
+                      target code
+/Qopenmp-default-sub-group-size:<arg>
+          Specify the default sub-group size of SPMD kernels generated for
+          OpenMP* target constructs for SPIR64.
+/Qopenmp-target-do-concurrent[-]
+          Determines whether a DO CONCURRENT construct is automatically
+          converted into an OpenMP* TARGET region.
+/Qopenmp-default-allocator:<arg>
+          Sets a default OpenMP allocator to use for all ALLOCATE statements
+          in the Fortran program.
+             omp_default_mem - use standard Fortran allocation routine
+             omp_high_bw_mem - use high-bandwidth memory, if available
+             omp_target_shared_mem - use shared memory with offload device
+                                     Requires use of /Qopenmp
+/Qopenmp-declare-target-scalar-defaultmap:<arg>
+          Assume that a scalar declare target variable with
+          implicit data-mapping referenced in a 'target' construct has the
+          same value in the host and device environment.
+[press RETURN to continue]
+            default - use default heuristics
+            firstprivate - Declares the data variables in list to be private
+            to the target task and shared by every thread team that runs
+            the region.
+/ftarget-compile-fast
+          Experimental feature: Reduce target compilation time, with potential
+          runtime performance trade-off.
+/Qtarget-register-alloc-mode:<arg>
+          Specify a register allocation mode for specific hardware for use by
+          supported target backends.
+Data
+----
+/4I{2|4|8}
+          set default KIND of integer and logical variables to 2, 4, or 8
+/integer-size:<size>
+          specifies the default size of integer and logical variables
+            size: 16, 32, 64
+/4R{8|16}
+          set default size of real to 8 or 16 bytes
+/real-size:<size>
+          specify the size of REAL and COMPLEX declarations, constants,
+          functions, and intrinsics
+            size: 32, 64, 128
+/Qautodouble
+          same as /real-size:64 or /4R8
+/double-size:<size>
+[press RETURN to continue]
+          defines the size of DOUBLE PRECISION and DOUBLE COMPLEX declarations,
+          constants, functions, and intrinsics
+            size: 64, 128
+/[no]fpconstant
+          extends the precision of single precision constants assigned to
+          double precision variables to double precision
+/[no]intconstant
+          use Fortran 77 semantics, rather than Fortran 90/95, to determine
+          kind of integer constants
+/auto     make all local variables AUTOMATIC
+/Qauto-scalar
+          make scalar local variables AUTOMATIC (DEFAULT)
+/Qsave    save all variables (static allocation) (same as /noauto,
+          opposite of /auto)
+/Qzero[-]
+          enable/disable(DEFAULT) implicit initialization to zero of local
+          scalar variables of intrinsic type INTEGER, REAL, COMPLEX, or
+          LOGICAL that are saved and not initialized
+/Qinit:<keyword>
+          enable/disable(DEFAULT) implicit initialization of local
+          variables of intrinsic type INTEGER, REAL, COMPLEX, or
+          LOGICAL that are saved and not initialized
+          The <keyword> specifies the initial value
+            keywords: zero (same as /Qzero),
+                      snan (valid only for floating point variables),
+                      infinity, minus_infinity (valid only for floating point)
+[press RETURN to continue]
+                      tiny, minus_tiny (valid only for floating point)
+                      huge, minus_huge
+                      arrays
+/Qdyncom<common1,common2,...>
+          make given common blocks dynamically-allocated
+/Zp[n]    specify alignment constraint for structures (n=1,2,4,8,16
+          /Zp16 DEFAULT)
+/[no]align
+          analyze and reorder memory layout for variables and arrays
+/align:<keyword>
+          specify how data items are aligned
+            keywords: all (same as /align), none (same as /noalign),
+                      [no]commons, [no]dcommons,
+                      [no]qcommons, [no]zcommons,
+                      rec1byte, rec2byte, rec4byte,
+                      rec8byte, rec16byte, rec32byte,
+                      array8byte, array16byte, array32byte,
+                      array64byte, array128byte, array256byte,
+                      [no]records, [no]sequence
+/Qcommon  Enables the compiler to treat common variables as if they were
+          defined. That in turn allows the use of gprel addressing of common
+          data variables. /Qcommon- disables
+/GS       enable overflow security checks. Optional <arg> can specify:
+            partial - provide a stack protection level that is compatible with
+                      Microsoft* Visual Studio 2008.
+            strong - provide full stack security level checking. This setting
+[press RETURN to continue]
+                      is compatible with recent Microsoft* Visual Studio stack
+                      protection heuristics. This is the same as specifying /GS
+                      with no keyword.
+            off - Same as /GS- (DEFAULT)
+/Qpatchable-addresses
+           generate code such that references to statically assigned addresses
+           can be patched with arbitrary 64-bit addresses.
+/Qkeep-static-consts[-]
+          enable/disable(DEFAULT) the ability to preserve allocation of
+          variables that are not referenced in the source
+/Qzero-initialized-in-bss[-]
+          put explicitly zero initialized variables into the DATA section
+          instead of the BSS section
+/convert:<keyword>
+          specify the format of unformatted files containing numeric data
+            keywords: big_endian, cray, ibm, little_endian, native, vaxd, vaxg
+/Qfnalign:<n>
+          align the start of functions on a 2 (DEFAULT) or <n> byte boundary
+          where <n> is a power of 2
+/Qfnalign
+          align the start of functions to an optimal machine-dependent value.
+          /Qfnalign- (DEFAULT) aligns on a 2-byte boundary
+/Qmaintain-32-byte-stack-align[-]
+          Realign stack to 32-byte if stack alignment is uncertain for
+          functions with external linkage, and retain 32-byte alignment
+          for other functions
+[press RETURN to continue]
+/Qstrict-overflow[-]
+          Instructs the compiler to assume that signed arithmetic overflow of
+          addition, subtraction and multiplication wraps around using
+          twos-complement representation. (DEFAULT)
+Compatibility
+-------------
+/fpscomp[:<keyword>]
+          specify the level of compatibility to adhere to with Fortran
+          PowerStation
+            keywords: all, none (same as /nofpscomp), [no]filesfromcmd,
+                      [no]general, [no]ioformat, [no]ldio_spacing,
+                      [no]libs, [no]logicals
+/nofpscomp
+          no specific level of compatibility with Fortran PowerStation
+/f66      allow extensions that enhance FORTRAN-66 compatibility
+/f77rtl   specify that the Fortran 77 specific run-time support should be used
+          /nof77rtl disables
+/vms      enable VMS I/O statement extensions
+/Qcl_name=<name>
+          name and location of Visual C/C++ if not where expected (*0)
+Linking/Linker
+--------------
+/link     specify that all options following '/link' are for the linker
+/extlnk:<ext>
+          specify extension of file to be passed directly to linker
+/F<n>     set the stack reserve amount specified to the linker
+[press RETURN to continue]
+/dbglibs  use the debug version of runtime libraries, when appropriate
+/libs:<keyword>
+          specifies which type of run-time library to link to.
+          keywords: static, dll, qwin, qwins
+/LD[d]    produce a DLL instead of an EXE ('d' = debug version)
+/dll      same as /LD
+/MD[d]    use dynamically-loaded, multithread C runtime
+/MDs[d]   use dynamically-loaded, singlethread Fortran runtime,
+          and multithread C runtime
+/MT[d]    use statically-linked, multithread C runtime (DEFAULT with
+          Microsoft Visual Studio 2005 and later)
+/MG, /winapp
+          use Windows API runtime libraries
+/Zl       omit library names from object file
+/threads  specify that multi-threaded libraries should be linked against
+          /nothreads disables multi-threaded libraries
+/fuse-ld=<arg>
+          Use different linker instead of default linker (link)
+            lld - use lld linker
+            llvm-lib - use LLVM librarian
+/Qno-intel-lib[:<arg>]
+          Restrict linking of Intel provided libraries. Arguments can be
+          specified via a comma separated list. Valid arguments are:
+          libirc, libimf, libsvml, libirng, libipgo
+Deprecated Options
+------------------
+[press RETURN to continue]
+/Quse-asm No replacement
+/Qvc11 No replacement
+/Qcilk-serialize No replacement
+/arch:ICELAKE use /arch:ICELAKE-CLIENT
+/QxICELAKE use /QxICELAKE-CLIENT
+/QaxICELAKE use /QaxICELAKE-CLIENT
+/Qauto-arch:ICELAKE use /Qauto-arch:ICELAKE-CLIENT
+/arch:SSE use /arch:IA32
+/help, /? [category] print full or category help message
+Valid categories include
+       advanced - Advanced Optimizations
+       codegen - Code Generation
+       compatibility - Compatibility
+       component - Component Control
+       data - Data
+       deprecated - Deprecated Options
+       diagnostics - Compiler Diagnostics
+       float - Floating Point
+       help - Help
+       inline - Inlining
+       ipo - Interprocedural Optimization (IPO)
+       language - Language
+       link - Linking/Linker
+       misc - Miscellaneous
+       opt - Optimization
+       output - Output
+[press RETURN to continue]
+       pgo - Profile Guided Optimization (PGO)
+       preproc - Preprocessor
+       reports - Optimization Reports
+       openmp - OpenMP and Parallel Processing
+Copyright (C) 1985-2024, Intel Corporation. All rights reserved.
+* Other names and brands may be claimed as the property of others.

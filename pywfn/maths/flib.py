@@ -91,7 +91,7 @@ if os.name=='nt': # Windows系统
     # print(f'当前系统:windows, 动态链接库目录{config.ROOT_LIBS}')
     os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
-    flib.init_()
+    flib['init_']()
 elif os.name=='posix': # Linux系统
     print('当前系统:linux')
     os.environ['LD_LIBRARY_PATH'] = rf"{config.ROOT_LIBS}" + os.environ.get('LD_LIBRARY_PATH', '')
