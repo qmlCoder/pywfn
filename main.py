@@ -20,8 +20,8 @@ if Path('pywfn').exists():
             shutil.copyfile(f'{root}/{name}',f'libs/{name}')
 
 
-config.ROOT_DATA=Path.cwd()/'data'
-config.ROOT_LIBS=Path.cwd()/'libs'
+# config.ROOT_DATA=Path.cwd()/'data'
+config.ROOT_LIBS=Path.cwd()/'maths'
 # print(f'{config.ROOT_DATA}')
 # print(f'{config.ROOT_LIBS}')
 # os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录

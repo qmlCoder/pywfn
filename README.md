@@ -35,3 +35,7 @@ print(result) # 打印结果
 gfortran -shared -ffree-form -ffree-line-length-none -fopenmp data.f90 march.f90 flib.f90 -o flib.dll
 
 ifx -dll -free -qopenmp data.f90 march.f90 flib.f90 -o flib.dll
+
+python -m build
+
+twine upload dist/*

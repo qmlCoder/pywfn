@@ -93,7 +93,9 @@ if os.name=='nt': # Windows系统
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.dll')
     flib['init_']()
 elif os.name=='posix': # Linux系统
-    print('当前系统:linux')
+    # print('当前系统:linux') 你需要使用gfortran自行编译动态链接库，
+    # 使用conda安装gcc gxx gfortran: conda install -c conda-forge gcc=14 gxx=14 gfortran=14
+    # 编译命令为 gfortran -shared -ffree-line-length-none -fopenmp -fPIC data.f90 march.f90 flib.f90 -o flib.so
     os.environ['LD_LIBRARY_PATH'] = rf"{config.ROOT_LIBS}" + os.environ.get('LD_LIBRARY_PATH', '')
     flib = ct.CDLL(f'{config.ROOT_LIBS}/flib.so')
     flib.init_()

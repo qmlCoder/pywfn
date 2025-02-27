@@ -162,6 +162,29 @@ class Basis:
         alps=alps[idxs].copy()
         lmns=lmns[idxs].copy()
         return atos,coes,alps,lmns
+    
+    def matMapRs(self):
+        nato=self.mol.CM.shape[0]
+        lmns=[[] for i in range(nato)]
+        coes=[[] for i in range(nato)]
+        alps=[[] for i in range(nato)]
+        xyzs=[[] for i in range(nato)]
+        for each in self.data:
+            atm=each.atm
+            shl=each.shl
+            ang=each.ang
+            coe=each.coe
+            alp=each.alp
+            for i,lmn in enumerate(ANG2LMN[ang]):
+                sym=self.lmn2sym(lmn)
+                key=f'{atm}-{shl}{sym}'
+                ato=self.mol.atoKeys.index(key)
+                coes[ato].append(coe)
+                alps[ato].append(alp)
+                lmns[ato]=lmn
+                x,y,z=self.mol.atom(atm).xyz.tolist()
+                xyzs[ato]=[x,y,z]
+        return xyzs,lmns,coes,alps
 
     def __repr__(self) -> str:
         resStr=''

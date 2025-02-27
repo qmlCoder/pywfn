@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pywfn"
-version = "1.0.0"
+version = "1.0.2"
 authors = [
   { name="shixiaofei", email="1103275712@qq.com" },
 ]
@@ -30,8 +30,8 @@ keywords = ["chemistry", "wave function"]
 include = [
     "pywfn/*.py",
     "pywfn/**/*.py",
-    "pywfn/libs/*.so",
-    "pywfn/libs/*.dll"]  # 确保打包编译好的动态库文件
+    "pywfn/libs/*.dll",
+    "pywfn/libs/*.f90"]  # 确保打包编译好的动态库文件
 
 [tool.hatch.build.targets.wheel]
 shared-data = {"pywfn/libs/" = "pywfn/libs/","pywfn/" = "pywfn/"}  # 假设动态库存放在lib目录

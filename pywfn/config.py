@@ -49,8 +49,8 @@ SHOW_PRINT=False
 IF_CM_P=False # 是否使用投影轨道
 IF_BUFF=get_config('if_buff',True) # 是否生成缓存
 
-ROOT_DATA=Path(__file__).parent/'data'
-ROOT_LIBS=Path(__file__).parent/'libs'
+# ROOT_DATA=Path(__file__).parent/'data'
+ROOT_LIBS=Path(__file__).parent/'maths'
 GJF_TITLE=get_config('gjf.title','b3lyp/6-31g(d) pop=full gfinput iop(3/33=1)')
 
 MARCH_ISOV_WFNS = get_config('march.isov',0.03) # Marching Cubes算法波函数等值面阈值

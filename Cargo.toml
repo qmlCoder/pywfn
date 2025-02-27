@@ -1,0 +1,17 @@
+[package]
+name = "first"
+version = "0.1.0"
+edition = "2021"
+
+
+[lib]
+path = "librs/rlib.rs"
+name = "rlib"
+crate-type = ["cdylib"]
+
+[dependencies]
+ndarray = "0.15"
+
+[dependencies.pyo3]
+version = "0.22.2"
+features = ["extension-module"]

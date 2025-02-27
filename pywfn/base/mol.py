@@ -32,6 +32,7 @@ from pywfn import reader
 from pywfn.utils import printer
 
 import numpy as np
+import numpy.typing as npt
 from functools import cached_property, lru_cache
 import multiprocessing as mp
 from multiprocessing.pool import AsyncResult
@@ -227,7 +228,7 @@ class Mol:
         return [atom.idx for atom in self.atoms if atom.symbol!='H']
 
     @property
-    def CM(self)->np.ndarray:
+    def CM(self)->npt.NDArray[np.float64]:
         """分子轨道系数矩阵"""
         return self._props.get('CM',self.reader.get_CM)
     
