@@ -110,6 +110,7 @@ class Calculator:
                 if int(a2) not in nebs+[atm]:continue
                 result.append([a1,a2,x,y,z,val])
         result=np.array(result)
+        print('束缚键级',atm,result)
         return result
     
     def pi_pocv(self)->np.ndarray:

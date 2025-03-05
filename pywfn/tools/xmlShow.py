@@ -27,9 +27,9 @@ class Tool:
         self.path=path
         self.tree=ElementTree.parse(path)
         self.root=self.tree.getroot()
-        self.colors=list(self.root.find('colortable')) # 所有的颜色
+        self.colors=list(self.root.find('colortable')) # type: ignore # 所有的颜色
         self.page=self.root.find('page')
-        self.frags=self.page.findall('fragment')
+        self.frags=self.page.findall('fragment') # type: ignore
         self.nodes:list[Node]=[]
         self.edges:list[Edge]=[]
         self.find_data()
@@ -73,6 +73,8 @@ class Tool:
             NB=self.get_node(B)
             NE=self.get_node(E)
             color=self.get_color(edge.color)
+            assert NB is not None,"没有找到开始节点"
+            assert NE is not None,"没有找到结束节点"
             plt.plot([NB.x,NE.x],[NB.y,NE.y],color=color)
         
         # 再画节点
@@ -81,6 +83,6 @@ class Tool:
         for node in self.nodes:
             xs.append(node.x)
             ys.append(node.y)
-            plt.text(node.x,node.y,str(node.nid))
+            plt.text(node.x,node.y,str(node.nid),color='red')
         plt.scatter(xs,ys,s=10)
         plt.show()

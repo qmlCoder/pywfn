@@ -131,6 +131,10 @@ class Reader:
     def get_obtEngs(self)->list[float]:
         """获取分子轨道能量[m]"""
         raise ValueError("未继承的函数")
+    
+    def get_obtOccs(self)->list[bool]:
+        """获取分子轨道占据情况[m]"""
+        raise ValueError("未继承的函数")
 
     def get_atoAtms(self)->list[int]:
         """获取轨道系数每一行对应的原子[m]"""

@@ -27,10 +27,11 @@ class Tool:
         self.tree=ElementTree.parse(path)
         self.root=self.tree.getroot()
         self.colorTable=self.root.find('colortable')
+        print(self.colorTable)
             
-    def set_color(self,paras:dict[str:list[float]]):
+    def set_color(self,paras:dict[str,list[float]]):
         """
-        设置指定边的颜色，n1,n2,r,g,b
+        设置指定边的颜色，n1,n2,r,g,b {n1-n2:[r,g,b]}
         """
         keys=list(paras.keys())
         edges=self.root.findall('.//b')

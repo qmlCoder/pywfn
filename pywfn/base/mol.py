@@ -106,15 +106,7 @@ class Mol:
     @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        aele,bele=self.nele
-        nobt=self.CM.shape[1]
-        occs=[False]*nobt
-        if self.open:
-            occs[:aele]=[True]*aele
-            occs[nobt//2:nobt//2+bele]=[True]*bele
-        else:
-            occs[:aele]=[True]*aele
-        return occs
+        return self.reader.get_obtOccs()
 
     @cached_property
     def obtEngs(self)->list[float]:

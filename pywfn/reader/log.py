@@ -166,27 +166,27 @@ class LogReader(reader.Reader):
     
     @lru_cache
     def get_atoAtms(self) -> list[int]:
-        ObtAtms=self.read_CMs()[0]
-        return ObtAtms
+        atoAtms=self.read_CMs()[0]
+        return atoAtms
     
     @lru_cache
     def get_atoShls(self) -> list[int]:
-        ObtShls=self.read_CMs()[1]
-        return ObtShls
+        atoShls=self.read_CMs()[1]
+        return atoShls
 
     @lru_cache
     def get_atoSyms(self)-> list[list[int]]:
-        obtSyms=self.read_CMs()[2]
-        return obtSyms
+        atoSyms=self.read_CMs()[2]
+        return atoSyms
 
     @lru_cache
     def get_obtEngs(self) -> list[float]:
-        ObtEngs=self.read_CMs()[3]
-        return ObtEngs
+        obtEngs=self.read_CMs()[3]
+        return obtEngs
     
     def get_obtOccs(self) -> list[bool]:
-        ObtOccs=self.read_CMs()[4]
-        return ObtOccs
+        obtOccs=self.read_CMs()[4]
+        return obtOccs
 
     @lru_cache
     def get_SM(self)->np.ndarray:
@@ -467,8 +467,9 @@ class LogReader(reader.Reader):
                 atomID=''
                 for l2 in range(l+3,l+blockLen):
                     line=self.getline(l2)[:16] # 行信息(角动量，对应原子)的起止位置
-                    match=line[12:].strip()
+                    match=line[11:].strip()
                     shl,sym=match[0],match[1:] #这里壳层只能是整数哦
+                    # print(line[11:],shl,sym)
                     ObtShls.append(int(shl))
                     ObtSyms.append(sym)
                     obtAtom=line[5:9].strip()
