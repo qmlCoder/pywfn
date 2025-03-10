@@ -266,38 +266,3 @@ def save_file(caler:SpaceCaler,obje:Grid,vals:np.ndarray, obts:list[int]|None=No
         case 'Cube':
             assert obts is not None,"没有提供轨道索引"
             caler.toCub(f'cube.cub',vals,obje,obts) # type: ignore
-
-def onShell(shell:Shell):
-    while True:
-        printer.options('空间性质',{
-            '1':'  波函数',
-            '2':'电子密度',
-            '3':'  静电势',
-        })
-        ctype=input('请选择计算的性质: ')
-        mol=shell.input.Moles()[0]
-        show_dict({'1':'直线采点','2':'平面采点','3':'空间采点','4':'分子空间','5':'地图映射','6':'范德华表面'})
-        gidx=input('请选择采点方式: ')
-        obje=read_grid(shell,gidx,mol)
-        match ctype:
-            case '1':
-                from pywfn.spaceprop import wfnfunc
-                caler=wfnfunc.Calculator(mol)
-                atms=shell.input.Integ(tip='?输入要计算的原子: ')
-                if not atms:atms=mol.atoms.atms
-                obts=shell.input.Integ(tip='*输入要计算的轨道: ')
-                wfns=caler.atmWfns(obje.grid,atms,obts)
-                save_file(caler,obje,wfns,obts=obts)
-            case '2':
-                from pywfn.spaceprop import density
-                caler=density.Calculator(mol)
-                atms=shell.input.Integ(tip='?输入要计算的原子: ')
-                if not atms:atms=mol.atoms.atms
-                dens=caler.atmDens(obje.grid,atms)
-                dens=dens.reshape(1,-1)
-                save_file(caler,obje,dens)
-            case '3':
-                from pywfn.spaceprop import potential
-                caler=potential.Calculator(mol)
-                pots=caler.molPotential(obje.grid)
-                save_file(caler,obje,pots)

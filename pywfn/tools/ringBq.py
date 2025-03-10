@@ -12,7 +12,7 @@ class Tool:
     def __init__(self,mol:Mol) -> None:
         self.mol=mol
         self.rings=[]
-        self.writer=GjfWriter(mol)
+        self.writer=GjfWriter().fromMol(mol)
         self.gjftxt=''
         self.TITLE='b3lyp/6-31g(d) NMR' # 计算NICS只要个单点就行了
 
@@ -25,7 +25,7 @@ class Tool:
             coord=np.mean(cords,axis=0)
             self.mol._atoms.add('Bq',coord)
         self.writer.TITLE=self.TITLE
-        self.writer.CHK=f'{Path(self.mol.reader.path).stem}_Bq.chk'
+        self.writer.chk=f'{Path(self.mol.reader.path).stem}_Bq.chk'
         return self.writer.build()
 
     def save(self,path:str=''):
@@ -36,11 +36,3 @@ class Tool:
         self.gjftxt=self.build()
         Path(path).write_text(self.gjftxt)
         print(f'文件导出至{path}')
-
-    def onShell(self,shell:Shell):
-        """询问哪几个原子确定的环"""
-        while True:
-            atms=shell.input.Integ('环原子编号: ')
-            if not atms:break
-            self.rings.append(atms)
-        self.save()

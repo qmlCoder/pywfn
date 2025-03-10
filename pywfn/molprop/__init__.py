@@ -21,10 +21,12 @@ class MolProp:
         for i,e in enumerate(oets):
             if e:continue
             return i-1,i
+        raise Exception("没有找到homo和lomo")
 
     @cached_property
     def homo(self):
         """HOMO轨道的能量"""
+        
         h,l=self.hlIdx
         return self.mol.obtEngs[h]
     
@@ -80,16 +82,3 @@ class MolProp:
         ]
         for k,v in props:
             printer.info(f'{k:{chr(12288)}<6}\t{v:>10.6f}')
-
-from pywfn.shell import Shell
-def onShell(shell:Shell):
-    printer.options('分子属性',{
-        '1':'芳香性',
-    })
-    opt=input('请输入对应选项：')
-    match opt:
-        case '1':
-            from pywfn.molprop import aromatic
-            mol=shell.input.Moles(num=1)[0]
-            caler=aromatic.Calculator(mol)
-            caler.onShell(shell)

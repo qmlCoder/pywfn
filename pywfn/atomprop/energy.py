@@ -38,21 +38,3 @@ class Calculator:
             atomEng=EM[u:l,:].sum()
             engs[a]=atomEng
         return engs
-    
-    def onShell(self):
-        while True:
-            printer.options('原子能量',{
-                '1':'原子  电子能 (将分子轨道能量分配到原子上)',
-                '2':'原子pi电子能 (pi分子轨道能量分配到原子上)'
-            })
-            opt=input('输入原子能类型:')
-            if opt=='1':
-                energy=self.atmEngs()
-                for i,eng in enumerate(energy):
-                    print(f'{i+1:>3}:{eng:>10.4f}')
-            elif opt=='2':
-                engs=self.atmPiEngs()
-                for i,eng in enumerate(engs):
-                    print(f'{i+1:>3}:{eng:>10.4f}')
-            else:
-                break

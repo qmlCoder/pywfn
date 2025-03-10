@@ -14,7 +14,7 @@ class Calculator:
         self.mol = mol
         self.ratio=0.5
     
-    def pisd(self,ring:list[int]=None): # 版本1 直接用键级标准差
+    def pisd(self,ring:list[int]|None=None): # 版本1 直接用键级标准差
         caler=orderProp.Calculator(self.mol)
         result=caler.pi_pocv()
         orders=result[:,-1]
@@ -38,7 +38,7 @@ class Calculator:
             return 0
         return np.std(forders).item()
     
-    def pimsd(self,ring:list[int]=None,ratio=0.5): # 版本2 使用键级均值和标准差
+    def pimsd(self,ring:list[int]|None=None,ratio=0.5): # 版本2 使用键级均值和标准差
         caler=orderProp.Calculator(self.mol)
         result=caler.pi_pocv()
         orders=result[:,-1]
@@ -85,32 +85,3 @@ class Calculator:
             vals.append((bond.length/1.889-idea)**2)
         val=sum(vals)
         return 1-val/(self.mol.bonds.num*D)
-    
-    def onShell(self,shell:Shell):
-        from pywfn.utils import printer
-        while True:
-            printer.options('芳香性',{
-                '1':'piSD  (根据pi键级的标准差)',
-                '2':'piMSD (根据pi键级的均值和标准差)',
-                '3':'piMED',
-                '4':'HOMED',
-            })
-            opt=input('输入芳香性类型:')
-            
-            match opt:
-                case '1':
-                    ring=shell.input.Integ('?输入环编号: ')
-                    if len(ring)==0:ring=None
-                    result=self.pisd(ring)
-                    print(f'{result}')
-                case '2':
-                    result=self.pimsd(ring=ring,ratio=0.5)
-                    print(f'{result}')
-                case '3':
-                    result=self.pimed()
-                    print(f'{result}')
-                case '4':
-                    result=self.homed()
-                    print(f'{result}')
-                case _:
-                    break

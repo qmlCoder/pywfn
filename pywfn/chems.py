@@ -39,28 +39,3 @@ def bezm(engl:np.ndarray):
     k=1.380694e-23 # J/K
     T=298.15 # K
     return np.exp(-engs/(k*T))
-
-def onShell():
-    printer.options('化学计算器',{
-        '1':'计算反应活化能',
-        '2':'计算立体选择ee值',
-        '3':'计算玻尔兹曼分布',
-    })
-    opt=input('请输入对应选项：')
-    match opt:
-        case '1':
-            K=float(input('催化常数K:'))
-            T=float(input('反应温度T:'))
-            print('反应活化能:',reaActEne(K,T),'kJ/mol')
-        case '2':
-            deR=float(input('反应热力学参数:'))
-            deS=float(input('立体选择热力学参数:'))
-            T=float(input('反应温度T:'))
-            print('立体选择ee值:',steSelEE(deR,deS,T))
-        case '3':
-            engs=input('能量列表(空格分隔):').split()
-            engs=[float(i) for i in engs]
-            engs=np.array(engs)
-            print('玻尔兹曼分布:',bezm(engs))
-        case _:
-            return

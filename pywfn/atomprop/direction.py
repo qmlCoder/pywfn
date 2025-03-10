@@ -55,8 +55,8 @@ class Calculator:
         nmat=CM.shape[0]
         idxs=[] # 符合要求的轨道索引
         for i in range(nmat):
-            if self.mol.obtAtms[i]!=atm:continue #不是指定的原子不算
-            obtSym=self.mol.obtSyms[i]
+            if self.mol.atoAtms[i]!=atm:continue #不是指定的原子不算
+            obtSym=self.mol.atoSyms[i]
             if re.match(sym,obtSym) is None:continue # 符号不对不算
             idxs.append(i)
         
@@ -293,7 +293,7 @@ class Calculator:
             if norm is None:continue
             u,l=atom.obtBorder
             coefs=self.mol.CM[u:l,piIdx]
-            syms=self.mol.obtSyms[u:l]
+            syms=self.mol.atoSyms[u:l]
             piCoefs=[]
             for s,c in zip(syms,coefs):
                 if 'P' not in s:continue

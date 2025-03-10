@@ -3,6 +3,7 @@
 """
 import numpy as np
 np.set_printoptions(precision=4, suppress=True)
+import argparse
 
 # __version__='0.0.1'
 # __description__='A wave function analysis program based on python'
@@ -11,5 +12,9 @@ np.set_printoptions(precision=4, suppress=True)
 # __url__='https://www.xiaofei911.top/mkdocs/pywfn/'
 
 def main():
-    from pywfn.shell import Shell
-    Shell().homePage()
+    parser=argparse.ArgumentParser(description='A wave function analysis program based on python')
+    parser.add_argument('-cli',action='store_true')
+    opts=parser.parse_args()
+    if opts.cli:
+        from pywfn.shell import Shell
+        Shell().homePage()

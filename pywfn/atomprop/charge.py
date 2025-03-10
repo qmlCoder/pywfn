@@ -40,6 +40,31 @@ class Calculator():
         else:
             raise ValueError('unknown charge type')
     
+    def spin(self,chrg:str='mulliken')->np.ndarray:
+        """计算所有原子的自旋"""
+        if not self.mol.open: #闭壳层自旋肯定为0
+            return np.zeros(self.mol.atoms.natm)
+        nmat=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
+        occs_old=self.mol.obtOccs # 记录原本的占据情况
+        
+        a_occs=occs_old.copy() # 当你需要修改一个变量的时候，
+        b_occs=occs_old.copy()
+        a_occs[nmat:]=[False]*nmat
+        b_occs[:nmat]=[False]*nmat
+        elects=[]
+        for occs in (a_occs,b_occs):
+            self.mol._props.set('obtOccs',occs)
+            elect=self.charge(chrg) # 计算电荷分布
+            elects.append(elect)
+        a_elect,b_elect=elects
+        print(f'atm:{"Na":>10},{"Nb":>10}')
+        for i,(ela,elb) in enumerate(zip(a_elect,b_elect)):
+            print(f'{i+1:>3d}:{ela:>10.4f},{elb:>10.4f}')
+        print('-'*25)
+        # 恢复分子属性
+        self.mol._props.set('obtOccs',occs_old)
+        return -(a_elect-b_elect)
+    
     def mulliken(self)->np.ndarray:
         """
         计算目录mulliken电荷
@@ -188,74 +213,6 @@ class Calculator():
         self.numForm=True
         return self.mulliken()
 
-    
-    def onShell(self,shell:Shell):
-        from pywfn.utils import parse_intList
-        chrgMap={'':'mulliken','1':'mulliken','2':'lowdin','3':'space','4':'hirshfeld'}
-        chrgStr='1. Mulliken[*]; 2. lowdin; 3. sapce; 4. hirshfeld'
-        while True:
-            printer.options('原子电荷',{
-                '1':'mulliken电荷',
-                '2':'lowdin电荷',
-
-                '3':'空间积分电荷',
-                '4':'hirshfeld电荷',
-
-                '5':'方向电子分布',
-                '6':'π 电子分布',
-            })
-            opt=input('请选择计算类型: ')
-            if opt=='1': # Mulliken
-                charges=self.mulliken()
-                for i,val in enumerate(charges):
-                    print(f'{i+1:>3d}: {val:>8.4f}')
-                print(f'sum:{np.sum(charges)}')
-
-            elif opt=='2': # Lowdin
-                charges=self.lowdin()
-                for i,val in enumerate(charges):
-                    print(f'{i+1:>3d}: {val:>8.4f}')
-                print(f'sum:{np.sum(charges)}')
-            
-            elif opt=='3': # 空间积分电荷
-                charges=self.sapce()
-                for i,val in enumerate(charges):
-                    print(f'{i+1:>3d}: {val:>8.4f}')
-                print(f'sum:{np.sum(charges)}')
-
-            elif opt=='4': # hirshfeld电荷
-                charges=self.hirshfeld()
-                for i,val in enumerate(charges):
-                    print(f'{i+1:>3d}: {val:>8.4f}')
-                print(f'sum:{np.sum(charges)}')
-
-            elif opt=='5': # 方向电子
-                print(chrgStr)
-                opt=input('选择电荷类型: ')
-                if opt not in chrgMap.keys():return
-                chrg=chrgMap[opt]
-                # numStr=input('输入原子编号: ')
-                atm=shell.input.Integ(tip='输入原子编号: ',count=1)[0]
-                dir=shell.input.Float(tip='输入原子向量: ',count=3)
-                assert dir is not None,'原子向量输入不正确'
-                dirs=np.array(dir).reshape(1,3)
-                elects=self.dirElectron(atms=[atm],dirs=dirs,ctype=chrg)
-                ele=elects[atm-1]
-                x,y,z=dir
-                print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>8.4f}')
-            
-            elif opt=='6': # pi电子
-                print(chrgStr)
-                opt=input('选择电荷类型: ')
-                if opt not in chrgMap.keys():return
-                chrg=chrgMap[opt]
-                elects=self.piElectron(chrg)
-                for i,(idx,x,y,z,val) in enumerate(elects):
-                    print(f'{i+1:>3d}:{val:>8.4f}')
-                print(f'sum:{elects[:,-1].sum()}')
-
-            else:
-                break
     
 def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]|None):
     """

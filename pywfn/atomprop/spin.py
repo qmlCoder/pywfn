@@ -31,7 +31,7 @@ class Calculator():
         b_occs[:nmat]=[False]*nmat
         elects=[]
         for occs in (a_occs,b_occs):
-            self.mol.props.set('obtOccs',occs)
+            self.mol._props.set('obtOccs',occs)
             caler=charge.Calculator(self.mol)
             elect=caler.charge(chrg) # 计算电荷分布
             elects.append(elect)
@@ -41,32 +41,5 @@ class Calculator():
             print(f'{i+1:>3d}:{ela:>10.4f},{elb:>10.4f}')
         print('-'*25)
         # 恢复分子属性
-        self.mol.props.set('obtOccs',occs_old)
+        self.mol._props.set('obtOccs',occs_old)
         return -(a_elect-b_elect)
-    
-    def onShell(self):
-        while True:
-            printer.options('原子自旋',{
-                '1':'Mulliken  电子自旋',
-                '2':'Lowdin    电子自旋',
-                '3':'Hirshdeld 电子自旋',
-            })
-            opt=input('请输入自旋类型:')
-            match opt:
-                case '1':
-                    spins=self.spin(chrg='mulliken')
-                    for i,spin in enumerate(spins):
-                        print(f'{i+1:>3d}:{spin:>10.4f}')
-                    print(f'自旋之和: {sum(spins):>10.4f}')
-                case '2':
-                    spins=self.spin(chrg='lowdin')
-                    for i,spin in enumerate(spins):
-                        print(f'{i+1:>3d}:{spin:>10.4f}')
-                    print(f'自旋之和: {sum(spins):>10.4f}')
-                case '3':
-                    spins=self.spin(chrg='hirshfeld')
-                    for i,spin in enumerate(spins):
-                        print(f'{i+1:>3d}:{spin:>10.4f}')
-                    print(f'自旋之和: {sum(spins):>10.4f}')
-                case _:
-                    break
