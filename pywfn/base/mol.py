@@ -20,6 +20,8 @@
 
 from typing import Any
 from pywfn import maths
+from pywfn.base.coefs import Coefs
+from pywfn.base.basis import Basis
 from pywfn.base.atom import Atom,Atoms
 from pywfn.base.bond import Bond,Bonds
 from pywfn.base.basis import Basis
@@ -69,28 +71,28 @@ class Mol:
         self.bohr:bool=False # 是否使用波尔坐标
     
     @cached_property
-    def basis(self)->data.Basis: # 设为属性，可以保证用不到的时候不被实例化
-        basName,basData=self.reader.get_basData()
-        basis=Basis(self)
-        basis.name=basName
-        basis.data=basData
+    def basis(self)->Basis: # 设为属性，可以保证用不到的时候不被实例化
+        basis=self.reader.get_basis()
+        basis.mol=self
         return basis
+    
+    @cached_property
+    def coefs(self)->Coefs: # 将读取到的相关信息封装到一个类中
+        coefs=self.reader.get_coefs()
+        coefs.mol=self
+        return coefs
     
     @property
     def nele(self)->tuple[int,int]:
         elea,eleb=self._props.get('nele',self.reader.get_nele)
         return elea,eleb
 
-    @property
-    def charge(self)->int:
+
+    @property    
+    def multi(self): # 电荷、自旋多重性
         total=sum(self.atoms.atomics)
         nela,nelb=self.nele
-        return nela+nelb-total
-    
-    @property
-    def spin(self)->int:
-        nela,nelb=self.nele
-        return nela-nelb
+        return nela+nelb-total,nela-nelb
 
     @property
     def open(self)->bool:
@@ -106,11 +108,15 @@ class Mol:
     @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        return self.reader.get_obtOccs()
+        occs=self.coefs._obtOccs_raw
+        assert occs is not None,"未获取occs"
+        return occs
 
     @cached_property
     def obtEngs(self)->list[float]:
-        return self.reader.get_obtEngs()
+        engs=self.coefs._obtEngs_raw
+        assert engs is not None,"未获取obtEngs"
+        return engs
 
     @cached_property
     def obtStrs(self)->list[str]:
@@ -132,17 +138,17 @@ class Mol:
     
     @cached_property
     def atoAtms(self)->list[int]:
-        return self.reader.get_atoAtms()
+        return self.coefs.atoAtms('raw')
     
-    @cached_property
+    @property
     def atoShls(self)->list[int]:
-        return self.reader.get_atoShls()
+        return self.coefs.atoShls('raw')
 
-    @cached_property
+    @property
     def atoSyms(self)->list[str]:
-        return self.reader.get_atoSyms()
+        return self.coefs.atoSyms('raw')
     
-    @cached_property
+    @property
     def atoAngs(self)->list[int]: # 轨道角动量
         syms=self.atoSyms
         angs=[self.basis.sym2ang(sym) for sym in syms]
@@ -150,9 +156,9 @@ class Mol:
     
     @property
     def atoKeys(self)->list[str]:
-        atms=self.atoAtms
-        shls=self.atoShls
-        syms=self.atoSyms
+        atms=self.coefs.atoAtms('car')
+        shls=self.coefs.atoShls('car')
+        syms=self.coefs.atoSyms('car')
         keys=[]
         for atm,shl,sym in zip(atms,shls,syms):
             keys.append(f'{atm}-{shl}{sym}')
@@ -222,27 +228,19 @@ class Mol:
     @property
     def CM(self)->npt.NDArray[np.float64]:
         """分子轨道系数矩阵"""
-        return self._props.get('CM',self.reader.get_CM)
-    
-    @property
-    def SM_(self)->np.ndarray: # 老代码，从log文件中读重叠矩阵
-        """重叠矩阵，重叠矩阵不是读出来的，而是算出来的"""
-        return self.reader.get_SM()
+        return self.coefs.CM('raw')
+        # return self.coefs.CM('car')
     
     @property
     def SM(self)->np.ndarray: # 新代码，直接计算重叠矩阵
         """计算重叠矩阵"""
-        from pywfn.maths import flib
-        atos,coes,alps,lmns=self.basis.matMap()
-        
-        xyzs=self.atoXyzs
-        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
-        return SM
+        return self.coefs.SM_raw
+        return self.coefs.SM_car
     
     @property
     def PM(self):
         """密度矩阵"""
-        return maths.CM2PM(self.CM.copy(),self.O_obts,self.oE)
+        return maths.CM2PM(self.CM,self.O_obts,self.oE)
     
     @property
     def oE(self):

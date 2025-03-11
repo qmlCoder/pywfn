@@ -119,39 +119,15 @@ class Reader:
     def get_nele(self)->tuple[int,int]:
         """获取分子电子数"""
         raise ValueError("未继承的函数")
-
-    def get_CM(self)->np.ndarray:
-        """获取系数矩阵[m,m]/[m,2m]"""
-        raise ValueError("未继承的函数")
-
-    def get_SM(self)->np.ndarray:
-        """获取重叠矩阵[m,m]"""
-        raise ValueError("未继承的函数")
-
-    def get_obtEngs(self)->list[float]:
-        """获取分子轨道能量[m]"""
-        raise ValueError("未继承的函数")
     
-    def get_obtOccs(self)->list[bool]:
-        """获取分子轨道占据情况[m]"""
-        raise ValueError("未继承的函数")
-
-    def get_atoAtms(self)->list[int]:
-        """获取轨道系数每一行对应的原子[m]"""
-        raise ValueError("未继承的函数")
-
-    def get_atoShls(self)->list[int]:
-        """获取轨道系数每一行对应的原子层[m]"""
-        raise ValueError("未继承的函数")
-    
-    def get_atoSyms(self)->list[str]:
-        """获取轨道系数每一行对应的轨道符号(S,PX,PY...)"""
-        raise ValueError("未继承的函数")
-    
-    def get_basData(self)->tuple[str,list["base.BasisData"]]:
+    def get_basis(self)->"base.Basis":
         """获取每个原子的基组数据
         原子：壳层，角动量，系数，指数
         """
+        raise ValueError("未继承的函数")
+    
+    def get_coefs(self)->"base.Coefs":
+        """获取轨道系数"""
         raise ValueError("未继承的函数")
     
     def load_fdata(self,name:str)->np.ndarray|None:
@@ -171,6 +147,7 @@ from pywfn.reader.log import LogReader
 from pywfn.reader.gjf import GjfReader
 from pywfn.reader.mol import MolReader
 from pywfn.reader.any import AnyReader
+from pywfn.reader.mod import ModReader
 def get_reader(path:str):
     """根据输入文件的类型自动判断应该使用哪个读取器"""
     suffix=Path(path).suffix

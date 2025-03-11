@@ -6,7 +6,7 @@ import re
 import numpy as np
 
 from pywfn import base
-from pywfn.base.basis import BasisData
+from pywfn.base.basis import BasisData,Basis
 from pywfn.data.elements import elements
 from pywfn import reader
 from pywfn.reader.utils import toCart
@@ -130,7 +130,7 @@ class FchReader(reader.Reader):
     
     
 
-    def get_OB(self):
+    def read_OB(self):
         lineNum=self.titles['Orthonormal basis']
         line=self.getline(lineNum)
         find=re.search(rf'N= +(\d+)',line)
@@ -142,7 +142,7 @@ class FchReader(reader.Reader):
         vals=re.findall(rf'-?\d+.\d+E[+-]\d+',''.join(lines))
         return np.array(vals,dtype=float).reshape(nmat,nmat).T
 
-    def get_DM(self)->np.ndarray:
+    def read_DM(self)->np.ndarray:
         lineNum=self.titles['Total SCF Density']
         line=self.getline(lineNum)
         find=re.search(rf'N= +(\d+)',line)
@@ -161,10 +161,13 @@ class FchReader(reader.Reader):
                 idx+=1
         return DM
     
-    def get_basData(self)->tuple[str,list[BasisData]]:
+    def get_basis(self)->Basis:
         basData=self.read_basis()
         basName=self.getline(1)[40:90].strip()
-        return basName,basData
+        basis=Basis()
+        basis.name=basName
+        basis.data=basData
+        return basis
 
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')

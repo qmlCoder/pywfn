@@ -13,7 +13,7 @@ from pywfn.spaceprop import dftgrid
 from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,EarthGrid
 from pywfn import spaceprop
 from pywfn.data import radDens
-from pywfn.maths import flib
+from pywfn.maths import flib,rlib
 from pywfn import utils
 import numpy as np
 import time
@@ -37,7 +37,7 @@ class Calculator(spaceprop.SpaceCaler):
     def atmDens(self,grids:np.ndarray,atms:list[int]|None=None):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
         if atms is None:atms=self.mol.atoms.atms
-        nmat=self.mol.CM.shape[0]
+        nmat=self.mol.coefs.CM('car').shape[0]
         dens=np.zeros(shape=(len(atms),len(grids)))
         atowfns0,atowfns1,atowfns2=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
         ngrid=grids.shape[0]
@@ -48,12 +48,12 @@ class Calculator(spaceprop.SpaceCaler):
             atoDens[u:l,:].sum(axis=0,out=dens[a,:])
         return dens
     
-    def molDens(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]: # 这种方式计算分子的电子密度更快
+    def molDens_(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]: # 这种方式计算分子的电子密度更快
         """使用Fortran库计算电子密度"""
-        from pywfn.maths import flib
+        from pywfn.maths import flib,rlib
         ngrid=len(grids)
         obts=self.mol.O_obts
-        CM=self.mol.CM[:,obts].copy()
+        CM=self.mol.coefs.CM('car')[:,obts].copy()
         nmat,nobt=CM.shape
         wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grids,level) # 原子轨道波函数
         dens0,dens1,dens2=flib.obtDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
@@ -63,7 +63,24 @@ class Calculator(spaceprop.SpaceCaler):
         dens0*=self.mol.oE
         dens1*=self.mol.oE
         dens2*=self.mol.oE
-        
+        return dens0,dens1,dens2
+
+    def molDens(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]:
+        """使用Rust库计算电子密度
+
+        Args:
+            grids (np.ndarray): 要计算的格点
+            level (int): 计算等级
+
+        Returns:
+            tuple[np.ndarray,np.ndarray,np.ndarray]: 电子密度、电子密度导数、电子密度Hessian
+        """
+        CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy()
+        xyzs,lmns,coes,alps=self.mol.basis.matMapRs()
+        dens0,dens1,dens2=rlib.mol_rhos(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
+        dens0=np.array(dens0)*self.mol.oE
+        dens1=np.array(dens1)*self.mol.oE
+        dens2=np.array(dens2)*self.mol.oE
         return dens0,dens1,dens2
     
     def proMolDens(self,grids:np.ndarray): # 第一种方式，使用插值计算

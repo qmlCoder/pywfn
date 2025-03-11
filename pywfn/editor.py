@@ -46,5 +46,7 @@ class Editor:
         result=points_rotate(points,center,axis,angle)
         coords[gidxs,:]=result
         return coords
-        
+    
+    def add_ringBq(self): # 在环中心添加Bq原子
+        pass
         

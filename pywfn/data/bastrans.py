@@ -8,7 +8,7 @@ DMat=np.zeros(shape=(6,5))
 DMat[ 0, 0]=-0.5
 DMat[ 0, 3]=np.sqrt(3)/2
 DMat[ 1, 0]=-0.5
-DMat[ 1, 4]=-np.sqrt(3)/2    #[1,3]
+DMat[ 1, 3]=-np.sqrt(3)/2    #[1,3]
 DMat[ 2, 0]= 1.0
 DMat[ 3, 4]= 1.0
 DMat[ 4, 1]= 1.0
@@ -110,7 +110,13 @@ HMat[20, 1]= np.sqrt(15/8)
 HMat[20, 5]=-np.sqrt(35/2)/8
 HMat[20, 9]= 3/8*np.sqrt(7/2)
 
-Dsyms=['XX','YY','ZZ','XY','XZ','YZ']
-Fsyms=['XXX','YYY','ZZZ','XYY','XXY','XXZ','XZZ','YZZ','YYZ','XYZ']
-Gsyms=['ZZZZ','YZZZ','YYZZ','YYYZ','YYYY','XZZZ','XYZZ','XYYZ','XYYY','XXZZ','XXYZ','XXYY','XXXZ','XXXY','XXXX']
-Hsyms=['ZZZZZ','YZZZZ','YYZZZ','YYYZZ','YYYYZ','YYYYY','XZZZZ','XYZZZ','XYYZZ','XYYYZ','XYYYY','XXZZZ','XXYZZ','XXYYZ','XXYYY','XXXZZ','XXXYZ','XXXYY','XXXXZ']
+carDsyms=['XX','YY','ZZ','XY','XZ','YZ']
+carFsyms=['XXX','YYY','ZZZ','XYY','XXY','XXZ','XZZ','YZZ','YYZ','XYZ']
+carGsyms=['ZZZZ','YZZZ','YYZZ','YYYZ','YYYY','XZZZ','XYZZ','XYYZ','XYYY','XXZZ','XXYZ','XXYY','XXXZ','XXXY','XXXX']
+carHsyms=['ZZZZZ','YZZZZ','YYZZZ','YYYZZ','YYYYZ','YYYYY','XZZZZ','XYZZZ','XYYZZ','XYYYZ','XYYYY','XXZZZ','XXYZZ','XXYYZ','XXYYY','XXXZZ','XXXYZ','XXXYY','XXXXZ']
+
+
+sphDsyms=['D 0','D+1','D-1','D+2','D-2']
+sphFsyms=['F 0','F+1','F-1','F+2','F-2','F+3','F-3']
+sphGsyms=['G 0','G+1','G-1','G+2','G-2','G+3','G-3','G+4','G-4']
+sphHsyms=['H 0','H+1','H-1','H+2','H-2','H+3','H-3','H+4','H-4','H+5','H-5']

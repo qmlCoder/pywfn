@@ -15,6 +15,7 @@ import threading
 import json
 
 from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 from pywfn import reader
@@ -24,6 +25,7 @@ import linecache
 import textwrap
 import time
 from pywfn.reader.utils import toCart
+
 
 class Title:
     def __init__(self,mark:str,jtype:int=0,multi:bool=False) -> None:
@@ -158,39 +160,6 @@ class LogReader(reader.Reader):
         assert result is not None,"没有找到原子符号"
         atmSyms,atmXyzs = result
         return atmSyms
-
-    @lru_cache
-    def get_CM(self) -> np.ndarray:
-        CM=self.read_CMs()[-1]
-        return CM
-    
-    @lru_cache
-    def get_atoAtms(self) -> list[int]:
-        atoAtms=self.read_CMs()[0]
-        return atoAtms
-    
-    @lru_cache
-    def get_atoShls(self) -> list[int]:
-        atoShls=self.read_CMs()[1]
-        return atoShls
-
-    @lru_cache
-    def get_atoSyms(self)-> list[list[int]]:
-        atoSyms=self.read_CMs()[2]
-        return atoSyms
-
-    @lru_cache
-    def get_obtEngs(self) -> list[float]:
-        obtEngs=self.read_CMs()[3]
-        return obtEngs
-    
-    def get_obtOccs(self) -> list[bool]:
-        obtOccs=self.read_CMs()[4]
-        return obtOccs
-
-    @lru_cache
-    def get_SM(self)->np.ndarray:
-        return self.read_SM()
     
     def get_nele(self)->tuple[int,int]:
         read=self.read_multiy()
@@ -209,12 +178,28 @@ class LogReader(reader.Reader):
     def get_energy(self)->float:
         return self.read_energy()
     
-    from pywfn.base.basis import BasisData
-    def get_basData(self)->tuple[str,list[BasisData]]:
+    from pywfn.base.basis import BasisData,Basis
+    def get_basis(self)->Basis:
         name=self.read_basisName()
         data=self.read_basisData()
         assert data is not None,"没有找到基组数据"
-        return name,data
+        basis=Basis()
+        basis.name=name
+        basis.data=data
+        return basis
+    
+    
+    def get_coefs(self)->Coefs:
+        coefs=Coefs()
+        atms,shls,syms,engs,occs,CM=self.read_CMs()
+        coefs._atoAtms_raw=atms
+        coefs._atoShls_raw=shls
+        coefs._atoSyms_raw=syms
+        coefs._obtEngs_raw=engs
+        coefs._obtOccs_raw=occs
+        coefs._CM_raw=CM
+        return coefs
+
 
     def read_keyWrds(self):
         """读取关键字"""
@@ -520,8 +505,8 @@ class LogReader(reader.Reader):
             self.save_fdata('occs',occs)
             self.save_fdata('CM'  ,CM)
         # 将潜在的球谐的转为笛卡尔的形式
-        atmList,shlList,symList,CM=toCart(atms,shls,syms,CM)
-        return atmList,shlList,symList,engs,occs,CM
+        # atmList,shlList,symList,CM=toCart(atms,shls,syms,CM)
+        return atms,shls,syms,engs,occs,CM
 
     @lru_cache
     def read_SM(self):

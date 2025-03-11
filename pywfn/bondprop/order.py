@@ -207,8 +207,6 @@ class Calculator:
     
     # 分解键级
     def decompose(self,bond:list[int],dobt:int=-1):
-
-
         """
         键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
         将原子轨道基函数的系数按照角动量进行分组

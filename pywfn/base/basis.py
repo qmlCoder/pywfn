@@ -84,9 +84,9 @@ class Basis:
     所有提前准备的基组数据
     """
 
-    def __init__(self,mol:"base.Mol") -> None:
+    def __init__(self) -> None:
         """根据基组名实例化基组信息"""
-        self.mol  = mol
+        self.mol:"base.Mol|None"  = None
         self.name = ''
         self.data: list[BasisData] = []
     
@@ -112,6 +112,7 @@ class Basis:
     @lru_cache
     def get(self, sym: str, shl: int|None = None, ang: int|None = None) -> list[BasisData]:
         """根据原子序号获得基组"""
+        assert self.mol is not None, "请先设置分子信息"
         basis=[]
         for each in self.data:
             s1 = self.mol.atom(each.atm).sym == sym # 第一个条件
@@ -133,11 +134,15 @@ class Basis:
         return SYM2LMN[sym]
 
     def matMap(self): # 映射到系数矩阵的数据类型
+        assert self.mol is not None, "请先设置分子信息"
         atos=[]
         coes=[]
         alps=[]
         lmns=[]
+        atoKeys=self.mol.coefs.atoKeys('car')
+        # print(atoKeys)
         for each in self.data:
+            # print(each)
             atm=each.atm
             shl=each.shl
             ang=each.ang
@@ -147,7 +152,8 @@ class Basis:
             for i,lmn in enumerate(ANG2LMN[ang]):
                 sym=self.lmn2sym(lmn)
                 key=f'{atm}-{shl}{sym}'
-                ato=self.mol.atoKeys.index(key)
+                ato=atoKeys.index(key)
+                
                 atos.append(ato)
                 coes.append(coe)
                 alps.append(alp)
@@ -161,9 +167,11 @@ class Basis:
         coes=coes[idxs].copy()
         alps=alps[idxs].copy()
         lmns=lmns[idxs].copy()
+        # print(len(atos))
         return atos,coes,alps,lmns
     
     def matMapRs(self):
+        assert self.mol is not None, "请先设置分子信息"
         nato=self.mol.CM.shape[0]
         lmns=[[] for i in range(nato)]
         coes=[[] for i in range(nato)]

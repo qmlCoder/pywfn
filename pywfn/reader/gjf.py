@@ -13,11 +13,11 @@ class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
     
-    def get_symbols(self) -> list[str]:
+    def get_atmSyms(self) -> list[str]:
         symbols,coords=self.read_coord()
         return symbols
     
-    def get_coords(self) -> ndarray:
+    def get_atmXyzs(self) -> ndarray:
         symbols,coords=self.read_coord()
         return coords
     

@@ -12,10 +12,10 @@ class MolReader(reader.Reader):
         self.natm=int(line3[:3])
         print(self.natm)
 
-    def get_coords(self) -> ndarray:
+    def get_atmXyzs(self) -> ndarray:
         return self.read_coords()[1]
     
-    def get_symbols(self) -> list[str]:
+    def get_atmSyms(self) -> list[str]:
         return self.read_coords()[0]
     
     @lru_cache

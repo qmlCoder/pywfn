@@ -14,25 +14,25 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
                 CMlist.append(bt.DMat@CM[i:i+5])
                 atmList+=[atms[i]]*6
                 shlList+=[shls[i]]*6
-                symList+=bt.Dsyms
+                symList+=bt.carDsyms
                 i+=5
             case 'F 0':
                 CMlist.append(bt.FMat@CM[i:i+7])
                 atmList+=[atms[i]]*10
                 shlList+=[shls[i]]*10
-                symList+=bt.Fsyms
+                symList+=bt.carFsyms
                 i+=7
             case 'G 0':
                 CMlist.append(bt.GMat@CM[i:i+9])
                 atmList+=[atms[i]]*15
                 shlList+=[shls[i]]*15
-                symList+=bt.Gsyms
+                symList+=bt.carGsyms
                 i+=9
             case 'H 0':
                 CMlist.append(bt.HMat@CM[i:i+11])
                 atmList+=[atms[i]]*21
                 shlList+=[shls[i]]*21
-                symList+=bt.Hsyms
+                symList+=bt.carHsyms
                 i+=11
             case _:
                 CMlist.append(CM[i][None,:])

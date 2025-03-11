@@ -116,7 +116,7 @@ def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
     n:分子轨道占据电子数
     """
     assert type(obts)==list,"obts必须为列表"
-    CMv=CM[:,obts]
+    CMv=CM[:,obts].copy()
     CMh=np.transpose(CMv)
     PM = (CMv @ CMh) * oe
     return PM

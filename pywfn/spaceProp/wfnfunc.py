@@ -19,7 +19,7 @@ class Calculator(spaceprop.SpaceCaler):
         self.mol=mol
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
         self.wfns:np.ndarray|None=None
-        self.CM=self.mol.CM.copy()
+        self.CM=self.mol.coefs.CM('car').copy()
         self.atms=self.mol.atoms.atms
     
     def obtWfns(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
@@ -42,7 +42,7 @@ class Calculator(spaceprop.SpaceCaler):
     def atoWfns(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
         """计算所有原子轨道"""
         ngrid=grids.shape[0]
-        nmat=self.mol.CM.shape[0]
+        nmat=self.mol.coefs.CM('car').shape[0]
         # cords=self.mol.coords.copy()
         atms = self.mol.atoAtms
         shls = self.mol.atoShls
@@ -87,8 +87,8 @@ class Calculator(spaceprop.SpaceCaler):
 
     def atmWfns(self,grid:np.ndarray,atms:list[int],obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
         """计算几个原子的波函数"""
-        
-        nbas=self.mol.CM.shape[0] # 基函数的数量
+        CM=self.mol.coefs.CM('car')
+        nbas=CM.shape[0] # 基函数的数量
         obtAtms=self.mol.atoAtms
         atowfns,_,_=self.atoWfns(grid,level=0)
         nobt=len(obts)
@@ -96,7 +96,7 @@ class Calculator(spaceprop.SpaceCaler):
         for o,obt in enumerate(obts):
             for i in range(nbas):
                 if obtAtms[i] not in atms:continue
-                coef=self.mol.CM[i,obt]
+                coef=CM[i,obt]
                 wfn=coef*atowfns[i]
                 wfns[o]+=wfn
         return wfns

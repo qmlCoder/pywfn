@@ -1,7 +1,21 @@
-def gtf(xyz:list[float],lmn:list[int],alp:float)->float:...
+f1D=list[float]
+i1D=list[int]
+f2D=list[list[float]]
+i2D=list[list[int]]
 
-def cgf(xyz:list[float],lmn:list[int],alps:list[float],coes:list[float])->float:...
+def mol_rhos(
+        grids:f2D,
+        xyzs:f2D,
+        lmns:i2D,
+        coes:f2D,
+        alps:f2D,
+        mat_c:f2D,
+        level:int
+    )->tuple[float,f1D,f2D]:...
 
-def ato_wfn(xyz:list[float],xyzs:list[list[float]],lmns:list[list[int]],coes:list[list[float]],alps:list[list[float]])->float:...
-
-def mol_rho(xyz:list[float],xyzs:list[list[float]],lmns:list[list[int]],coes:list[list[float]],alps:list[list[float]],mat_c:list[list[float]])->float:...
+def march_cube(
+    shape:i1D,
+    grids:f2D,
+    value:f1D,
+    isov:float
+)->tuple[tuple[float]]:...

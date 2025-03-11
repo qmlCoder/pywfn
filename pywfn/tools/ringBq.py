@@ -14,7 +14,7 @@ class Tool:
         self.rings=[]
         self.writer=GjfWriter().fromMol(mol)
         self.gjftxt=''
-        self.TITLE='b3lyp/6-31g(d) NMR' # 计算NICS只要个单点就行了
+        self.title='b3lyp/6-31g(d) NMR' # 计算NICS只要个单点就行了
 
     def build(self):
         """构建"""
@@ -24,7 +24,7 @@ class Tool:
             cords=molCoords[idxs,:]
             coord=np.mean(cords,axis=0)
             self.mol._atoms.add('Bq',coord)
-        self.writer.TITLE=self.TITLE
+        self.writer.title=self.title
         self.writer.chk=f'{Path(self.mol.reader.path).stem}_Bq.chk'
         return self.writer.build()
 

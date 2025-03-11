@@ -2,7 +2,6 @@
 将分子对象保存为gif文件
 """
 from pathlib import Path
-import json
 import numpy as np
 from pywfn.base import Mol
 from pywfn import config
@@ -16,7 +15,7 @@ class GjfWriter:
         self.chk='chk'
         self.charge=0
         self.spin  =1
-        self.TITLE=config.GJF_TITLE
+        self.title=config.GJF_TITLE
     
     def fromMol(self,mol:Mol):
         self.syms=mol.atoms.syms
@@ -34,12 +33,12 @@ class GjfWriter:
         return '\n'.join(coordStrs)
     
     def build(self)->str:
-        assert self.TITLE!='','请设置标题'
+        assert self.title!='','请设置标题'
         self.temp=self.temp.replace('<COORD>',self.get_coordStr())
         self.temp=self.temp.replace('<CHARGE>',f'{self.charge}')
         self.temp=self.temp.replace('<SPIN>',f'{self.spin}')
         self.temp=self.temp.replace('<CHK>',self.chk)
-        self.temp=self.temp.replace('<TITLE>',self.TITLE)
+        self.temp=self.temp.replace('<TITLE>',self.title)
         return self.temp
 
     def save(self,path:str):
