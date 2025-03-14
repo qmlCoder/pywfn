@@ -358,7 +358,7 @@ contains
             do l=1,8
               key=key+merge(1,0,vals(9-l)>isov)*2**(l-1)
             end do
-            write(*,'(A,I3,8F10.4)')'key=',key,vals
+            ! write(*,'(A,I3,8F10.4)')'key=',key,vals
             call get_boxVerts(key,xyzs,vals,isov,boxVerts)
             ! write(*,'(A,4I3)')'key=',key,idx,idx+nums(key)*3,count
             verts(:,idx:idx+nums(key)*3-1)=boxVerts(:,:nums(key)*3)
@@ -398,10 +398,10 @@ contains
     real(c_double)::pa(3), pb(3), va, vb, k
     integer::f, p, e, a, b
     nface = nums(key)
-    write(*,'(2I3)')key, nface
+    ! write(*,'(2I3)')key, nface
     do f = 1, nface
       face(:) = idxs((f - 1)*3 + 1:(f - 1)*3 + 3, key) !面对应的顶点索引
-      write(*,'(4I3)')f,face(:)
+      ! write(*,'(4I3)')f,face(:)
       do p = 1, 3 ! 面的三个点
         e = face(p) + 1
         a = bonds(1, e) + 1 ! 每个顶点由一条边确定，也就是两个网格点确定

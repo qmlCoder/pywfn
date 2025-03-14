@@ -75,7 +75,7 @@ class Calculator(spaceprop.SpaceCaler):
         Returns:
             tuple[np.ndarray,np.ndarray,np.ndarray]: 电子密度、电子密度导数、电子密度Hessian
         """
-        CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy()
+        CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
         xyzs,lmns,coes,alps=self.mol.basis.matMapRs()
         dens0,dens1,dens2=rlib.mol_rhos(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
         dens0=np.array(dens0)*self.mol.oE
@@ -108,12 +108,10 @@ class Calculator(spaceprop.SpaceCaler):
         if pro: # 如果使用预分子
             dens0,dens1,_=self.proMolDens_v2(grids,1) # type: ignore
         else: # 使用真实电子密度及梯度
-            dens0,dens1,_=self.molDens(grids,1)
-        idxs=np.where(dens0>0.1)
+            dens0,dens1,_=self.molDens(grids,2)
         L=np.linalg.norm(dens1,axis=1)
         K=1/(2*(3*np.pi**2)**(1/3))
         rdg=K*L/dens0**(4/3)
-        # rdg[idxs]=0.0
         return rdg
     
     def IRI(self,grids:np.ndarray,pro:bool=False,a=1.1): # 

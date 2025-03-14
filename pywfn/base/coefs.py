@@ -49,14 +49,12 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
                 shlList+=[shls[i]]*21
                 symList+=bt.carHsyms
                 i+=11
-            case 'S'|'PX'|'PY'|'PZ':
+            case _:
                 CMlist.append(CM[i][None,:])
                 atmList.append(atms[i])
                 shlList.append(shls[i])
                 symList.append(syms[i])
                 i+=1
-            case _:
-                raise ValueError(f'无效的符号{sym}')
 
     CM=np.concatenate(CMlist,axis=0)
     return atmList,shlList,symList,CM
@@ -64,22 +62,22 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
 class Coefs:
     def __init__(self):
         self.mol:"base.Mol|None"=None
-        self._atoAtms_raw:None|list[int]   = None
-        self._atoShls_raw:None|list[int]   = None
-        self._atoSyms_raw:None|list[str]   = None
-        self._obtEngs_raw:None|list[float] = None
-        self._obtOccs_raw:None|list[bool]  = None
+        self._atoAtms:None|list[int]   = None
+        self._atoShls:None|list[int]   = None
+        self._atoSyms:None|list[str]   = None
+        self._obtEngs:None|list[float] = None
+        # self._obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
         self._CM_raw:np.ndarray|None = None
         
         # raw:原始系数，car:笛卡尔系数，sph:球谐系数
     
     @cached_property
     def carData(self)->tuple[list[int],list[int],list[str],np.ndarray]:
-        assert self._atoAtms_raw is not None,"未初始化atoAtms"
-        assert self._atoShls_raw is not None,"未初始化atoShls"
-        assert self._atoSyms_raw is not None,"未初始化atoSyms"
+        assert self._atoAtms is not None,"未初始化atoAtms"
+        assert self._atoShls is not None,"未初始化atoShls"
+        assert self._atoSyms is not None,"未初始化atoSyms"
         assert self._CM_raw is not None,"未初始化CM"
-        atms,shls,syms,CM=toCart(self._atoAtms_raw,self._atoShls_raw,self._atoSyms_raw,self._CM_raw)
+        atms,shls,syms,CM=toCart(self._atoAtms,self._atoShls,self._atoSyms,self._CM_raw)
         return atms,shls,syms,CM
     
     @lru_cache
@@ -98,8 +96,8 @@ class Coefs:
     def atoAtms(self,form:str)->list[int]:
         match form:
             case 'raw':
-                assert self._atoAtms_raw is not None,"未初始化atoAtms"
-                return self._atoAtms_raw
+                assert self._atoAtms is not None,"未初始化atoAtms"
+                return self._atoAtms
             case 'car':
                 return self.carData[0]
             case 'sph':
@@ -110,8 +108,8 @@ class Coefs:
     def atoShls(self,form:str):
         match form:
             case 'raw':
-                assert self._atoShls_raw is not None,"未初始化atoShls"
-                return self._atoShls_raw
+                assert self._atoShls is not None,"未初始化atoShls"
+                return self._atoShls
             case 'car':
                 return self.carData[1]
             case 'sph':
@@ -120,17 +118,28 @@ class Coefs:
                 raise ValueError('无效的系数形式')
     
     def atoSyms(self,form:str)->list[str]:
-        assert self._atoSyms_raw is not None,"未初始化atoSyms"
+        assert self._atoSyms is not None,"未初始化atoSyms"
         match form:
             case 'raw':
-                assert self._atoSyms_raw is not None,"未初始化atoSyms"
-                return self._atoSyms_raw
+                assert self._atoSyms is not None,"未初始化atoSyms"
+                return self._atoSyms
             case 'car':
                 return self.carData[2]
             case 'sph':
                 raise NotImplementedError('球谐系数尚未实现')
             case _:
                 raise ValueError('无效的系数形式')
+    
+    @property
+    def obtOccs(self)->list[bool]:
+        assert self.mol is not None,"未初始化分子"
+        nela,nelb=self.mol.nele
+        if self.mol.open:
+            nobt=self.mol.CM.shape[1]//2
+            return [True]*nela+[False]*(nobt-nela)+[True]*nelb+[False]*(nobt-nelb)
+        else:
+            nobt=self.mol.CM.shape[1]
+            return [True]*nela+[False]*(nobt-nela)
     
     def atoKeys(self,form:str):
         atms=self.atoAtms(form)
@@ -147,13 +156,7 @@ class Coefs:
         assert self.mol is not None,"未初始化分子"
         return self.mol.atoms.xyzs[idxs].copy()
     
-    @property
-    def SM_car(self): # 笛卡尔重叠矩阵
-        assert self.mol is not None,"未初始化分子"
-        atos,coes,alps,lmns=self.mol.basis.matMap()
-        xyzs=self.atoXyzs('car')
-        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
-        return SM
+    
     
     @cached_property
     def shlType(self):
@@ -169,7 +172,16 @@ class Coefs:
             elif sym in bastrans.sphDsyms:
                 rawTypes[key]='sph'
         return rawTypes
+    @property
+    def SM_car(self): # 笛卡尔重叠矩阵
+        assert self.mol is not None,"未初始化分子"
+        atos,coes,alps,lmns=self.mol.basis.matMap()
+        xyzs=self.atoXyzs('car')
+        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
+        return SM
     
+    
+
     @property
     def SM_raw(self): # 原始重叠矩阵
         # 记录每个原始壳层对应的原始类型
@@ -235,3 +247,21 @@ class Coefs:
                     raise ValueError('尚不支持')
         SM_raw=np.concatenate(SM_raw,axis=0)
         return SM_raw
+
+    def SM(self,form:str):
+        match form:
+            case 'raw':
+                return self.SM_raw
+            case 'car':
+                return self.SM_car
+            case 'sph':
+                raise NotImplementedError('球谐系数尚未实现')
+            case _:
+                raise ValueError('无效的系数形式')
+
+    def CMr(self,form:str): # 行平方和为1的系数矩阵
+        SM=self.SM(form)
+        CM=self.CM(form)
+        eigVal,eigVec=np.linalg.eigh(SM)
+        X=(eigVec@np.diag(eigVal))@eigVec.T
+        return X.T@CM

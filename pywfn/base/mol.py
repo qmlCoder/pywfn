@@ -108,13 +108,13 @@ class Mol:
     @property
     def obtOccs(self)->list[bool]:
         """获取每个分子轨道是否占据"""
-        occs=self.coefs._obtOccs_raw
+        occs=self.coefs.obtOccs
         assert occs is not None,"未获取occs"
         return occs
 
     @cached_property
     def obtEngs(self)->list[float]:
-        engs=self.coefs._obtEngs_raw
+        engs=self.coefs._obtEngs
         assert engs is not None,"未获取obtEngs"
         return engs
 

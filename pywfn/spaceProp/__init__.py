@@ -190,14 +190,16 @@ class SpaceCaler:
         # verts=march.voxel2verts(voxelData,isov,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
         print('提取等值面',limit,gt)
         # verts:np.ndarray=flib.marchCube(grids,vals,shape,isov)[1] # type: ignore 
-        verts=rlib.march_cube(shape,grids.tolist(),vals.tolist(),isov) # type: ignore
+        verts,faces=rlib.march_cube(shape,grids.tolist(),vals.tolist(),isov) # type: ignore
         verts=np.array(verts)
+        faces=np.array(faces)
         # print(verts)
         if verts is not None:
             print('vert.shape',verts.shape)
             # verts,faces=flib.vertsMerge(verts,0.1) # 合并顶点
             # faces=faces.reshape(-1,3)
-            faces=np.arange(len(verts)).reshape(-1,3)
+            # faces=np.arange(verts.shape[0]).reshape(-1,3)
+            # print(faces)
             # if not gt:
             #     faces[:,0],faces[:,2]=faces[:,2],faces[:,0]
             return verts,faces

@@ -11,7 +11,7 @@ from pywfn.maths import flib
 from pywfn.maths import cubeGrid
 from pywfn.spaceprop import lutils
 from pywfn import spaceprop
-from pywfn.maths import march
+from pywfn.maths import march,rlib
 Array=np.ndarray
 
 class Calculator(spaceprop.SpaceCaler):
@@ -22,7 +22,20 @@ class Calculator(spaceprop.SpaceCaler):
         self.CM=self.mol.coefs.CM('car').copy()
         self.atms=self.mol.atoms.atms
     
-    def obtWfns(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
+    def obtWfns(self,grids:np.ndarray,obts:list[int])->np.ndarray:
+        xyzs,lmns,coes,alps=self.mol.basis.matMapRs()
+        wfns0=[]
+        for obt in obts:
+            coefs=self.CM[:,obt].tolist() # 轨道系数
+            # print('coes',coes)
+            # print('alps',alps)
+            wfn0,wfn1,wfn2=rlib.obt_wfns(grids.tolist(),xyzs,lmns,coes,alps,coefs,0) # type: ignore
+            # print(wfn0)
+            wfns0.append(wfn0)
+        return np.array(wfns0)
+
+    
+    def obtWfns_(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
         """
         计算分子轨道的波函数，为原子轨道的线性组合
         obt：分子轨道指标

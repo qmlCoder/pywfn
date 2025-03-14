@@ -7,6 +7,7 @@ import numpy as np
 
 from pywfn import base
 from pywfn.base.basis import BasisData,Basis
+from pywfn.base.coefs import Coefs
 from pywfn.data.elements import elements
 from pywfn import reader
 from pywfn.reader.utils import toCart
@@ -128,7 +129,26 @@ class FchReader(reader.Reader):
         eleb=int(self.getline(self.titles['Number of beta electrons'])[45:71])
         return elea,eleb
     
+    def get_basis(self)->Basis:
+        basData=self.read_basis()
+        basName=self.getline(1)[40:90].strip()
+        basis=Basis()
+        basis.name=basName
+        basis.data=basData
+        return basis
     
+    def get_coefs(self) -> Coefs:
+        atms,shls,syms,CM=self.read_CMs()
+        aengs=self.parse_title('Alpha Orbital Energies')
+        bengs=self.parse_title('Beta Orbital Energies')
+        engs:list[float] = aengs+bengs # type: ignore
+        coefs=Coefs()
+        coefs._atoAtms=atms
+        coefs._atoShls=shls
+        coefs._atoSyms=syms
+        coefs._CM_raw=CM
+        coefs._obtEngs=engs
+        return coefs
 
     def read_OB(self):
         lineNum=self.titles['Orthonormal basis']
@@ -161,13 +181,7 @@ class FchReader(reader.Reader):
                 idx+=1
         return DM
     
-    def get_basis(self)->Basis:
-        basData=self.read_basis()
-        basName=self.getline(1)[40:90].strip()
-        basis=Basis()
-        basis.name=basName
-        basis.data=basData
-        return basis
+    
 
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')
@@ -215,27 +229,6 @@ class FchReader(reader.Reader):
 
     def read_method(self)->str:
         return self.getline(1)[10:20].strip()
-    
-    def get_atoAtms(self) -> list[int]:
-        atms,shls,syms,CM=self.read_CMs()
-        return atms
-    
-    def get_atoShls(self) -> list[int]:
-        atms,shls,syms,CM=self.read_CMs()
-        return shls
-    
-    def get_atoSyms(self) -> list[str]:
-        atms,shls,syms,CM=self.read_CMs()
-        return syms
-    
-    def get_obtEngs(self):
-        aengs=self.parse_title('Alpha Orbital Energies')
-        bengs=self.parse_title('Beta Orbital Energies')
-        return aengs+bengs
-    
-    def get_CM(self) -> np.ndarray:
-        atms,shls,syms,CM=self.read_CMs()
-        return CM
     
     def read_CM(self) -> np.ndarray:
         acoefs=self.parse_title('Alpha MO coefficients')

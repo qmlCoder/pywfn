@@ -466,12 +466,14 @@ contains
           nu_ij = 1.5*nu_ij - 0.5*nu_ij**3
 
           S_u(j, i) = 0.5*(1 - nu_ij)
+          ! write(*,'(A,2I3,F10.4)')'S_u', i, j, S_u(j, i)
         end do
       end do
       wt = 1.0
       do i = 1, natm
         wt = wt*S_u(i, :)
       end do
+      ! write(*,'(A,3F10.4)')'wt', wt(1), wt(2), wt(3)
       rat = wt(atm)/sum(wt)
       weit = atmWeit(g)*rat
       if (.true.) then
@@ -644,12 +646,6 @@ contains
     end do
     bas_ul(2,1:iato-1)=bas_ul(1,2:iato)-1
     bas_ul(2,iato)=nbas
-    ! do i=1,nato
-    !   write(*,'(3I5)') i,bas_ul(1,i),bas_ul(2,i)
-    ! end do
-    ! do i=1,nbas
-    !   write(*,'(A,I5,3I5)')'lmn',i,lmns(:,i)
-    ! end do
 
     do i=1,nato
       do j=1,nato
@@ -702,6 +698,7 @@ contains
             pv=pv*(ts(t)-xs(j))/(xs(i)-xs(j))
           end do
           tv=tv+ys(i)*pv
+          ! write(*,'(A,I5,F10.4)')'pv',i,pv
         end do
         vs(t)=tv
       end if

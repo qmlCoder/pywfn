@@ -39,11 +39,11 @@ class Title:
     
     def judge(self,line:str):
         """判断所给行是否满足条件"""
-        if self.jtype==0:
+        if self.jtype==0: #正则表达式匹配
             return re.search(self.mark,line) is not None
-        elif self.jtype==1:
+        elif self.jtype==1: #包含
             return self.mark in line
-        elif self.jtype==2:
+        elif self.jtype==2: #相等
             return line==self.mark
     
     def set_lnum(self,lnum:int):
@@ -73,6 +73,7 @@ class LogReader(reader.Reader):
             'basisData':Title(r'Overlap normalization',1),
             'engs':Title(r'Zero-point correction',1),
             'keyWards':Title(r'^ # .+',0),
+            'nele':Title(r'alpha electrons',1)
         }
         self.conf={}
         self.cpath=Path(f'{self.dataFold}/log.json') # config path 配置文件，减小第二次使用搜索时间的消耗
@@ -161,19 +162,13 @@ class LogReader(reader.Reader):
         atmSyms,atmXyzs = result
         return atmSyms
     
-    def get_nele(self)->tuple[int,int]:
-        read=self.read_multiy()
-        if read is None:
-            return (0,0)
-        charge,spin=read
-        syms=self.get_atmSyms()
-        from pywfn.data.elements import elements
-        total=sum([elements[sym].atomic for sym in syms]) # 总核电荷数
-        elea=(spin-charge+total-1)/2
-        eleb=elea+1-spin
-        assert elea==int(elea),"电子数必须是整数"
-        assert eleb==int(eleb),"电子数必须是整数"
-        return int(elea),int(eleb)
+    def get_nele(self)->tuple[int,int]: # 根据总核电荷数和电荷、自旋计算α、β电子数，不可行的
+        lineNum=self.titles['nele'].line
+        line=self.getline(lineNum)
+        matchs=re.match(r'^ +(\d+) alpha electrons +(\d+) +beta electrons',line)
+        assert matchs is not None,"没有找到电子数"
+        nela,nelb=matchs.groups()
+        return int(nela),int(nelb)
     
     def get_energy(self)->float:
         return self.read_energy()
@@ -192,11 +187,10 @@ class LogReader(reader.Reader):
     def get_coefs(self)->Coefs:
         coefs=Coefs()
         atms,shls,syms,engs,occs,CM=self.read_CMs()
-        coefs._atoAtms_raw=atms
-        coefs._atoShls_raw=shls
-        coefs._atoSyms_raw=syms
-        coefs._obtEngs_raw=engs
-        coefs._obtOccs_raw=occs
+        coefs._atoAtms=atms
+        coefs._atoShls=shls
+        coefs._atoSyms=syms
+        coefs._obtEngs=engs
         coefs._CM_raw=CM
         return coefs
 
