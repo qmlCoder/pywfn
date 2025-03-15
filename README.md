@@ -5,9 +5,9 @@
 
 ## 依赖
 ```
-numpy==2.1.1
-rich==13.8.0
-matplotlib==3.9.2
+numpy>=2.1.1
+rich>=13.8.0
+matplotlib>=3.9.2
 ```
 ## 运行(CLI)
 ``` shell
@@ -32,10 +32,3 @@ print(result) # 打印结果
 ## 功能
 ![](./docs/pywfn_xmind.png)
 
-gfortran -shared -ffree-form -ffree-line-length-none -fopenmp data.f90 march.f90 flib.f90 -o flib.dll
-
-ifx -dll -free -qopenmp data.f90 march.f90 flib.f90 -o flib.dll
-
-python -m build
-
-twine upload dist/*
