@@ -12,7 +12,7 @@ import numpy as np
 from functools import lru_cache,cached_property
 
 from pywfn import base
-from pywfn.maths import flib
+from pywfn.maths import flib,rlib
 from pywfn.data import bastrans
 
 def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
@@ -173,14 +173,29 @@ class Coefs:
                 rawTypes[key]='sph'
         return rawTypes
     @property
-    def SM_car(self): # 笛卡尔重叠矩阵
+    def SM_car_(self): # 笛卡尔重叠矩阵
         assert self.mol is not None,"未初始化分子"
-        atos,coes,alps,lmns=self.mol.basis.matMap()
+        atos,coes,alps,lmns=self.mol.basis.basMap()
         xyzs=self.atoXyzs('car')
         SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
         return SM
     
-    
+    @property
+    def SM_car(self):
+        assert self.mol is not None,"未初始化分子"
+        atos,coes,alps,lmns=self.mol.basis.basMap()
+        xyzs=self.atoXyzs('car')
+        facs = [1., 1., 3.]
+        for i in range(len(coes)):
+            l,m,n=lmns[i]
+            fac = facs[l]*facs[m]*facs[n]
+            ang=l+m+n
+            alp=alps[i]
+            Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
+            coes[i]=Nm*coes[i]
+        SM=rlib.mat_integ_rs(atos.tolist(),coes.tolist(),alps.tolist(),lmns.tolist(),xyzs.tolist()) # type: ignore
+        SM=np.array(SM)
+        return SM
 
     @property
     def SM_raw(self): # 原始重叠矩阵

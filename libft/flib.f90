@@ -641,6 +641,7 @@ contains
 
     bas_ul=0 ! 获取原子轨道对应的基函数数据数组的上下界
     do i=1,nbas
+      ! write(*,'(A,I3,2F10.4)')'coe,alp',i,coes(i),alps(i)
       iato=atos(i)+1
       if (bas_ul(1,iato)==  0) bas_ul(1,iato)=i
     end do
@@ -661,6 +662,7 @@ contains
             call gftInteg(alpl,xyzl,lmnl,sval)
             mats(i,j)=mats(i,j)+coes(k)*coes(l)*sval
             ! if (i==3 .and. j==3) write(*,'(2I5,3F10.4)')k,l,coes(k),coes(l),sval
+            ! write(*,'(A,4I3,3F10.4)')'mats',i,j,k,l,sval,coes(k),coes(l)
           end do
         end do
       end do

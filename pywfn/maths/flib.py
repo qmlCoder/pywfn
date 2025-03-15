@@ -211,17 +211,10 @@ def a2mWeight(
         _type_: _description_
     """
     paras=[atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis]
-    # iparas,itypes=trans_dtype(paras)
 
     a2mGrid=np.zeros_like(atmGrid,dtype=ftype)
     a2mWeit=np.zeros_like(atmWeit,dtype=ftype)
     total=c_int()
-    # oparas,otypes=trans_dtype([a2mGrid,a2mWeit])
-
-    # # if flib.a2mWeight_.argtypes is None:
-    # flib.a2mWeight_.argtypes=itypes+otypes+[POINTER(c_int)]
-    # flib.a2mWeight_(*(iparas+oparas+[byref(total)]))
-    # print(f'{total=},{len(atmWeit)}')
     call_flib('a2mWeight_',paras,[a2mGrid,a2mWeit,byref(total)])
     return a2mGrid[:total.value,:].copy(),a2mWeit[:total.value].copy()
 
@@ -230,13 +223,8 @@ def eleMat(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     assert CM.shape==(nmat,nobt),'CM.shape must be (nmat,nobt)'
     assert SM.shape==(nmat,nmat),'SM.shape must be (nmat,nmat)'
     paras=[nmat,nobt,CM,SM]
-    # iparas,itypes=trans_dtype(paras)
     
     NM=np.zeros((nmat,nobt),dtype=ftype)
-    # oparas,otypes=trans_dtype([NM])
-    # flib.eleMat_.argtypes=itypes+otypes
-    # fparas=iparas+oparas
-    # flib.eleMat_(*fparas)
     call_flib('eleMat_',paras,[NM])
     return NM
 

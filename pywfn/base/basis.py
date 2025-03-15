@@ -133,7 +133,7 @@ class Basis:
     def sym2lmn(self,sym):
         return SYM2LMN[sym]
 
-    def matMap(self): # 映射到系数矩阵的数据类型
+    def basMap(self): # 映射到系数矩阵的数据类型
         assert self.mol is not None, "请先设置分子信息"
         atos=[]
         coes=[]
@@ -170,7 +170,7 @@ class Basis:
         # print(len(atos))
         return atos,coes,alps,lmns
     
-    def matMapRs(self):
+    def atoMap(self):
         assert self.mol is not None, "请先设置分子信息"
         nato=self.mol.CM.shape[0]
         lmns=[[] for i in range(nato)]
@@ -183,6 +183,7 @@ class Basis:
             ang=each.ang
             coe=each.coe
             alp=each.alp
+            
             for i,lmn in enumerate(ANG2LMN[ang]):
                 sym=self.lmn2sym(lmn)
                 key=f'{atm}-{shl}{sym}'

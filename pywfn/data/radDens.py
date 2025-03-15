@@ -2011,17 +2011,9 @@ def get_radDens(atomic:int,dists:np.ndarray):
     rdens=radDens[atomic]
     ndens=len(rdens)
     rdist=radDist[:ndens]
-    # idens=np.interp(range(200),range(ndens),rdens) # 将部分数值映射到长度为200的数值
-
-    # print(len(rdist),len(rdens),len(dists))
-    # fdens=np.interp(dists,rdist,rdens)
     rdist=np.array(rdist)
     rdens=np.array(rdens)
     fdens=flib.lagIntpol(rdist,rdens,dists)
-    # for d,dist in enumerate(dists):
-    #     val=np.interp(dist,rdist,rdens)
-    #     for i in range(ndens):
-    #         print(f'intep{i:>5}{rdist[i]:>20.6E}{rdens[i]:>20.6E}{dists[d]:>20.6E}{val:>20.6E}')
     return fdens
 
 # Atomic Density Parameters H-Ar 数据来源于  https://pubs.acs.org/doi/suppl/10.1021/ja100936w/suppl_file/ja100936w_si_001.pdf

@@ -76,7 +76,7 @@ class Calculator(spaceprop.SpaceCaler):
             tuple[np.ndarray,np.ndarray,np.ndarray]: 电子密度、电子密度导数、电子密度Hessian
         """
         CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
-        xyzs,lmns,coes,alps=self.mol.basis.matMapRs()
+        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
         dens0,dens1,dens2=rlib.mol_rhos(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
         dens0=np.array(dens0)*self.mol.oE
         dens1=np.array(dens1)*self.mol.oE
@@ -132,3 +132,13 @@ class Calculator(spaceprop.SpaceCaler):
     def piMolDens(self,grid:np.ndarray):
         """计算分子空间π电子密度"""
         pass
+
+    def vandSurf(self):
+        """返回分子的范德华表面"""
+        p0,p1=self.mol.molBorder
+        shape,grids=spaceprop.CubeGrid().set_v1(p0,p1,0.3,4).get()
+        vals=self.molDens(grids,0)[0]
+        verts,faces=self.isoSurf(shape,grids,vals,0.04)
+        assert verts is not None,"未找到范德华表面"
+        assert faces is not None,"未找到范德华表面"
+        return verts,faces

@@ -93,7 +93,7 @@ class Calculator:
         atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3) #移动到以原子为中心
         return atmGrid,atmWeit
     
-    def a2mGrid(self,atm:int):
+    def a2mGrid_(self,atm:int):
         """将原子中心坐标映射到分子中，改变权重"""
         atmGrid,atmWeit=self.atmGrid(atm)
         nGrid=len(atmGrid)
@@ -105,7 +105,7 @@ class Calculator:
         assert True not in np.isnan(atmWeit),"不应该有nan"
         return a2mGrid,a2mWeit
     
-    def a2mGrid_(self,atm:int):
+    def a2mGrid(self,atm:int):
         atmGrid,atmWeit=self.atmGrid(atm)
         atmPos=self.mol.coords.copy() # 分子坐标
         atmRad=self.mol.atoms.radius

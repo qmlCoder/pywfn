@@ -1,3 +1,6 @@
+use pyo3::PyResult;
+use pyo3::prelude::*;
+
 // 此模块定义积分函数
 use crate::datas::{rhm,whm};
 
@@ -45,10 +48,43 @@ pub fn gtf_integ(alps:&[f64;2],xyzs:&[[f64;3];2],lmns:&[[i32;3];2])->f64{
     val
 }
 
-pub fn mat_integ(atos:Vec<i32>,coes:Vec<f64>,alps:Vec<f64>,lmns:Vec<[i32;3]>,xyzs:Vec<[f64;3]>)->Vec<Vec<f64>>{
-    let mut mats=vec![vec![0.0;atos.len()];atos.len()];
+pub fn mat_integ(atos:&Vec<i32>,coes:&Vec<f64>,alps:&Vec<f64>,lmns:&Vec<[i32;3]>,xyzs:&Vec<[f64;3]>)->Vec<Vec<f64>>{
+    
     let nato=xyzs.len(); // 原子轨道数量
     let nbas=atos.len(); // 基函数数量
-    let mut bas_ul=vec![vec![0;2];nbas];
+    let mut mats=vec![vec![0.0;nato];nato]; // 重叠矩阵
+    let mut bas_ul: Vec<Vec<usize>>=vec![vec![0;2];nato]; //每个原子轨道对应基函数的上下界
+    // println!("nato:{nato:>3},nbas:{nbas:>3}");
+    let mut iato;
+    bas_ul[0][0]=atos[0] as usize;
+    for i in 0..nbas{
+        // println!("coe,alp{i:>3}{:>10.4}{:>10.4}",coes[i],alps[i]);
+        iato=atos[i] as usize;
+        if iato==0 {continue;}
+        if bas_ul[iato as usize][0]==0{
+            bas_ul[iato][0]=i;
+            bas_ul[iato-1][1]=i;
+        }
+    }
+    bas_ul[nato-1][1]=nbas;
+    let mut xyz_ij=[[0.0;3];2];
+    for i in 0..nato{
+        for j in 0..nato{
+            xyz_ij[0]=xyzs[i];
+            xyz_ij[1]=xyzs[j];
+            for k in bas_ul[i][0] as usize..bas_ul[i][1] as usize{
+                for l in bas_ul[j][0] as usize..bas_ul[j][1] as usize{
+                    let sval=gtf_integ(&[alps[k],alps[l]],&xyz_ij,&[lmns[k],lmns[l]]);
+                    mats[i][j]+=coes[k]*coes[l]*sval;
+                    // println!("{i:>3}{j:>3}{k:>3}{l:>3}{sval:>10.4}{:>10.4}{:>10.4}",coes[k],coes[l]);
+                }
+            }
+        }
+    }
     mats
+}
+
+#[pyfunction]
+pub fn mat_integ_rs(atos:Vec<i32>,coes:Vec<f64>,alps:Vec<f64>,lmns:Vec<[i32;3]>,xyzs:Vec<[f64;3]>)->PyResult<Vec<Vec<f64>>>{
+    Ok(mat_integ(&atos,&coes,&alps,&lmns,&xyzs))
 }

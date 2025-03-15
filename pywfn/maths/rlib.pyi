@@ -39,3 +39,11 @@ def a2m_weits(
 )->f1D:...
 
 def lag_intpol_rs(xs:f1D,ys:f1D,ts:f1D)->f1D:...
+
+def mat_integ_rs(
+    atos:i1D,
+    coes:f1D,
+    alps:f1D,
+    lmns:i2D,
+    xyzs:f2D
+)->f2D:...

@@ -13,5 +13,6 @@ fn rlib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(space::a2m_weits, m)?)?;
     m.add_function(wrap_pyfunction!(march::march_cube, m)?)?;
     m.add_function(wrap_pyfunction!(utils::lag_intpol_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(integ::mat_integ_rs, m)?)?;
     Ok(())
 }
