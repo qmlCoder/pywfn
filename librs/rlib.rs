@@ -11,6 +11,8 @@ fn rlib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(space::mol_rhos, m)?)?;
     m.add_function(wrap_pyfunction!(space::obt_wfns, m)?)?;
     m.add_function(wrap_pyfunction!(space::a2m_weits, m)?)?;
+    m.add_function(wrap_pyfunction!(space::nuc_potential_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(space::ele_potential_rs, m)?)?;
     m.add_function(wrap_pyfunction!(march::march_cube, m)?)?;
     m.add_function(wrap_pyfunction!(utils::lag_intpol_rs, m)?)?;
     m.add_function(wrap_pyfunction!(integ::mat_integ_rs, m)?)?;

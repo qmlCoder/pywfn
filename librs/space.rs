@@ -311,6 +311,43 @@ pub fn a2m_weits(
     Ok(a2m_weits)
 }
 
+pub fn nuc_potential(
+    qpos: &Vec<[f64;3]>, // query position 请求点（要计算的点）的坐标
+    xyzs: &Vec<[f64;3]>,
+    nucs: &Vec<f64>,
+)->Vec<f64>{ // 计算每个格点的核势能
+    let npos=qpos.len();
+    let natm=xyzs.len();
+    let mut vals=vec![0.0; npos];
+    for g in 0..npos {
+        for a in 0..natm {
+            let dist = calc_dist(&qpos[g], &xyzs[a]); // 计算距离
+            if dist<1e-6{continue;}
+            vals[g] += nucs[a] / dist;
+        }
+    }
+    vals
+}
+
+pub fn ele_potential(
+    qpos: &Vec<[f64;3]>, // query position 请求点（要计算的点）的坐标
+    grids: &Vec<[f64;3]>,
+    weits: &Vec<f64>,
+    dens: &Vec<f64>,
+)->Vec<f64>{ // 计算每个格点的电子势能
+    let npos=qpos.len();
+    let ngrid=grids.len();
+    let mut vals=vec![0.0; npos];
+    for q in 0..npos {
+        for g in 0..ngrid {
+            let mut dist=calc_dist(&qpos[q], &grids[g]);
+            if dist<1e-6 {dist=1e-6;}
+            vals[q] += weits[g] * dens[g] / dist;
+        }
+    }
+    vals
+}
+
 #[pyfunction]
 pub fn obt_wfns(
     grids: Vec<[f64;3]>,
@@ -366,4 +403,23 @@ pub fn mol_rhos(
         mol_rho2s.push(rho2);
     }
     Ok((mol_rho0s,mol_rho1s,mol_rho2s))
+}
+
+#[pyfunction]
+pub fn nuc_potential_rs(
+    qpos: Vec<[f64;3]>,
+    xyzs: Vec<[f64;3]>,
+    nucs: Vec<f64>,
+)->PyResult<Vec<f64>>{
+    Ok(nuc_potential(&qpos, &xyzs, &nucs))
+}
+
+#[pyfunction]
+pub fn ele_potential_rs(
+    qpos: Vec<[f64;3]>,
+    grids: Vec<[f64;3]>,
+    weits: Vec<f64>,
+    dens: Vec<f64>,
+)->PyResult<Vec<f64>>{
+    Ok(ele_potential(&qpos, &grids, &weits, &dens))
 }

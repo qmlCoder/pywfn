@@ -47,3 +47,16 @@ def mat_integ_rs(
     lmns:i2D,
     xyzs:f2D
 )->f2D:...
+
+def nuc_potential_rs(
+    qpos:f2D,
+    xyzs:f2D,
+    nucs:f1D,
+)->f1D:...
+
+def ele_potential_rs(
+    qpos:f2D,
+    grids:f2D,
+    weits:f1D,
+    dens:f1D,
+)->f1D:...
