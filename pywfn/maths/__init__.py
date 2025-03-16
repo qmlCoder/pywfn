@@ -1,11 +1,34 @@
 import numpy as np
 import math
-from pywfn.maths import flib
+
 from pywfn import config
 from pywfn import base
 from pywfn.utils import printer
 
 # 立方格点
+# def cubeGrid_(
+#     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
+# ):
+#     """生成网格数据点,range:生成数据的范围
+#     getN:是否获取每个维度的数量
+#     getR:是否获取每个维度的长度
+#     """
+#     from pywfn.maths import flib
+#     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
+#     p0 =p0.copy()- bord
+#     p1 =p1.copy()+ bord
+#     x0, y0, z0 = p0
+#     x1, y1, z1 = p1
+#     lx,ly,lz=dp=p1-p0
+#     assert dp.min() > 0 , "x输入的坐标范围错误"
+#     Nx=int((x1-x0)/step)+1
+#     Ny=int((y1-y0)/step)+1
+#     Nz=int((z1-z0)/step)+1
+#     print(Nx,Ny,Nz)
+#     grids=flib.grid_pos(Nx,Ny,Nz)
+#     grids=grids*step+p0
+#     return [Nx,Ny,Nz],grids
+
 def cubeGrid(
     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
 ):
@@ -13,9 +36,10 @@ def cubeGrid(
     getN:是否获取每个维度的数量
     getR:是否获取每个维度的长度
     """
+    from pywfn.maths import rlib
     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
-    p0 -= bord
-    p1 += bord
+    p0 =p0.copy()- bord
+    p1 =p1.copy()+ bord
     x0, y0, z0 = p0
     x1, y1, z1 = p1
     lx,ly,lz=dp=p1-p0
@@ -23,11 +47,11 @@ def cubeGrid(
     Nx=int((x1-x0)/step)+1
     Ny=int((y1-y0)/step)+1
     Nz=int((z1-z0)/step)+1
-    # step=((lx*ly*lz)/(Nx*Ny*Nz))**(1/3)
-    grid=flib.grid_pos(Nx,Ny,Nz)
-    # print('rawGrid\n',grid)
-    grid=grid*step+p0
-    return [Nx,Ny,Nz],grid
+    print(Nx,Ny,Nz)
+    grids=rlib.get_grids_rs(Nx,Ny,Nz)
+    grids=np.array(grids)
+    grids=grids*step+p0
+    return [Nx,Ny,Nz],grids
 
 # 平面格点
 def rectGrid(cent:np.ndarray,norm:np.ndarray,vx:np.ndarray,size:float)->tuple[list[int],np.ndarray]:

@@ -146,7 +146,7 @@ class FchReader(reader.Reader):
         coefs._atoAtms=atms
         coefs._atoShls=shls
         coefs._atoSyms=syms
-        coefs._CM_raw=CM
+        coefs._CM=CM
         coefs._obtEngs=engs
         return coefs
 

@@ -1,9 +1,13 @@
+import numpy as np
+
 f1D=list[float]
 i1D=list[int]
 f2D=list[list[float]]
 i2D=list[list[int]]
+f3D=list[list[list[float]]]
+i3D=list[list[list[int]]]
 
-def obt_wfns(
+def obt_wfns_rs(
     grids:f2D,
     xyzs:f2D,
     lmns:i2D,
@@ -13,7 +17,7 @@ def obt_wfns(
     level:int
 )->tuple[list[float],list[f1D],list[f2D]]:...
 
-def mol_rhos(
+def mol_rhos_rs(
     grids:f2D,
     xyzs:f2D,
     lmns:i2D,
@@ -23,14 +27,24 @@ def mol_rhos(
     level:int
 )->tuple[list[float],list[f1D],list[f2D]]:...
 
-def march_cube(
+def ato_rhos_rs(
+    grids:f2D,
+    xyzs:f2D,
+    lmns:i2D,
+    coes:f2D,
+    alps:f2D,
+    matp:f2D,
+    level:int
+)->tuple[list[f1D],list[f2D],list[f3D]]:...
+
+def march_cube_rs(
     shape:i1D,
     grids:f2D,
     value:f1D,
     isov:float
 )->tuple[f2D,i2D]:...
 
-def a2m_weits(
+def a2m_weits_rs(
     iatm:int,
     atm_grids:f2D,
     atm_weits:f1D,
@@ -60,3 +74,7 @@ def ele_potential_rs(
     weits:f1D,
     dens:f1D,
 )->f1D:...
+
+def get_grids_rs(nx:int,ny:int,nz:int)->f2D:...
+
+def ele_mat_rs(matc:f2D,mats:f2D)->f2D:...

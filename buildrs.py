@@ -3,7 +3,7 @@ import shutil
 
 root='D:/code/pywfn'
 
-release=False
+release=True
 
 if release:
     result = subprocess.run(

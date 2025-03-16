@@ -4,7 +4,7 @@ use pyo3::prelude::*;
 
 
 #[pyfunction]
-pub fn march_cube(shape: [usize; 3], grids: Vec<[f64;3]>, values: Vec<f64>,isov:f64)
+pub fn march_cube_rs(shape: [usize; 3], grids: Vec<[f64;3]>, values: Vec<f64>,isov:f64)
     ->PyResult<(Vec<[f64;3]>,Vec<[usize;3]>)>{
     println!("Marching Cube算法");
     let voxel=grids2voxel(shape, &grids, &values);

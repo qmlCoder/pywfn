@@ -12,7 +12,7 @@ import numpy as np
 from functools import lru_cache,cached_property
 
 from pywfn import base
-from pywfn.maths import flib,rlib
+from pywfn.maths import rlib
 from pywfn.data import bastrans
 
 def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
@@ -67,7 +67,7 @@ class Coefs:
         self._atoSyms:None|list[str]   = None
         self._obtEngs:None|list[float] = None
         # self._obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
-        self._CM_raw:np.ndarray|None = None
+        self._CM:np.ndarray|None = None
         
         # raw:原始系数，car:笛卡尔系数，sph:球谐系数
     
@@ -76,16 +76,16 @@ class Coefs:
         assert self._atoAtms is not None,"未初始化atoAtms"
         assert self._atoShls is not None,"未初始化atoShls"
         assert self._atoSyms is not None,"未初始化atoSyms"
-        assert self._CM_raw is not None,"未初始化CM"
-        atms,shls,syms,CM=toCart(self._atoAtms,self._atoShls,self._atoSyms,self._CM_raw)
+        assert self._CM is not None,"未初始化CM"
+        atms,shls,syms,CM=toCart(self._atoAtms,self._atoShls,self._atoSyms,self._CM)
         return atms,shls,syms,CM
     
     @lru_cache
     def CM(self,form:str):
         match form:
             case 'raw':
-                assert self._CM_raw is not None,"未初始化CM"
-                return self._CM_raw
+                assert self._CM is not None,"未初始化CM"
+                return self._CM
             case 'car':
                 return self.carData[3]
             case 'sph':
@@ -172,13 +172,15 @@ class Coefs:
             elif sym in bastrans.sphDsyms:
                 rawTypes[key]='sph'
         return rawTypes
-    @property
-    def SM_car_(self): # 笛卡尔重叠矩阵
-        assert self.mol is not None,"未初始化分子"
-        atos,coes,alps,lmns=self.mol.basis.basMap()
-        xyzs=self.atoXyzs('car')
-        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
-        return SM
+    
+    # @property
+    # def SM_car_(self): # 笛卡尔重叠矩阵
+    #     from pywfn.maths import flib
+    #     assert self.mol is not None,"未初始化分子"
+    #     atos,coes,alps,lmns=self.mol.basis.basMap()
+    #     xyzs=self.atoXyzs('car')
+    #     SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
+    #     return SM
     
     @property
     def SM_car(self):

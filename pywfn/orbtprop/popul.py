@@ -4,7 +4,7 @@
 import numpy as np
 
 from pywfn.base import Mol
-from pywfn.maths import flib
+
 from pywfn.orbtprop import decom
 
 class Calculator:
@@ -21,16 +21,18 @@ class Calculator:
             np.ndarray: 每个基函数在每个分子轨道内的占据数
         """
         # 使用法向量可以计算每个分子的pi电子分布
-        
+        from pywfn.maths import rlib
         if virtual:
             CM=self.mol.CM.copy()
         else:
             obts=self.mol.O_obts
             CM=self.mol.CM[:,obts].copy()
         
-        nmat,nobt=CM.shape
-        NM=flib.eleMat(nmat,nobt,CM,self.mol.SM)*self.mol.oE
-        return NM
+        # nmat,nobt=CM.shape
+        # NM=flib.eleMat(nmat,nobt,CM,self.mol.SM)*self.mol.oE
+        # return NM
+        NM=rlib.ele_mat_rs(CM,self.mol.SM) # type: ignore
+        return np.array(NM)*self.mol.oE
     
     def piEleMatDecom(self,dtype:str,virtual:bool=True)->np.ndarray: # 分解出pi分子轨道
         """计算轨道分解法计算出来的pi电子布局矩阵
@@ -44,7 +46,7 @@ class Calculator:
         """
         CMo=self.mol.CM.copy()
         CMt=decom.Calculator(self.mol).pi_decom(dtype)
-        self.mol.props.set('CM',CMt)
+        self.mol.coefs._CM=CMt
         NM=self.eleMat(virtual=virtual)
-        self.mol.props.set('CM',CMo)
+        self.mol.coefs._CM=CMo
         return NM

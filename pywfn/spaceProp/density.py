@@ -13,7 +13,6 @@ from pywfn.spaceprop import dftgrid
 from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,EarthGrid
 from pywfn import spaceprop
 from pywfn.data import radDens
-from pywfn.maths import flib,rlib
 from pywfn import utils
 import numpy as np
 import time
@@ -23,6 +22,7 @@ class Calculator(spaceprop.SpaceCaler):
         self.mol=mol
         self.wfnCaler=wfnfunc.Calculator(mol)
         self.PM=self.mol.PM.copy()
+        
     
     def obtDens(self,grids:np.ndarray): # 以分子轨道的方式计算电子密度，可以计算每个分子轨道的电子密度
         """根据分子轨道电子密度计算分子电子密度"""
@@ -34,36 +34,51 @@ class Calculator(spaceprop.SpaceCaler):
             dens[o]+=wfn**2*self.mol.oE
         return dens
     
+    # def atmDens_(self,grids:np.ndarray,atms:list[int]|None=None):
+    #     """计算指定原子的电子密度加和，使用分子空间坐标"""
+    #     from pywfn.maths import flib
+    #     if atms is None:atms=self.mol.atoms.atms
+    #     nmat=self.mol.coefs.CM('car').shape[0]
+    #     dens=np.zeros(shape=(len(atms),len(grids)))
+    #     atowfns0,atowfns1,atowfns2=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
+    #     ngrid=grids.shape[0]
+    #     atoDens=flib.atoDens(ngrid,nmat,self.mol.PM,atowfns0,atowfns1,atowfns2,0)[0]
+    #     for a,atm in enumerate(atms):
+    #         atom=self.mol.atom(atm)
+    #         u,l = atom.obtBorder
+    #         atoDens[u:l,:].sum(axis=0,out=dens[a,:])
+    #     return dens
+    
     def atmDens(self,grids:np.ndarray,atms:list[int]|None=None):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
+        from pywfn.maths import rlib
         if atms is None:atms=self.mol.atoms.atms
-        nmat=self.mol.coefs.CM('car').shape[0]
         dens=np.zeros(shape=(len(atms),len(grids)))
-        atowfns0,atowfns1,atowfns2=self.wfnCaler.atoWfns(grids,level=0) # 原子轨道波函数
-        ngrid=grids.shape[0]
-        atoDens=flib.atoDens(ngrid,nmat,self.mol.PM,atowfns0,atowfns1,atowfns2,0)[0]
+        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
+        atoDens=rlib.ato_rhos_rs(grids,xyzs,lmns,coes,alps,self.mol.PM,0)[0] # type: ignore
+        atoDens=np.array(atoDens)
         for a,atm in enumerate(atms):
             atom=self.mol.atom(atm)
             u,l = atom.obtBorder
-            atoDens[u:l,:].sum(axis=0,out=dens[a,:])
+            dens[a,:]=atoDens[:,u:l].sum(axis=1)
         return dens
     
-    def molDens_(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]: # 这种方式计算分子的电子密度更快
-        """使用Fortran库计算电子密度"""
-        from pywfn.maths import flib,rlib
-        ngrid=len(grids)
-        obts=self.mol.O_obts
-        CM=self.mol.coefs.CM('car')[:,obts].copy()
-        nmat,nobt=CM.shape
-        wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grids,level) # 原子轨道波函数
-        dens0,dens1,dens2=flib.obtDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
-        dens0=dens0.sum(axis=0)
-        dens1=dens1.sum(axis=0)
-        dens2=dens2.sum(axis=0)
-        dens0*=self.mol.oE
-        dens1*=self.mol.oE
-        dens2*=self.mol.oE
-        return dens0,dens1,dens2
+    # def molDens_(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]: # 这种方式计算分子的电子密度更快
+    #     """使用Fortran库计算电子密度"""
+    #     from pywfn.maths import flib
+    #     ngrid=len(grids)
+    #     obts=self.mol.O_obts
+    #     CM=self.mol.coefs.CM('car')[:,obts].copy()
+    #     nmat,nobt=CM.shape
+    #     wfns0,wfns1,wfns2=self.wfnCaler.atoWfns(grids,level) # 原子轨道波函数
+    #     dens0,dens1,dens2=flib.obtDens(ngrid,nmat,nobt,CM,wfns0,wfns1,wfns2,level)
+    #     dens0=dens0.sum(axis=0)
+    #     dens1=dens1.sum(axis=0)
+    #     dens2=dens2.sum(axis=0)
+    #     dens0*=self.mol.oE
+    #     dens1*=self.mol.oE
+    #     dens2*=self.mol.oE
+    #     return dens0,dens1,dens2
 
     def molDens(self,grids:np.ndarray,level:int)->tuple[np.ndarray,np.ndarray,np.ndarray]:
         """使用Rust库计算电子密度
@@ -77,7 +92,7 @@ class Calculator(spaceprop.SpaceCaler):
         """
         CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
         xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        dens0,dens1,dens2=rlib.mol_rhos(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
+        dens0,dens1,dens2=rlib.mol_rhos_rs(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
         dens0=np.array(dens0)*self.mol.oE
         dens1=np.array(dens1)*self.mol.oE
         dens2=np.array(dens2)*self.mol.oE

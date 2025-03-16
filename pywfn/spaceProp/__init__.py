@@ -9,7 +9,7 @@ from pywfn.utils import printer
 from pywfn.maths import march
 from pywfn.base import Mol
 from pathlib import Path
-from pywfn.maths import flib,rlib
+
 import time
 
 class Grid:
@@ -185,12 +185,13 @@ class SpaceCaler:
     
     @staticmethod
     def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:bool=True):
+        from pywfn.maths import rlib
         # faces=[]
         # voxelData  =march.grids2voxel(shape,grids,vals)
         # verts=march.voxel2verts(voxelData,isov,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
         print('提取等值面',limit,gt)
         # verts:np.ndarray=flib.marchCube(grids,vals,shape,isov)[1] # type: ignore 
-        verts,faces=rlib.march_cube(shape,grids.tolist(),vals.tolist(),isov) # type: ignore
+        verts,faces=rlib.march_cube_rs(shape,grids.tolist(),vals.tolist(),isov) # type: ignore
         verts=np.array(verts)
         faces=np.array(faces)
         # print(verts)

@@ -191,7 +191,7 @@ class LogReader(reader.Reader):
         coefs._atoShls=shls
         coefs._atoSyms=syms
         coefs._obtEngs=engs
-        coefs._CM_raw=CM
+        coefs._CM=CM
         return coefs
 
 

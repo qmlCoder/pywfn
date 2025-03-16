@@ -3,6 +3,19 @@ use std::f64::consts::PI;
 use pyo3::prelude::*;
 use crate::utils::calc_dist;
 
+// 获得空间格点
+fn get_grids(nx:usize,ny:usize,nz:usize) -> Vec<[f64;3]> {
+    let mut grids = Vec::with_capacity(nx*ny*nz);
+    for i in 0..nx {
+        for j in 0..ny {
+            for k in 0..nz {
+                grids.push([i as f64,j as f64,k as f64]);
+            }
+        }
+    }
+    grids
+}
+
 // 计算波函数
 // xyz:以原子为中心的格点坐标
 fn gtf(
@@ -127,7 +140,7 @@ fn cgf(
 
 fn ato_wfn(
     xyz: &[f64;3],
-    xyzs: &Vec<[f64;3]>,
+    xyzs: &Vec<[f64;3]>, // 原子轨道坐标
     lmns: &Vec<[i32;3]>,
     coes: &Vec<Vec<f64>>,
     alps: &Vec<Vec<f64>>,
@@ -239,8 +252,48 @@ fn mol_rho(
     (mol_rho0,mol_rho1,mol_rho2)
 }
 
+// 计算所有原子轨道的电子密度
+fn ato_rho(
+    xyz: &[f64;3],
+    xyzs: &Vec<[f64;3]>, // 原子轨道坐标
+    lmns: &Vec<[i32;3]>,
+    coes: &Vec<Vec<f64>>,
+    alps: &Vec<Vec<f64>>,
+    matp: &Vec<Vec<f64>>, // 密度矩阵
+    level:u32
+)->(Vec<f64>,Vec<[f64; 3]>,Vec<[[f64; 3]; 3]>){
+    let nato=xyzs.len();
+    let (ato_wfn0,ato_wfn1,ato_wfn2)=ato_wfn(xyz, xyzs, lmns, coes, alps,level);
+    let mut ato_rho0=vec![0.0;nato];
+    let mut ato_rho1=vec![[0.0;3];nato];
+    let mut ato_rho2=vec![[[0.0;3];3];nato];
+    for i in 0..nato {
+        for j in 0..nato {
+            if matp[i][j]==0.0 {continue};
+            ato_rho0[i]+=ato_wfn0[i]*ato_wfn0[j]*matp[i][j];
+            if level>=1{
+                for k in 0..3 {
+                    ato_rho1[i][k]+=(ato_wfn0[i]*ato_wfn1[j][k]+ato_wfn0[j]*ato_wfn1[i][k])*matp[i][j];
+                }
+            }
+            if level>=2{
+                for k in 0..3 {
+                    for l in 0..3 {
+                        ato_rho2[i][k][l]+=(
+                            ato_wfn2[i][k][l]*ato_wfn0[j]+
+                            ato_wfn1[i][k]*ato_wfn1[j][l]+
+                            ato_wfn1[i][l]*ato_wfn1[j][k]+
+                            ato_wfn0[i]*ato_wfn2[j][k][l])*matp[i][j];
+                    }
+                }
+            }
+        }
+    }
+    (ato_rho0,ato_rho1,ato_rho2)
+}
+
 #[pyfunction] // 计算原子中的一个格点再整个分子中的权重
-pub fn a2m_weits(
+pub fn a2m_weits_rs(
     iatm:usize,
     atm_grids:Vec<[f64;3]>,// 原子格点坐标
     atm_weits:Vec<f64>, // 原子格点权重
@@ -348,8 +401,10 @@ pub fn ele_potential(
     vals
 }
 
+
+
 #[pyfunction]
-pub fn obt_wfns(
+pub fn obt_wfns_rs(
     grids: Vec<[f64;3]>,
     xyzs: Vec<[f64;3]>,
     lmns: Vec<[i32;3]>,
@@ -378,7 +433,7 @@ pub fn obt_wfns(
 }
 
 #[pyfunction]
-pub fn mol_rhos(
+pub fn mol_rhos_rs(
     grids: Vec<[f64;3]>,
     xyzs: Vec<[f64;3]>,
     lmns: Vec<[i32;3]>,
@@ -406,6 +461,29 @@ pub fn mol_rhos(
 }
 
 #[pyfunction]
+pub fn ato_rhos_rs(
+    grids: Vec<[f64;3]>,
+    xyzs: Vec<[f64;3]>,
+    lmns: Vec<[i32;3]>,
+    coes: Vec<Vec<f64>>,
+    alps: Vec<Vec<f64>>,
+    mat_c: Vec<Vec<f64>>,
+    level:u32
+)->PyResult<(Vec<Vec<f64>>,Vec<Vec<[f64; 3]>>,Vec<Vec<[[f64; 3]; 3]>>)>{
+    let ngrid=grids.len();
+    let mut ato_rho0s: Vec<Vec<f64>>=Vec::with_capacity(ngrid);
+    let mut ato_rho1s: Vec<Vec<[f64; 3]>>=Vec::with_capacity(ngrid);
+    let mut ato_rho2s: Vec<Vec<[[f64; 3]; 3]>>=Vec::with_capacity(ngrid);
+    for g in 0..ngrid {
+        let (rho0, rho1, rho2) = ato_rho(&grids[g], &xyzs, &lmns, &coes, &alps, &mat_c, level);
+        ato_rho0s.push(rho0);
+        ato_rho1s.push(rho1);
+        ato_rho2s.push(rho2);
+    }
+    Ok((ato_rho0s,ato_rho1s,ato_rho2s))
+}
+
+#[pyfunction]
 pub fn nuc_potential_rs(
     qpos: Vec<[f64;3]>,
     xyzs: Vec<[f64;3]>,
@@ -422,4 +500,9 @@ pub fn ele_potential_rs(
     dens: Vec<f64>,
 )->PyResult<Vec<f64>>{
     Ok(ele_potential(&qpos, &grids, &weits, &dens))
+}
+
+#[pyfunction]
+pub fn get_grids_rs(nx:usize,ny:usize,nz:usize)->PyResult<Vec<[f64;3]>>{
+    Ok(get_grids(nx,ny,nz))
 }

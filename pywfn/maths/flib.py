@@ -225,6 +225,7 @@ def eleMat(nmat:int,nobt:int,CM:np.ndarray,SM:np.ndarray)->np.ndarray:
     paras=[nmat,nobt,CM,SM]
     
     NM=np.zeros((nmat,nobt),dtype=ftype)
+    print('NM',NM.shape)
     call_flib('eleMat_',paras,[NM])
     return NM
 

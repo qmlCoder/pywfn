@@ -7,7 +7,6 @@
 from pywfn.base import Mol
 from pywfn import maths
 import numpy as np
-from pywfn.maths import flib
 from pywfn.maths import cubeGrid
 from pywfn.spaceprop import lutils
 from pywfn import spaceprop
@@ -23,13 +22,13 @@ class Calculator(spaceprop.SpaceCaler):
         self.atms=self.mol.atoms.atms
     
     def obtWfns(self,grids:np.ndarray,obts:list[int])->np.ndarray:
-        xyzs,lmns,coes,alps=self.mol.basis.matMapRs()
+        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
         wfns0=[]
         for obt in obts:
             coefs=self.CM[:,obt].tolist() # 轨道系数
             # print('coes',coes)
             # print('alps',alps)
-            wfn0,wfn1,wfn2=rlib.obt_wfns(grids.tolist(),xyzs,lmns,coes,alps,coefs,0) # type: ignore
+            wfn0,wfn1,wfn2=rlib.obt_wfns_rs(grids.tolist(),xyzs,lmns,coes,alps,coefs,0) # type: ignore
             # print(wfn0)
             wfns0.append(wfn0)
         return np.array(wfns0)
@@ -54,6 +53,18 @@ class Calculator(spaceprop.SpaceCaler):
     
     def atoWfns(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
         """计算所有原子轨道"""
+        from pywfn.maths import rlib
+        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
+        wfns0,wfns1,wfns2=rlib.ato_rhos_rs(grids,xyzs,lmns,coes,alps,self.mol.PM,level) # type: ignore
+        wfns0=np.array(wfns0)
+        wfns1=np.array(wfns1)
+        wfns2=np.array(wfns2)
+        return wfns0,wfns1,wfns2
+
+
+    def atoWfns_(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
+        """计算所有原子轨道"""
+        from pywfn.maths import flib
         ngrid=grids.shape[0]
         nmat=self.mol.coefs.CM('car').shape[0]
         # cords=self.mol.coords.copy()

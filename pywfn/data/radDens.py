@@ -2004,17 +2004,28 @@ radDens={
 ],
 }
 
-from pywfn.maths import flib
+
+# def get_radDens_(atomic:int,dists:np.ndarray):
+#     """计算某个原子的径向电子密度"""
+#     from pywfn.maths import flib
+#     rdens=radDens[atomic]
+#     ndens=len(rdens)
+#     rdist=radDist[:ndens]
+#     rdist=np.array(rdist)
+#     rdens=np.array(rdens)
+#     fdens=flib.lagIntpol(rdist,rdens,dists)
+#     return fdens
+
 def get_radDens(atomic:int,dists:np.ndarray):
     """计算某个原子的径向电子密度"""
-    
+    from pywfn.maths import rlib
     rdens=radDens[atomic]
     ndens=len(rdens)
     rdist=radDist[:ndens]
     rdist=np.array(rdist)
     rdens=np.array(rdens)
-    fdens=flib.lagIntpol(rdist,rdens,dists)
-    return fdens
+    fdens=rlib.lag_intpol_rs(rdist,rdens,dists) # type: ignore
+    return np.array(fdens)
 
 # Atomic Density Parameters H-Ar 数据来源于  https://pubs.acs.org/doi/suppl/10.1021/ja100936w/suppl_file/ja100936w_si_001.pdf
 ADP=[

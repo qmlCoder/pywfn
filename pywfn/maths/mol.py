@@ -1,6 +1,6 @@
 from pywfn.base import Mol
 from pywfn.maths import vector_angle
-from pywfn.maths import flib
+
 from pywfn.utils import chkArray
 
 import numpy as np
@@ -108,17 +108,28 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     CM=CM[:,idxs].copy() # 每一列对应一个特征向量
     return BM,es,CM,idxs
 
+# def eleMat_(mol:Mol)->np.ndarray:
+#     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
+#     # 使用法向量可以计算每个分子的pi电子分布
+#     from pywfn.maths import flib
+#     obts=mol.O_obts
+
+#     nobt=len(obts)
+#     CM=mol.CM.copy()
+#     nmat,nobt=CM.shape
+#     NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
+#     return NM
+
 def eleMat(mol:Mol)->np.ndarray:
     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
     # 使用法向量可以计算每个分子的pi电子分布
-    
+    from pywfn.maths import rlib
     obts=mol.O_obts
 
     nobt=len(obts)
     CM=mol.CM.copy()
-    nmat,nobt=CM.shape
-    NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
-    return NM
+    NM=rlib.ele_mat_rs(CM,mol.SM) # type: ignore
+    return np.array(NM)*mol.oE
 
 def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
     """
@@ -132,6 +143,7 @@ def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
 
 def piEleMat(mol:Mol)->np.ndarray:
     """计算与分子轨道系数矩阵对应的pi电子分布矩阵"""
+    from pywfn.maths import rlib
     from pywfn.atomprop import direction
     dirCaler=direction.Calculator(mol)
     dirs=[]
@@ -145,5 +157,5 @@ def piEleMat(mol:Mol)->np.ndarray:
     obts=mol.O_obts+mol.V_obts
     CMp=projCM(mol,obts,atms,dirs,False,False)
     nmat,nobt=CMp.shape
-    NM=flib.eleMat(nmat,nobt,CMp,mol.SM)*mol.oE
-    return NM
+    NM=rlib.ele_mat_rs(CMp,mol.SM) # type: ignore
+    return np.array(NM)*mol.oE

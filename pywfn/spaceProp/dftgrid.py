@@ -4,7 +4,7 @@
 from pywfn.base import Mol
 from pywfn.data.elements import elements
 from pywfn.data import lebedev
-from pywfn.maths import rlib,flib
+
 import numpy as np
 import sys
 
@@ -93,23 +93,25 @@ class Calculator:
         atmGrid=atmGrid+self.mol.atom(atm).coord.reshape(1,3) #移动到以原子为中心
         return atmGrid,atmWeit
     
-    def a2mGrid_(self,atm:int):
-        """将原子中心坐标映射到分子中，改变权重"""
-        atmGrid,atmWeit=self.atmGrid(atm)
-        nGrid=len(atmGrid)
-        natm=len(self.mol.atoms)
-        atmPos=self.mol.coords.copy() # 分子坐标
-        atmRad=np.array(self.mol.atoms.radius)
-        atmDis=self.mol.atoms.LM
-        a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
-        assert True not in np.isnan(atmWeit),"不应该有nan"
-        return a2mGrid,a2mWeit
+    # def a2mGrid_(self,atm:int):
+    #     """将原子中心坐标映射到分子中，改变权重"""
+    #     from pywfn.maths import flib
+    #     atmGrid,atmWeit=self.atmGrid(atm)
+    #     nGrid=len(atmGrid)
+    #     natm=len(self.mol.atoms)
+    #     atmPos=self.mol.coords.copy() # 分子坐标
+    #     atmRad=np.array(self.mol.atoms.radius)
+    #     atmDis=self.mol.atoms.LM
+    #     a2mGrid,a2mWeit=flib.a2mWeight(atm,nGrid,atmGrid,atmWeit,natm,atmPos,atmRad,atmDis)
+    #     assert True not in np.isnan(atmWeit),"不应该有nan"
+    #     return a2mGrid,a2mWeit
     
     def a2mGrid(self,atm:int):
+        from pywfn.maths import rlib
         atmGrid,atmWeit=self.atmGrid(atm)
         atmPos=self.mol.coords.copy() # 分子坐标
         atmRad=self.mol.atoms.radius
-        a2mWeits=rlib.a2m_weits(atm-1,atmGrid.tolist(),atmWeit.tolist(),atmPos.tolist(),atmRad) # type: ignore
+        a2mWeits=rlib.a2m_weits_rs(atm-1,atmGrid.tolist(),atmWeit.tolist(),atmPos.tolist(),atmRad) # type: ignore
         a2mWeits=np.array(a2mWeits)
         return atmGrid,a2mWeits
 
