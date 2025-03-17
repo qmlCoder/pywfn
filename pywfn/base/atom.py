@@ -1,31 +1,22 @@
+
 from collections.abc import Iterator
 import numpy as np
 from functools import cached_property,lru_cache
-
 from pywfn import config
 from pywfn import base
 from pywfn import maths
-
 from pywfn.utils import printer
-
-"""
-一个原子的轨道组合系数就是一个矩阵，行数是基函数的数量，列数是分子轨道的数量
-与轨道系数相关的太多了,尽量精简
-OC是该原子的轨道系数
-OCI为某一列的原子轨道系数,P:bool参数用来确定是否只要P轨道的系数
-一个人原子的属性应该是标准的
-原子轨道layer:List[str]
-原子轨道系数OC:np.ndarray
-读取器直接设置这些属性
-"""
 from pywfn.data.elements import elements
 class Atom:
-    def __init__(self,sym:str,xyz:np.ndarray,idx:int,mol:"base.Mol"): # 每个原子应该知道自己属于哪个分子
+    """
+    原子对象
+    """
+    def __init__(self,sym:str,xyz:np.ndarray,idx:int,mol:"base.Mole"): # 每个原子应该知道自己属于哪个分子
         self.sym=sym
         self.xyz=xyz
         self.xyz.flags.writeable=False
         self.idx=idx
-        self.mol:"base.Mol"=mol
+        self.mol:"base.Mole"=mol
 
         self._layersData={}
         self.layers:list[str]|None=None
@@ -113,7 +104,7 @@ class Atom:
         return f'Atom:({self.symbol},{self.idx})'
 
 class Atoms:
-    def __init__(self,mol:"base.Mol") -> None:
+    def __init__(self,mol:"base.Mole") -> None:
         self.mol=mol
         self.atoms:list[Atom]=[]
     

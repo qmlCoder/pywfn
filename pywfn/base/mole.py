@@ -56,7 +56,7 @@ class Props(dict):
     def set(self,key:str,value):
         self[key]=value
 
-class Mol:
+class Mole:
     """基础的分子对象"""
     def __init__(self,reader:"reader.Reader") -> None:
         """

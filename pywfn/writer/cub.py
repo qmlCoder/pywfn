@@ -11,10 +11,10 @@ import numpy as np
 import time
 from pathlib import Path
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn import maths,base,config
 from pywfn.utils import printer
-from pywfn.spaceprop import wfnfunc,density
+from pywfn.gridprop import wfnfunc,density
 from pywfn.data.elements import elements
 from pywfn import utils
 
@@ -32,7 +32,7 @@ class CubWriter:
         self.step:list[float]=[0,0,0]  # 三个方向的格点步长
         self.vals:np.ndarray|None=None # 格点数值[轨道,格点]
     
-    def from_mol(self,mol:Mol):
+    def from_mol(self,mol:Mole):
         """从分子对象中读取数据"""
         self.syms=mol.atoms.syms
         self.xyzs=mol.atoms.xyzs

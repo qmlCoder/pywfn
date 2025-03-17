@@ -2,7 +2,7 @@
 计算分子的芳香性
 使用pi键级的标准差表示
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.atomprop import charge
 from pywfn.bondprop import order as orderProp
 import numpy as np
@@ -10,7 +10,7 @@ from pywfn.shell import Shell
 from pywfn.utils import printer
 
 class Calculator:
-    def __init__(self, mol:Mol):
+    def __init__(self, mol:Mole):
         self.mol = mol
         self.ratio=0.5
     

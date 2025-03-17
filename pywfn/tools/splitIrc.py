@@ -7,7 +7,7 @@ from pathlib import Path
 from pywfn.writer import GjfWriter
 from pywfn.data.elements import elements
 from pywfn.utils import printer
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.reader import LogReader,AnyReader
 from dataclasses import dataclass
 
@@ -32,7 +32,7 @@ class MolCord:
 class Tool:
     def __init__(self,path:str) -> None:
         self.path=Path(path)
-        self.mol=Mol(LogReader(path))
+        self.mol=Mole(LogReader(path))
         self.dirName=self.path.parent
         name=self.path.name # 包含后缀的文件名
         stem=self.path.stem # 不包含后缀的文件名
@@ -79,7 +79,7 @@ class Tool:
         reader=AnyReader()
         reader.coords=self.xyzs[i]
         reader.symbols=self.syms[i]
-        mol=Mol(reader)
+        mol=Mole(reader)
         return mol
             
 

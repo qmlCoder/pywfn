@@ -6,19 +6,19 @@
 
 空间中一个格点的权重是否应该对所有分子都一致？
 """
-from pywfn.base import Mol
-from pywfn.spaceprop import wfnfunc
+from pywfn.base import Mole
+from pywfn.gridprop import wfnfunc
 from functools import cached_property,lru_cache
-from pywfn.spaceprop import dftgrid
-from pywfn.spaceprop import LineGrid,RectGrid,CubeGrid,EarthGrid
-from pywfn import spaceprop
+from pywfn.gridprop import dftgrid
+from pywfn.gridprop import LineGrid,RectGrid,CubeGrid,EarthGrid
+from pywfn import gridprop
 from pywfn.data import radDens
 from pywfn import utils
 import numpy as np
 import time
 
-class Calculator(spaceprop.SpaceCaler):
-    def __init__(self,mol:Mol) -> None:
+class Calculator(gridprop.SpaceCaler):
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.wfnCaler=wfnfunc.Calculator(mol)
         self.PM=self.mol.PM.copy()
@@ -151,7 +151,7 @@ class Calculator(spaceprop.SpaceCaler):
     def vandSurf(self):
         """返回分子的范德华表面"""
         p0,p1=self.mol.molBorder
-        shape,grids=spaceprop.CubeGrid().set_v1(p0,p1,0.3,4).get()
+        shape,grids=gridprop.CubeGrid().set_v1(p0,p1,0.3,4).get()
         vals=self.molDens(grids,0)[0]
         verts,faces=self.isoSurf(shape,grids,vals,0.04)
         assert verts is not None,"未找到范德华表面"

@@ -3,7 +3,7 @@
 """
 from pathlib import Path
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.reader import get_reader,LogReader
 from pywfn.data import temps
 from collections import namedtuple

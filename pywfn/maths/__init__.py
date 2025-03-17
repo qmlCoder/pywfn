@@ -269,7 +269,7 @@ def get_aroundPoints(p, step):  #
 #                 step /= 10
 
 
-def search_sp2(idx: int, mol: "base.Mol") -> int|None:
+def search_sp2(idx: int, mol: "base.Mole") -> int|None:
     """
     深度优先搜索方法寻找于指定原子相邻最近的sp2 C原子
     """

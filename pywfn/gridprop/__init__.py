@@ -7,7 +7,7 @@ from numpy.typing import NDArray
 from pywfn.maths import lineGrid,rectGrid,cubeGrid
 from pywfn.utils import printer
 from pywfn.maths import march
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pathlib import Path
 
 import time
@@ -130,7 +130,7 @@ class EarthGrid(Grid):
 
 class SpaceCaler:
     def __init__(self):
-        self.mol:Mol
+        self.mol:Mole
     
     def toImg(self,path:str,vals:np.ndarray,size:list[int],_type:str): #传入来的数据是一维的
         import matplotlib.pyplot as plt
@@ -211,7 +211,7 @@ class SpaceCaler:
 from pywfn.shell import Shell
 
 # 根据用户输入获取格点
-def read_grid(shell:Shell,gidx:str,mol:Mol|None=None)->LineGrid|RectGrid|CubeGrid|EarthGrid:
+def read_grid(shell:Shell,gidx:str,mol:Mole|None=None)->LineGrid|RectGrid|CubeGrid|EarthGrid:
     match gidx:
         case '1': # 直线采点
             p0  =shell.input.Float(tip='输入起点: ',count=3)
@@ -245,7 +245,7 @@ def read_grid(shell:Shell,gidx:str,mol:Mol|None=None)->LineGrid|RectGrid|CubeGri
             cube=CubeGrid().set_v1(p0,p1,0.2,5)
             return cube
         case '5': # 地图
-            from pywfn.spaceprop import EarthGrid
+            from pywfn.gridprop import EarthGrid
             r=shell.input.Float(tip='输入半径: ',count=1)[0] # type: ignore
             map=EarthGrid().set(r,100)
             return map

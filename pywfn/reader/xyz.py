@@ -15,7 +15,7 @@ class XyzReader(reader.Reader):
         with open(path,'r',encoding='utf-8') as f:
             self.content=f.read()
         self.logLines=self.content.splitlines(keepends=False)
-        self.mols:List["base.Mol"]=[]
+        self.mols:List["base.Mole"]=[]
         self.read_coord()
     
     def read_coord(self):
@@ -29,7 +29,7 @@ class XyzReader(reader.Reader):
 
         for line in self.logLines:
             if re.search(s1,line) is not None:
-                self.mols.append(base.Mol())
+                self.mols.append(base.Mole())
             elif re.search(s3,line) is not None:
                 symbol,x,y,z=re.search(s3,line).groups()
                 self.mols[-1].add_atom(symbol,[float(x),float(y),float(z)])

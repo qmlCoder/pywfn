@@ -3,7 +3,7 @@
 """
 from pathlib import Path
 import numpy as np
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn import config
 from pywfn.data import temps
 
@@ -17,7 +17,7 @@ class GjfWriter:
         self.spin  =1
         self.title=config.GJF_TITLE
     
-    def fromMol(self,mol:Mol):
+    def fromMol(self,mol:Mole):
         self.syms=mol.atoms.syms
         self.xyzs=mol.atoms.xyzs
         return self

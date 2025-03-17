@@ -1,13 +1,18 @@
+
+
 from collections.abc import Iterator
 from pywfn.base.atom import Atom
 from pywfn import base
 import numpy as np
 # 如何获取一个键？
-# Mol.getBond(a1,a2)
+# Mole.getBond(a1,a2)
 # Mol应该有bonds属性，是一个字典，索引是'a1-a2'和'a2-a1'都指向该键
 from functools import cached_property
 class Bond:
-    def __init__(self,mol:"base.Mol",atm1:int,atm2:int) -> None:
+    """
+    键对象
+    """
+    def __init__(self,mol:"base.Mole",atm1:int,atm2:int) -> None:
         self.mol=mol
         self.atm1=atm1
         self.atm2=atm2
@@ -57,7 +62,7 @@ class Bond:
         return f'{self.a1.idx}-{self.a2.idx},{self.length:.4f}'
     
 class Bonds:
-    def __init__(self,mol:"base.Mol") -> None:
+    def __init__(self,mol:"base.Mole") -> None:
         self.mol=mol
         self.bonds:list[Bond]=[]
     

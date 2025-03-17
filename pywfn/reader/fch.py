@@ -181,8 +181,6 @@ class FchReader(reader.Reader):
                 idx+=1
         return DM
     
-    
-
     def read_atoms(self):
         values=self.parse_title('Atomic numbers')
         return values

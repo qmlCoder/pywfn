@@ -1,13 +1,13 @@
-from pywfn.base import Mol
-from pywfn.spaceprop import density,dftgrid
-from pywfn import spaceprop
+from pywfn.base import Mole
+from pywfn.gridprop import density,dftgrid
+from pywfn import gridprop
 import numpy as np
 import json
 from pathlib import Path
 
 
-class Calculator(spaceprop.SpaceCaler):
-    def __init__(self,mol:Mol) -> None:
+class Calculator(gridprop.SpaceCaler):
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         gridCaler=dftgrid.Calculator(mol)
         gridCaler.nrad=50

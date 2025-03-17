@@ -8,7 +8,7 @@ from pathlib import Path
 import re
 import os
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.utils import printer
 from pywfn.data import temps
 from pywfn.reader import LogReader

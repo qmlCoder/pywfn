@@ -1,7 +1,7 @@
 """
 定义mol文件的写出器
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.data import temps
 from pathlib import Path
 import numpy as np
@@ -14,7 +14,7 @@ class MolWriter:
         self.xyzs:np.ndarray|None=None #坐标数组
         self.bonds:list[tuple[int,int,int]]=[] #键列表 (原子1,原子2,键类型) 1：单键，2：双键，3：方向键
 
-    def fromMol(self,mol:Mol):
+    def fromMol(self,mol:Mole):
         self.title=mol.formula
         self.syms=mol.atoms.syms
         self.xyzs=mol.atoms.xyzs

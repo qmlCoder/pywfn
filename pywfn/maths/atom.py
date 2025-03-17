@@ -1,7 +1,7 @@
 import numpy as np
 
 from pywfn import base
-from pywfn.base import Mol,Atom
+from pywfn.base import Mole,Atom
 
 def pola2cart(r,t,p):
     """极坐标转直角坐标，半径，仰角，转角"""
@@ -12,7 +12,7 @@ def pola2cart(r,t,p):
 
 counts={}
 
-def get_sCont(mol:Mol,atm:int,obt:int):
+def get_sCont(mol:Mole,atm:int,obt:int):
     """获取某个原子轨道的贡献"""
     key=f'{mol.reader.path}-{atm}-{obt}'
     if key not in counts.keys():

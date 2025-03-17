@@ -1,8 +1,8 @@
-from pywfn.base import Mol
+from pywfn.base import Mole
 
 import numpy as np
 
-def get_molBorder(mol:Mol):
+def get_molBorder(mol:Mole):
     coords=mol.coords
     p0=coords.min(axis=0)
     p1=coords.max(axis=0)
@@ -22,7 +22,7 @@ def sphArea(r:float):
     cords.append([0,0,-1])
     return np.array(cords)*r
 
-def vdeFace(mol:Mol): # 计算范德华表面
+def vdeFace(mol:Mole): # 计算范德华表面
     
     cords=[]
     for i,atom in enumerate(mol.atoms):

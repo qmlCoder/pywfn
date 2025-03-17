@@ -1,24 +1,20 @@
 import sys;sys.path.append("d:/code/pywfn")
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.reader import LogReader,FchReader
-from pywfn.spaceprop import density,RectGrid
+from pywfn.gridprop import density,RectGrid
 import numpy as np
 import matplotlib.pyplot as plt
 
 path=rf"D:\gfile\C6H6.fch"
 
 reader=FchReader(path)
-mol=Mol(reader)
+mol=Mole(reader)
 
 caler=density.Calculator(mol)
 
 x,y,z=grids=np.random.rand(3)
 print(f'{x},{y},{z}')
 dens0,dens1,dens2=caler.molDens(grids.reshape(1,3),1)
-print(dens0)
-print(dens1)
-print(dens2)
-dens0,dens1,dens2=caler.molDens_(grids.reshape(1,3),1)
 print(dens0)
 print(dens1)
 print(dens2)

@@ -4,7 +4,7 @@
 - p轨道方向
 - 原子周围一圈方向
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn import maths
 from pywfn.maths import vector_angle,points_rotate,cubeGrid
 from pywfn import config
@@ -15,7 +15,7 @@ from functools import lru_cache
 maxWeaves={} # 记录已经计算过的原子最大值方向
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.noNorms=[] # 已经计算过的原子法向量
 
@@ -47,7 +47,7 @@ class Calculator:
             maxVal=np.max(vals) # 最大值
             maxDir=delPos[maxIdx]
             return maxVal,maxDir
-        from pywfn.spaceprop import wfnfunc
+        from pywfn.gridprop import wfnfunc
         wfnCaler=wfnfunc.Calculator(self.mol) # 波函数计算器
         step=0.1
         

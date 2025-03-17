@@ -3,13 +3,13 @@
 可以用来生成刚性扫描的结构
 """
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.maths import points_rotate
 
 import numpy as np
 
 class Editor:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     

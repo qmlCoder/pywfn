@@ -12,7 +12,7 @@ import numpy as np
 from functools import lru_cache,cached_property
 
 from pywfn import base
-from pywfn.maths import rlib
+
 from pywfn.data import bastrans
 
 def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
@@ -61,7 +61,7 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
 
 class Coefs:
     def __init__(self):
-        self.mol:"base.Mol|None"=None
+        self.mol:"base.Mole|None"=None
         self._atoAtms:None|list[int]   = None
         self._atoShls:None|list[int]   = None
         self._atoSyms:None|list[str]   = None
@@ -184,6 +184,7 @@ class Coefs:
     
     @property
     def SM_car(self):
+        from pywfn.maths import rlib
         assert self.mol is not None,"未初始化分子"
         atos,coes,alps,lmns=self.mol.basis.basMap()
         xyzs=self.atoXyzs('car')

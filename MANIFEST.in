@@ -1,0 +1,3 @@
+include pywfn/maths/*.pyd
+include pywfn/maths/*.so
+include pywfn/maths/*.dll

@@ -11,7 +11,7 @@ TCEs={
 }
 
 class MolProp:
-    def __init__(self,mol:"base.Mol") -> None:
+    def __init__(self,mol:"base.Mole") -> None:
         self.mol=mol
     
     @cached_property

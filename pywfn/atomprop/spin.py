@@ -4,7 +4,7 @@
 可以通过改变轨道的占据情况来分别计算α和β电子数
 """
 
-from pywfn.base import Mol,Atom
+from pywfn.base import Mole,Atom
 from pywfn.utils import printer
 from pywfn.atomprop import charge, lutils
 from pywfn.atomprop.charge import Chrgs
@@ -15,7 +15,7 @@ from typing import Literal
 import numpy as np
 
 class Calculator():
-    def __init__(self,mol:"Mol") -> None:
+    def __init__(self,mol:"Mole") -> None:
         self.mol=mol
         
     def spin(self,chrg:str='mulliken')->np.ndarray:

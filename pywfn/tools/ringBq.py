@@ -1,7 +1,7 @@
 """
 在gjf的环中心添加Bq原子，方便计算NICS
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.shell import Shell
 from pywfn.writer import GjfWriter
 
@@ -9,7 +9,7 @@ import numpy as np
 from pathlib import Path
 
 class Tool:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.rings=[]
         self.writer=GjfWriter().fromMol(mol)

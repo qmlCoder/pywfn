@@ -1,13 +1,13 @@
 """
 生成刚性扫描的结构
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 
 from pywfn.editor import Editor
 from pywfn.data import temps
 
 class Tool:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.editor=Editor(mol)
         self.temp=temps.gjf

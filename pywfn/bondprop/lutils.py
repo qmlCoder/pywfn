@@ -3,12 +3,12 @@
 """
 import numpy as np
 
-from pywfn.base import Atom,Mol
+from pywfn.base import Atom,Mole
 from pywfn.maths import vector_angle
 from pywfn.utils import printer
 from pywfn.maths.atom import get_sCont
 from pywfn.atomprop import direction
-from pywfn.spaceprop import density
+from pywfn.gridprop import density
 
 def CM2PM(CM,orbital:list[int],oe:int)->np.ndarray:
     """
@@ -27,7 +27,7 @@ def CM2PMs(CM,orbital:list[int],oe:int):
     B=(CM[:,orbital].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算快多了
 
-def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator)->int:
+def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator)->int:
     """
     判断一个轨道是否为π轨道，几何方法
     centerAtom,aroundAtom:原子对象
@@ -45,7 +45,7 @@ def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator
     RA=atom1.coord*0.7+atom2.coord*0.3
     RB=atom1.coord*0.3+atom2.coord*0.7
     densCaler=density.Calculator(mol)
-    dens=densCaler.molDens(grid=np.array([RA,RB]))
+    dens=densCaler.molDens(np.array([RA,RB]),0)
     if np.max(dens)<0.01:return 0
     # 1. 根据s轨道和p轨道的贡献
     sContCenter=get_sCont(mol,atm1,obt)
@@ -77,14 +77,6 @@ def judgeOrbital(mol:Mol,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator
         return 1
     else:
         return -1
-
-def printOrders(orders,orbitals):
-    """将轨道根据大小排序后输出"""
-    orders_=[f'{order:.4f}' for order in orders]
-    sortedRes=sorted(list(zip(orbitals,orders_)),key=lambda e:abs(float(e[1])),reverse=True)
-    sortedRes=[e for e in sortedRes if abs(float(e[1]))>=0.01]
-    sortedRes=list(zip(*sortedRes))    
-    formPrint(sortedRes,8,10)
 
 def formPrint(contents:list[list[str]],eachLength:int,lineNum:int=10):
     """

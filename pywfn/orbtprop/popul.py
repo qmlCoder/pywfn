@@ -3,12 +3,12 @@
 """
 import numpy as np
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 
 from pywfn.orbtprop import decom
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     def eleMat(self,virtual:bool=True)->np.ndarray: # 电子布局矩阵

@@ -5,11 +5,11 @@ from collections import defaultdict
 import numpy as np
 
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.atomprop import direction
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     def pi_decom(self,dtype:str)->np.ndarray: # 分解出pi分子轨道

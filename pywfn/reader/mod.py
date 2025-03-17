@@ -61,8 +61,6 @@ class ModReader(reader.Reader):
         syms,xyzs=self.read_geom()
         return xyzs
     
-    
-    
     def get_basis(self) -> Basis:
         atms,shls,syms,datas=self.read_basis()
         basis=Basis()
@@ -74,12 +72,11 @@ class ModReader(reader.Reader):
         coefs=Coefs()
         engs,occs,CM=self.read_coefs()
         atms,shls,syms,_=self.read_basis()
-        coefs._atoAtms_raw=atms
-        coefs._atoShls_raw=shls
-        coefs._atoSyms_raw=syms
-        coefs._obtEngs_raw=engs
-        coefs._obtOccs_raw=occs
-        coefs._CM_raw=CM
+        coefs._atoAtms=atms
+        coefs._atoShls=shls
+        coefs._atoSyms=syms
+        coefs._obtEngs=engs
+        coefs._CM=CM
         return coefs
 
     def read_geom(self):

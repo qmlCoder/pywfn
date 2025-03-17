@@ -56,30 +56,17 @@ def coordTrans(nx,ny,nz,coords):
     return ps__
 
 arounds=np.array([
-        [-1,0,0],
-        [+1,0,0],
-        [0,-1,0],
-        [0,+1,0],
-        [0,0,-1],
-        [0,0,+1]
-    ])
+    [-1,0,0],
+    [+1,0,0],
+    [0,-1,0],
+    [0,+1,0],
+    [0,0,-1],
+    [0,0,+1]
+])
 
 def differ_function(posan1,posan2): #计算电子分布差值图
     return (posan1+posan2)**2-(posan1**2+posan2**2)/2
 
-
-def get_gridPoints(range,step,ball=False): 
-    '''获取空间格点[3,n]'''
-    points=[]
-    for x in np.arange(-range,range,step):
-        for y in np.arange(-range,range,step):
-            for z in np.arange(-range,range,step):
-                if ball:
-                    distance=(x**2+y**2+z**2)**0.5
-                    if distance>range:
-                        continue
-                points.append([x,y,z])
-    return np.array(points).T
 
 def k_means(des,points):
     '''定义k-means聚类算法函数,返回每一类对应的索引'''
@@ -135,18 +122,16 @@ def normalize(vector):
 
 from rich.console import Console
 from rich .table import Table,box
-from typing import Sequence,Iterable
 from pywfn import config
 import inspect
 class Printer:
     def __init__(self) -> None:
         self.ifDebug=config.IF_DEBUG
-        self.ifShell=config.IF_SHELL
         self.console=Console()
         self.tables:dict[str,Table]={}
 
     def __call__(self,text,style='',end='\n'):
-        if self.ifShell:self.console.print(text,style=style,end=end)
+        self.console.print(text,style=style,end=end)
 
     def warn(self,text):
         self.__call__(text,style='#fcc419')
@@ -154,33 +139,28 @@ class Printer:
     def info(self,text):
         self.__call__(text,style='#91a7ff')
 
-    def wrong(self,text):
+    def err(self,text):
         self.__call__(text,style='#e03131')
     
     def res(self,text):
         self.__call__(text,style='#a9e34b')
         self.bar()
+
+    def bar(self,len=40):
+        self.__call__('-'*len,style='#6741d9')
+    
+    def log(self,text): # 打印日志
+        frame=inspect.stack()[1]
+        text=f'{frame.function}|{frame.filename}:{frame.lineno}\n{text}'
+        self.__call__(text,style='#228be6')
     
     def print(self,text):
         self.__call__(text)
     
     def multi(self,texts:list[str]):
-        # self.__call__(text,style='')
         for text in texts:
             self.console.print(text,end='')
         self.console.print('')
-    
-    def bar(self,len=40):
-        self.__call__('-'*len,style='#6741d9')
-
-    def space(self):
-        self.__call__('')
-    
-    def log(self,text):
-        if self.ifDebug: # 只有debug模式启动的时候才会打印
-            frame=inspect.stack()[1]
-            text=f'{frame.function}|{frame.filename}:{frame.lineno}\n{text}'
-            self.__call__(text,style='#228be6')
     
     def vector(self,tip:str,vector:np.ndarray):
         if not config.IF_SHELL:return
@@ -202,13 +182,6 @@ class Printer:
     def shell(self,text:str): # 以shell方式运行的时候才会打印
         if not config.IF_SHELL:return
         self.console.print(text)
-    
-    def track(self,seq:Sequence,tip:str='')->Iterable:
-        if config.IF_DEBUG:
-            from rich import progress
-            return progress.track(seq,description=tip)
-        else:
-            return seq
 
 printer=Printer()
 

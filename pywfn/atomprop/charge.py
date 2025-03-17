@@ -1,9 +1,9 @@
-from pywfn.base import Mol,Atom
+from pywfn.base import Mole,Atom
 import numpy as np
 from pywfn.data.elements import elements
 from functools import lru_cache
 from pywfn.utils import printer
-from pywfn.spaceprop import density,dftgrid
+from pywfn.gridprop import density,dftgrid
 from pywfn import maths
 from typing import Literal
 from pywfn.maths import CM2PM
@@ -14,7 +14,7 @@ from collections import defaultdict
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
 class Calculator():
-    def __init__(self,mol:"Mol"):
+    def __init__(self,mol:"Mole"):
         self.logTip:str=''
         self.mol=mol
         self.numForm:bool=False # 输出格式，电子数或电荷数 number|charge
@@ -129,8 +129,8 @@ class Calculator():
     def hirshfeld(self)->np.ndarray:
         """计算原子的Hirshfeld电荷"""
         from pywfn.data import radDens
-        from pywfn.spaceprop import dftgrid
-        from pywfn.spaceprop import density
+        from pywfn.gridprop import dftgrid
+        from pywfn.gridprop import density
         gridCaler=dftgrid.Calculator(self.mol) # 格点计算器
         gridCaler.nrad=75
         gridCaler.nsph=434
@@ -214,7 +214,7 @@ class Calculator():
         return self.mulliken()
 
     
-def fit_dirs(mol:Mol,atms:list[int],dirs:list[np.ndarray]|None):
+def fit_dirs(mol:Mole,atms:list[int],dirs:list[np.ndarray]|None):
     """
     矫正方向，如果没有指定方向的话，计算每个原子可能的反应方向
     """

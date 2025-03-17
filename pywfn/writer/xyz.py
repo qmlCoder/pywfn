@@ -2,7 +2,7 @@
 将分子导出为xyz文件
 """
 from pywfn import base
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pathlib import Path
 from pywfn.data.elements import elements
 from pywfn.utils import printer
@@ -18,7 +18,7 @@ class XyzWriter:
         self.syms:list[str]=[]    # 元素符号
         self.xyzs:np.ndarray|None=None # 原子坐标
 
-    def fromMol(self,mol:Mol):
+    def fromMol(self,mol:Mole):
         self.syms=mol.atoms.syms
         self.xyzs=mol.atoms.xyzs
         return self

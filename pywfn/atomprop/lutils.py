@@ -1,7 +1,7 @@
 """
 公用的函数可以移到此处，以较少代码量
 """
-from pywfn.base import Atom,Mol
+from pywfn.base import Atom,Mole
 import numpy as np
 from pywfn import maths
 
@@ -9,7 +9,7 @@ from pywfn import maths
 def atomIdxs(atoms:list[Atom])->list[int]:
     return [atom.idx for atom in atoms]
 
-def get_vects(mol:Mol,atoms:list[int]=None):
+def get_vects(mol:Mole,atoms:list[int]=None):
     """获取指定原子的法向量或与相邻的原子的法向量"""
     atoms:list[Atom]=[mol.atom(a) for a in atoms]
     vects=[]
@@ -21,7 +21,7 @@ def get_vects(mol:Mol,atoms:list[int]=None):
         vects.append(vect)
     return vects
 
-def get_ects(mol:Mol,obts:list[int],CM:np.ndarray)->list[int]:
+def get_ects(mol:Mole,obts:list[int],CM:np.ndarray)->list[int]:
     """
     计算电子数量,如果不指定则计算所有的π电子
     如果指定方向，则计算方向电子
@@ -41,7 +41,7 @@ def get_ects(mol:Mol,obts:list[int],CM:np.ndarray)->list[int]:
         elects.append(elect)
     return elects
 
-def atomValueStr(mol:Mol,satoms:list[int],values:list[float]):
+def atomValueStr(mol:Mole,satoms:list[int],values:list[float]):
     resStr=''
     if values is None:return '非开窍层无法计算自旋!!'
     

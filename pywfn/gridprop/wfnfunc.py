@@ -4,17 +4,17 @@
 原子轨道的波函数
 原子的波函数
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn import maths
 import numpy as np
 from pywfn.maths import cubeGrid
-from pywfn.spaceprop import lutils
-from pywfn import spaceprop
+from pywfn.gridprop import lutils
+from pywfn import gridprop
 from pywfn.maths import march,rlib
 Array=np.ndarray
 
-class Calculator(spaceprop.SpaceCaler):
-    def __init__(self,mol:Mol) -> None:
+class Calculator(gridprop.SpaceCaler):
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
         self.wfns:np.ndarray|None=None

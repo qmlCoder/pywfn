@@ -1,7 +1,7 @@
 """
 计算原子的反应活性，福井函数、parr函数等，一般需要多个分子才行
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.atomprop import charge, direction, spin
 from pywfn.atomprop.charge import Chrgs
 import numpy as np
@@ -9,16 +9,16 @@ from pywfn.shell import Shell
 from pywfn.maths import CM2PM
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     # 福井函数
-    def fukui(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
+    def fukui(self,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
         """计算所有原子的福井函数
 
         Args:
-            molN (Mol): 负电荷分子
-            molP (Mol): 正电荷分子
+            molN (Mole): 负电荷分子
+            molP (Mole): 正电荷分子
             ctype (Chrgs, optional): 电荷类型. Defaults to 'mulliken'.
 
         Returns:
@@ -37,7 +37,7 @@ class Calculator:
         return vals
     
     # parr函数
-    def parr(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
+    def parr(self,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
         """计算所有原子的parr函数[n,5](N+1,N,N-1,pk-,pk+)"""
         mols=[molN,molP]
         cals=[spin.Calculator(mol) for mol in mols]
@@ -50,7 +50,7 @@ class Calculator:
         return vals
     
     # 双描述符
-    def dual(self,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
+    def dual(self,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
         """计算凝聚双描述符[n,4](N+1,N,N-1,f2)
         """
         mols=[molN,self.mol,molP]
@@ -78,12 +78,12 @@ class Calculator:
         pass
 
     # 电子能差
-    def engDiff(self,molN:Mol,molP:Mol)->np.ndarray:
+    def engDiff(self,molN:Mole,molP:Mole)->np.ndarray:
         """计算电子能差，中性到两个状态能量变化，变得越小越好
 
         Args:
-            molN (Mol): N+1 电子
-            molP (Mol): N-1 电子
+            molN (Mole): N+1 电子
+            molP (Mole): N-1 电子
 
         Returns:
             np.ndarray: 电子能差
@@ -121,7 +121,7 @@ class Calculator:
 
         Args:
             atm (int): 原子索引
-            mol (Mol | None): 可指定的分子
+            mol (Mole | None): 可指定的分子
 
         Returns:
             np.ndarray: 自由价[d,5](atm,x,y,z,val)
@@ -142,7 +142,7 @@ class Calculator:
         return result
 
     # 亲核亲电自由价 v1
-    def neFreeValence_v1(self,atm:int,dirs:np.ndarray,molN:Mol,molP:Mol):
+    def neFreeValence_v1(self,atm:int,dirs:np.ndarray,molN:Mole,molP:Mole):
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
@@ -154,7 +154,7 @@ class Calculator:
         return result
     
     # 亲核亲电自由价 v2
-    def neFreeValence_v2(self,atm:int,dirs:np.ndarray,molN:Mol,molP:Mol):
+    def neFreeValence_v2(self,atm:int,dirs:np.ndarray,molN:Mole,molP:Mole):
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
@@ -167,14 +167,14 @@ class Calculator:
         return result
 
     # 方向福井函数
-    def dirFukui(self,atms:list[int],dirs:np.ndarray,molN:Mol,molP:Mol,ctype:str)->np.ndarray:
+    def dirFukui(self,atms:list[int],dirs:np.ndarray,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
         """计算方向福井函数
 
         Args:
             atms (list[int]): 要计算的原子
             dirs (list[np.ndarray]): 原子的方向
-            molN (Mol): 多一个电子的分子
-            molP (Mol): 少一个电子的分子
+            molN (Mole): 多一个电子的分子
+            molP (Mole): 少一个电子的分子
             ctype(str): 电荷类型,默认为mulliken
 
         Returns:
@@ -202,7 +202,7 @@ class Calculator:
         return result
     
     # pi双描述符
-    def dual_pi(self,molN:Mol,molP:Mol,ctype:str): # 基于π电子的双描述符
+    def dual_pi(self,molN:Mole,molP:Mole,ctype:str): # 基于π电子的双描述符
         from pywfn.atomprop import charge
         calerN=charge.Calculator(molN)
         calerP=charge.Calculator(molP)

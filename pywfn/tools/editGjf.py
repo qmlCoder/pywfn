@@ -2,7 +2,7 @@
 给gjf文件添加或减少一个电子
 """
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.writer import GjfWriter
 from pathlib import Path
 from pywfn.data.elements import elements
@@ -11,7 +11,7 @@ from pywfn.shell import Shell
 from pywfn.utils import printer
 
 class Tool():
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.syms=list(mol.atoms.syms)
         self.xyzs=mol.atoms.xyzs

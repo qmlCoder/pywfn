@@ -4,7 +4,7 @@
 将空间格点转换为原子局部坐标系的点，计算这些点上的波函数值
 """
 
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.reader import LogReader
 from pywfn.atomprop import direction
 from pywfn.maths import vector_angle
@@ -21,7 +21,7 @@ def hmoWfn(Z:int,grid:np.ndarray):
 
 
 class Calculator:
-    def __init__(self,mol:Mol):
+    def __init__(self,mol:Mole):
         self.mol=mol
         BM,es,CM,occs=hmo(self.mol)
         self.CM=CM

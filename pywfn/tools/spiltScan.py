@@ -10,7 +10,7 @@ from pathlib import Path
 from pywfn.tools import writer
 from pywfn.data import Elements
 from pywfn.utils import printer
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.writer import GjfWriter
 from pywfn.reader import AnyReader
 import numpy as np
@@ -92,7 +92,7 @@ class Tool:
         gjfStrs=[]
         for i in range(len(syml)-1):
             # 创建文件夹
-            mol=Mol(AnyReader('',{
+            mol=Mole(AnyReader('',{
                 'symbols':syml[i],
                 'coords':xyzl[i],
                 'charge':0,

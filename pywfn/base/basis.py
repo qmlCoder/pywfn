@@ -81,12 +81,12 @@ class BasisData:
 
 class Basis:
     """
-    所有提前准备的基组数据
+    存储基组数据的类
     """
 
     def __init__(self) -> None:
         """根据基组名实例化基组信息"""
-        self.mol:"base.Mol|None"  = None
+        self.mol:"base.Mole|None"  = None
         self.name = ''
         self.data: list[BasisData] = []
     

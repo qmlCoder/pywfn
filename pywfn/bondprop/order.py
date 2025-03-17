@@ -1,7 +1,7 @@
 """
 键级也不止一种，都在这里实现吧
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import hmo,projCM
@@ -16,7 +16,7 @@ from pywfn.bondprop import lutils
 from itertools import product
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     # mayer键级

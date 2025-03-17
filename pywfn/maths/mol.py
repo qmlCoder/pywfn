@@ -1,4 +1,4 @@
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.maths import vector_angle
 
 from pywfn.utils import chkArray
@@ -6,7 +6,7 @@ from pywfn.utils import chkArray
 import numpy as np
 import re
 
-def dihedralAngle(mol:Mol,idxs:list[int]):
+def dihedralAngle(mol:Mole,idxs:list[int]):
     """计算二面角"""
     a,b,c,d=[mol.atom(idx) for idx in idxs]
     vba=a.coord-b.coord
@@ -18,7 +18,7 @@ def dihedralAngle(mol:Mol,idxs:list[int]):
     angle=vector_angle(vi,vj)
     return angle
 
-def projCM(mol:Mol,
+def projCM(mol:Mole,
            obts:list[int],
            atms:list[int],
            dirs:np.ndarray,
@@ -71,11 +71,11 @@ def projCM(mol:Mol,
             CMp[u:l]=mol.CM[u:l].copy()
     return CMp
 
-def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+def hmo(mol:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """求解休克尔分子轨道法
 
     Args:
-        mol (Mol): 需要求解的分子
+        mol (Mole): 需要求解的分子
 
     Returns:
         tuple[np.ndarray,np.ndarray,np.ndarray]: 距离矩阵，能量，系数矩阵
@@ -108,7 +108,7 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     CM=CM[:,idxs].copy() # 每一列对应一个特征向量
     return BM,es,CM,idxs
 
-# def eleMat_(mol:Mol)->np.ndarray:
+# def eleMat_(mol:Mole)->np.ndarray:
 #     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
 #     # 使用法向量可以计算每个分子的pi电子分布
 #     from pywfn.maths import flib
@@ -120,7 +120,7 @@ def hmo(mol:Mol)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
 #     NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
 #     return NM
 
-def eleMat(mol:Mol)->np.ndarray:
+def eleMat(mol:Mole)->np.ndarray:
     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
     # 使用法向量可以计算每个分子的pi电子分布
     from pywfn.maths import rlib
@@ -131,7 +131,7 @@ def eleMat(mol:Mol)->np.ndarray:
     NM=rlib.ele_mat_rs(CM,mol.SM) # type: ignore
     return np.array(NM)*mol.oE
 
-def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
+def engMat(mol:Mole,NM:np.ndarray)->np.ndarray:
     """
     电子能量分布矩阵
     """
@@ -141,7 +141,7 @@ def engMat(mol:Mol,NM:np.ndarray)->np.ndarray:
     EM=NM*obtEngs*obtOccs
     return EM
 
-def piEleMat(mol:Mol)->np.ndarray:
+def piEleMat(mol:Mole)->np.ndarray:
     """计算与分子轨道系数矩阵对应的pi电子分布矩阵"""
     from pywfn.maths import rlib
     from pywfn.atomprop import direction

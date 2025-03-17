@@ -1,12 +1,12 @@
 """
 计算与键相关的方向
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.maths import points_rotate
 import numpy as np
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
 
     def verticals(self,atm1:int,atm2:int)->np.ndarray:

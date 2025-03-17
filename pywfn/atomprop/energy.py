@@ -1,7 +1,7 @@
 """
 计算分子轨道内每个原子的能量
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.atomprop import lutils
 from pywfn.utils import printer
 from pywfn.maths.mol import projCM,engMat,piEleMat,eleMat
@@ -9,7 +9,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.CM=self.mol.CM.copy()
     

@@ -14,15 +14,16 @@ import re, sys
 from pywfn.reader import get_reader
 from pywfn.utils import printer
 from pywfn import data
-from pywfn.base import Mol
+from pywfn.base import Mole
+from pywfn import config
 import numpy as np
 
 
 class Shell:
     def __init__(self):
         self.paths: list[str] = []
-        self.mols: dict[str,Mol] = {} # 路径:分子的对应
-        printer.ifShell = True
+        self.mols: dict[str,Mole] = {} # 路径:分子的对应
+        config.IF_SHELL=True
         printer.info(data.start)
         self.input = Inputer(self)
         self.atomPage=AtomPage(self)
@@ -377,7 +378,7 @@ class MolePage:
 
     def aromacity(self):
         from pywfn.utils import printer
-        from pywfn.molprop import aromatic
+        from pywfn.moleprop import aromatic
         mol=self.shell.input.Moles()[0]
         caler=aromatic.Calculator(mol)
         while True:
@@ -413,7 +414,7 @@ class GridPage:
         self.shell = shell
     
     def home(self):
-        from pywfn.spaceprop import read_grid
+        from pywfn.gridprop import read_grid
         while True:
             printer.options('空间性质',{
                 '1':'  波函数',
@@ -434,7 +435,7 @@ class GridPage:
                     self.potential(mol,obje)
     
     def wfnfunc(self,mol,obje):
-        from pywfn.spaceprop import wfnfunc,save_file
+        from pywfn.gridprop import wfnfunc,save_file
         caler=wfnfunc.Calculator(mol)
         atms=self.shell.input.Integ(tip='?输入要计算的原子: ')
         if not atms:atms=mol.atoms.atms
@@ -443,7 +444,7 @@ class GridPage:
         save_file(caler,obje,wfns,obts=obts)
     
     def density(self,mol,obje):
-        from pywfn.spaceprop import density,save_file
+        from pywfn.gridprop import density,save_file
         caler=density.Calculator(mol)
         atms=self.shell.input.Integ(tip='?输入要计算的原子: ')
         if not atms:atms=mol.atoms.atms
@@ -452,7 +453,7 @@ class GridPage:
         save_file(caler,obje,dens)
     
     def potential(self,mol,obje):
-        from pywfn.spaceprop import potential,save_file
+        from pywfn.gridprop import potential,save_file
         caler=potential.Calculator(mol)
         pots=caler.molPotential(obje.grid)
         save_file(caler,obje,pots)
@@ -733,7 +734,7 @@ class Inputer:
             if count==0:break
         return [paths[int(idx)] for idx in idxs]
 
-    def Moles(self,tip:str='',num:int=0) -> list[Mol]:
+    def Moles(self,tip:str='',num:int=0) -> list[Mole]:
         """
         获取当前文件的分子，列举出当前读取的文件让用户选择，将用户选择的文件对应为分子
         num:分子的数量
@@ -746,7 +747,7 @@ class Inputer:
         mols = []
         for path in paths:
             if path not in self.shell.mols.keys():
-                self.shell.mols[path] = Mol(get_reader(path))
+                self.shell.mols[path] = Mole(get_reader(path))
             mols.append(self.shell.mols[path])
         
         return mols

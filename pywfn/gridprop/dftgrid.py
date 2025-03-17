@@ -1,7 +1,7 @@
 """
 计算DFT格点
 """
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.data.elements import elements
 from pywfn.data import lebedev
 
@@ -9,7 +9,7 @@ import numpy as np
 import sys
 
 class Calculator:
-    def __init__(self,mol:Mol) -> None:
+    def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.nrad=74 # 径向格点数量
         self.nsph=86 # 球面格点数量
