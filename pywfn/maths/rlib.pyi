@@ -7,6 +7,15 @@ i2D=list[list[int]]
 f3D=list[list[list[float]]]
 i3D=list[list[list[int]]]
 
+def ato_wfns_rs(
+    grids:f2D,
+    xyzs:f2D,
+    lmns:i2D,
+    coes:f2D,
+    alps:f2D,
+    level:int
+)->tuple[list[float],list[f1D],list[f2D]]:...
+
 def obt_wfns_rs(
     grids:f2D,
     xyzs:f2D,

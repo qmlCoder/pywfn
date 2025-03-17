@@ -388,7 +388,7 @@ contains
     
     integer::i, j, k, l
     
-   = 0.0
+    obtDens0 = 0.0
     obtDens1 = 0.0
     obtDens2 = 0.0
 

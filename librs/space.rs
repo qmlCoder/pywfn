@@ -137,7 +137,6 @@ fn cgf(
 
 // 计算一个点处的所有原子轨道的波函数
 // xyzs: 原子轨道坐标，coes和alps：每个基函数的系数和指数，每个基函数的数量是不确定的
-
 fn ato_wfn(
     xyz: &[f64;3],
     xyzs: &Vec<[f64;3]>, // 原子轨道坐标
@@ -401,7 +400,27 @@ pub fn ele_potential(
     vals
 }
 
-
+#[pyfunction]
+pub fn ato_wfns_rs(
+    grids: Vec<[f64;3]>,
+    xyzs: Vec<[f64;3]>,
+    lmns: Vec<[i32;3]>,
+    coes: Vec<Vec<f64>>,
+    alps: Vec<Vec<f64>>,
+    level: u32
+)->PyResult<(Vec<Vec<f64>>,Vec<Vec<[f64; 3]>>,Vec<Vec<[[f64; 3]; 3]>>)>{
+    let ngrid=grids.len();
+    let mut ato_wfn0s=Vec::with_capacity(ngrid);
+    let mut ato_wfn1s=Vec::with_capacity(ngrid);
+    let mut ato_wfn2s=Vec::with_capacity(ngrid);
+    for g in 0..ngrid {
+        let (wfn0,wfn1,wfn2)=ato_wfn(&grids[g], &xyzs, &lmns, &coes, &alps, level);
+        ato_wfn0s.push(wfn0);
+        ato_wfn1s.push(wfn1);
+        ato_wfn2s.push(wfn2);
+    }
+    Ok((ato_wfn0s, ato_wfn1s, ato_wfn2s))
+}
 
 #[pyfunction]
 pub fn obt_wfns_rs(

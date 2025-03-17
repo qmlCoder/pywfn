@@ -172,7 +172,7 @@ class Basis:
     
     def atoMap(self):
         assert self.mol is not None, "请先设置分子信息"
-        nato=self.mol.CM.shape[0]
+        nato=self.mol.coefs.CM('car').shape[0]
         lmns=[[] for i in range(nato)]
         coes=[[] for i in range(nato)]
         alps=[[] for i in range(nato)]

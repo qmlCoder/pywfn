@@ -11,6 +11,7 @@ use pyo3::wrap_pyfunction;
 fn rlib(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(space::mol_rhos_rs, m)?)?;
     m.add_function(wrap_pyfunction!(space::ato_rhos_rs, m)?)?;
+    m.add_function(wrap_pyfunction!(space::ato_wfns_rs, m)?)?;
     m.add_function(wrap_pyfunction!(space::obt_wfns_rs, m)?)?;
     m.add_function(wrap_pyfunction!(space::a2m_weits_rs, m)?)?;
     m.add_function(wrap_pyfunction!(space::nuc_potential_rs, m)?)?;
