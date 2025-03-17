@@ -19,13 +19,13 @@ def dihedralAngle(mol:Mole,idxs:list[int]):
     return angle
 
 def projCM(mol:Mole,
-           obts:list[int],
-           atms:list[int],
-           dirs:np.ndarray,
-           akeep:bool,
-           lkeep:bool,
-           akeeps:list[int]|None=None,
-           keeps:str|None=None)->np.ndarray:
+        obts:list[int],
+        atms:list[int],
+        dirs:np.ndarray,
+        akeep:bool,
+        lkeep:bool,
+        akeeps:list[int]|None=None,
+        keeps:str|None=None)->np.ndarray:
     """
     获取投影后的系数矩阵
     atms:需要投影的原子

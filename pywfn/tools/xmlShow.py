@@ -21,7 +21,6 @@ class Edge:
     E:int
     color:int
 
-
 class Tool:
     def __init__(self,path:str) -> None:
         self.path=path

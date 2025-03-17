@@ -90,6 +90,6 @@ class Tool:
         for i in range(len(self.syms)):
             path=os.path.join(self.fold/f'f{i+1:0>2}.gjf')
             mol=self.build_mol(i)
-            writer=GjfWriter(mol)
-            writer.chkPath=f'f{i+1:0>2}'
+            writer=GjfWriter().fromMol(mol)
+            writer.chk=f'f{i+1:0>2}'
             writer.save(path)

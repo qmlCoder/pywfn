@@ -33,7 +33,9 @@ class Tool:
             
     def write_coords(self,temp:str,reader:LogReader):
         COORDS=[]
-        syms,xyzs=reader.read_coords()
+        reads=reader.read_coords()
+        assert reads is not None,"读取坐标失败"
+        syms,xyzs=reads
         xyzs=xyzs.copy()*0.529177
         for sym,(x,y,z) in zip(syms,xyzs):
             COORDS.append(f'{sym:<12}{x:16.8f}{y:16.8f}{z:16.8f}')

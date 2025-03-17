@@ -2,8 +2,6 @@
 本脚本用以生成势能面
 """
 from pathlib import Path
-
-from pywfn.base import Mole
 from pywfn.reader import get_reader,LogReader
 from pywfn.data import temps
 from collections import namedtuple
@@ -34,18 +32,18 @@ class Block:
     Rms:Moles # 反应物
     Tms:Moles # 过渡态
     Pms:Moles # 产物
-    bi0:Union[int,"Block"]=None
-    bi1:Union[int,"Block"]=None
+    bi0:"int|Block|None"=None
+    bi1:"int|Block|None"=None
 
     @property
-    def b0(self)->"Block":
+    def b0(self)->"Block|None":
         if self.bi0 is None:
             return None
         else:
             return self.blocks[self.bi0]
 
     @property
-    def b1(self)->"Block":
+    def b1(self)->"Block|None":
         if self.bi1 is None:
             return None
         else:
@@ -70,11 +68,11 @@ class Block:
     def __repr__(self):
         return f'{self.bi0}<==({self.idx})==>{self.bi1}'
 
-@classmethod
+@dataclass
 class Blocks:
     blocks:list[Block]=[]
 
-    def __getitem__(self,idx)->Block:
+    def __getitem__(self,idx)->"Block|None":
         for block in self.blocks:
             if idx==block.idx:
                 return block
@@ -178,11 +176,18 @@ class Tool:
     def build_bonds(self):
         """生成键"""
         for block in self.blocks:
+            assert block.Rms.n0 is not None,"Rms.n0 is None"
+            assert block.Rms.n1 is not None,"Rms.n1 is None"
+            assert block.Tms.n0 is not None,"Rms.n1 is None"
+            assert block.Tms.n1 is not None,"Rms.n1 is None"
+            assert block.Pms.n0 is not None,"Rms.n1 is None"
+            assert block.Pms.n1 is not None,"Rms.n1 is None"
             if block.b0 is None:
+                
                 self.add_bond(block.Rms.n0,block.Rms.n1,'Bold')
                 self.add_bond(block.Rms.n1,block.Tms.n0,'Dash')
             if block.b0:
-                self.add_bond(block.b0.Pms.n1,block.Tms.n0,'Dash')
+                self.add_bond(block.Pms.n1,block.Tms.n0,'Dash')
             self.add_bond(block.Tms.n0,block.Tms.n1,'Bold')
             self.add_bond(block.Tms.n1,block.Pms.n0,'Dash')
             self.add_bond(block.Pms.n0,block.Pms.n1,'Bold')

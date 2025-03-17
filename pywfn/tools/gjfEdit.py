@@ -7,7 +7,6 @@ from pywfn.writer import GjfWriter
 from pathlib import Path
 from pywfn.data.elements import elements
 import numpy as np
-from pywfn.shell import Shell
 from pywfn.utils import printer
 
 class Tool():
@@ -15,8 +14,8 @@ class Tool():
         self.mol=mol
         self.syms=list(mol.atoms.syms)
         self.xyzs=mol.atoms.xyzs
-        self.nela=self.mol.eleNum[0]
-        self.nelb=self.mol.eleNum[1]
+        self.nela=self.mol.nele[0]
+        self.nelb=self.mol.nele[1]
         fold=Path(self.mol.reader.path).parent # 文件夹
         stem=Path(self.mol.reader.path).stem   # 文件名(无后缀)
         self.root=f'{fold}/{stem}'

@@ -6,8 +6,6 @@
 import re,os
 from typing import Any
 from pathlib import Path
-
-from pywfn.tools import writer
 from pywfn.data import Elements
 from pywfn.utils import printer
 from pywfn.base import Mole
@@ -53,7 +51,7 @@ class Tool:
             titleNums.append(titleNum)
         return titleNums
     
-    def match_coords(self,blocks:list[str],titleNums:list[tuple[int]])->list[list[float]]:
+    def match_coords(self,blocks:list[str],titleNums:list[tuple[int,int]])->tuple[list[str],np.ndarray]:
         """返回包含全部结构坐标的三维数组"""
         s=r" +\d+ +(\d+) +\d+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)"
         xyzl=[]
@@ -64,8 +62,9 @@ class Tool:
             lines=blocks[idx].splitlines(keepends=False)
             for i in range(titleNum+5,len(lines)): # 从标题后的第五行开始
                 line=lines[i]
-                if re.search(s,line) is not None:
-                    idx,x,y,z=re.search(s,line).groups()
+                search=re.search(s,line)
+                if search is not None:
+                    idx,x,y,z=search.groups()
                     symbol=self.elements[int(idx)].symbol
                     syms.append(symbol)
                     xyzs.append([float(x),float(y),float(z)])
@@ -98,7 +97,7 @@ class Tool:
                 'charge':0,
                 'spin':1,
             }))
-            writer=GjfWriter(mol)
+            writer=GjfWriter().fromMol(mol)
             writer.title=self.title
             gjfStr=writer.build()
             gjfStrs.append(gjfStr)

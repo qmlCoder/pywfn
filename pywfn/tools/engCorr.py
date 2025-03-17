@@ -30,7 +30,7 @@ class Tool:
         
         for path in Path(self.ffold).iterdir():
             if path.suffix!='.log':continue
-            name,engs=LogReader(f'{path}').read_energys()
+            engs=LogReader(f'{path}').read_energys()
             feng=engs[3]
             self.fengs.append(feng)
 

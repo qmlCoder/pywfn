@@ -1,14 +1,6 @@
 import numpy as np
 
-from pywfn import base
-from pywfn.base import Mole,Atom
-
-def pola2cart(r,t,p):
-    """极坐标转直角坐标，半径，仰角，转角"""
-    z=r*np.sin(t)
-    x=np.cos(t)*np.cos(p)
-    y=np.cos(t)*np.sin(p)
-    return x,y,z
+from pywfn.base import Mole
 
 counts={}
 
