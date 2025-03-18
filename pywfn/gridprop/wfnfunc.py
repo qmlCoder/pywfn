@@ -10,7 +10,7 @@ import numpy as np
 from pywfn.maths import cubeGrid
 from pywfn.gridprop import lutils
 from pywfn import gridprop
-from pywfn.maths import march,rlib
+
 Array=np.ndarray
 
 class Calculator(gridprop.SpaceCaler):
@@ -22,6 +22,7 @@ class Calculator(gridprop.SpaceCaler):
         self.atms=self.mol.atoms.atms
     
     def obtWfns(self,grids:np.ndarray,obts:list[int])->np.ndarray:
+        from pywfn.maths import rlib
         xyzs,lmns,coes,alps=self.mol.basis.atoMap()
         wfns0=[]
         for obt in obts:

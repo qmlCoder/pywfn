@@ -306,19 +306,9 @@ def matInteg(atos:Array,coes:Array,alps:Array,lmns:Array,xyzs:Array):
     assert chkArray(lmns,[nbas,3]),"形状不匹配"
     # paras=[nato,nbas,atos,coes,alps,lmns,xyzs]
     # 将系数转为归一化之后的系数
-    facs = [1., 1., 3.]
-    for i in range(nbas):
-        l,m,n=lmns[i]
-        fac = facs[l]*facs[m]*facs[n]
-        ang=l+m+n
-        alp=alps[i]
-        Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
-        coes[i]=Nm*coes[i]
-        # print(f'{alp:>10.4f}->{Nm:>10.4f}|{coes[i]:>10.4f}')
-    # print('atos',atos)
+    
     paras=[nato,nbas,atos,coes,alps,lmns,xyzs]
     SM=np.zeros(shape=(nato,nato),dtype=ftype)
-    # print('atos',atos.shape,atos)
     call_flib('matInteg_',paras,[SM])
     return SM
 

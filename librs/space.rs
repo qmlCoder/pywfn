@@ -1,7 +1,8 @@
 use rayon::prelude::*;
-use std::f64::consts::PI;
+use std::{f64::consts::PI, io::Write};
 use pyo3::prelude::*;
 use crate::utils::calc_dist;
+use std::io;
 
 // 获得空间格点
 fn get_grids(nx:usize,ny:usize,nz:usize) -> Vec<[f64;3]> {
@@ -466,15 +467,15 @@ pub fn mol_rhos_rs(
     let mut mol_rho1s=Vec::with_capacity(ngrid);
     let mut mol_rho2s=Vec::with_capacity(ngrid);
     // 并行计算每个网格点的电子密度、梯度和Hessian
-    let results: Vec<_> = grids.par_iter()
-        .map(|grid| mol_rho(grid, &xyzs, &lmns, &coes, &alps, &mat_c, level))
-        .collect();
-
-    // 将结果拆分到三个向量中
-    for (rho0, rho1, rho2) in results {
+    for i in 0..ngrid {
+        let (rho0, rho1, rho2) = mol_rho(&grids[i], &xyzs, &lmns, &coes, &alps, &mat_c, level);
         mol_rho0s.push(rho0);
         mol_rho1s.push(rho1);
         mol_rho2s.push(rho2);
+        let filled=i*100/ngrid;
+        let bar=format!("\r{}{}","*".repeat(filled),"_".repeat(100-filled));
+        print!("{bar}");
+        io::stdout().flush().unwrap();
     }
     Ok((mol_rho0s,mol_rho1s,mol_rho2s))
 }

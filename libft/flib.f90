@@ -620,6 +620,7 @@ contains
     sz=sz/sqrv
     
     val=sx*sy*sz*expv
+    ! write(*,'(3I3,5F10.4)')nx,ny,nz,sx,sy,sz,sqrv,expv
   end subroutine gftInteg
 
   ! subroutine matInteg(nato,nbas,atos,coes,alps,lmns,xyzs,mats) bind(c, name="matInteg_") ! 计算笛卡尔型的重叠矩阵

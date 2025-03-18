@@ -90,9 +90,10 @@ class Calculator(gridprop.SpaceCaler):
         Returns:
             tuple[np.ndarray,np.ndarray,np.ndarray]: 电子密度、电子密度导数、电子密度Hessian
         """
+        from pywfn.maths import rlib
         CM=self.mol.coefs.CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
         xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        dens0,dens1,dens2=rlib.mol_rhos_rs(grids.tolist(),xyzs,lmns,coes,alps,CM.tolist(),level) # type: ignore
+        dens0,dens1,dens2=rlib.mol_rhos_rs(grids,xyzs,lmns,coes,alps,CM,level) # type: ignore
         dens0=np.array(dens0)*self.mol.oE
         dens1=np.array(dens1)*self.mol.oE
         dens2=np.array(dens2)*self.mol.oE

@@ -71,7 +71,7 @@ class Calculator():
         num：是否只保留电子数
         """
         # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
-        PS=self.PM@self.mol.SM
+        PS=self.mol.PM@self.mol.SM
         EV=np.diagonal(PS) # 矩阵的对角元素
         atoms=self.mol.atoms
         elects=np.zeros(len(atoms))

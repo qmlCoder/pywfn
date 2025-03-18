@@ -173,14 +173,23 @@ class Coefs:
                 rawTypes[key]='sph'
         return rawTypes
     
-    # @property
-    # def SM_car_(self): # 笛卡尔重叠矩阵
-    #     from pywfn.maths import flib
-    #     assert self.mol is not None,"未初始化分子"
-    #     atos,coes,alps,lmns=self.mol.basis.basMap()
-    #     xyzs=self.atoXyzs('car')
-    #     SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
-    #     return SM
+    @property
+    def SM_car_(self): # 笛卡尔重叠矩阵
+        from pywfn.maths import flib
+        assert self.mol is not None,"未初始化分子"
+        atos,coes,alps,lmns=self.mol.basis.basMap()
+        xyzs=self.atoXyzs('car')
+        facs = [1., 1., 3.]
+        nbas=len(coes)
+        for i in range(nbas):
+            l,m,n=lmns[i]
+            fac = facs[l]*facs[m]*facs[n]
+            ang=l+m+n
+            alp=alps[i]
+            Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
+            coes[i]=Nm*coes[i]
+        SM=flib.matInteg(atos,coes,alps,lmns,xyzs)
+        return SM
     
     @property
     def SM_car(self):
@@ -196,7 +205,7 @@ class Coefs:
             alp=alps[i]
             Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
             coes[i]=Nm*coes[i]
-        SM=rlib.mat_integ_rs(atos.tolist(),coes.tolist(),alps.tolist(),lmns.tolist(),xyzs.tolist()) # type: ignore
+        SM=rlib.mat_integ_rs(atos,coes,alps,lmns,xyzs) # type: ignore
         SM=np.array(SM)
         return SM
 
