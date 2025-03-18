@@ -189,11 +189,14 @@ class SpaceCaler:
         # faces=[]
         # voxelData  =march.grids2voxel(shape,grids,vals)
         # verts=march.voxel2verts(voxelData,isov,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
-        print('提取等值面',limit,gt)
+        print('提取等值面',limit,gt,grids.shape,vals.shape,isov) 
         # verts:np.ndarray=flib.marchCube(grids,vals,shape,isov)[1] # type: ignore 
-        verts,faces=rlib.march_cube_rs(shape,grids.tolist(),vals.tolist(),isov) # type: ignore
-        verts=np.array(verts)
-        faces=np.array(faces)
+        pverts,pfaces,nverts,nfaces=rlib.march_cube_rs(shape,grids,vals,isov) # type: ignore
+        pverts=np.array(pverts)
+        pfaces=np.array(pfaces)
+        nverts=np.array(nverts)
+        nfaces=np.array(nfaces)
+        return pverts,pfaces,nverts,nfaces
         # print(verts)
         if verts is not None:
             print('vert.shape',verts.shape)
@@ -241,7 +244,7 @@ def read_grid(shell:Shell,gidx:str,mol:Mole|None=None)->LineGrid|RectGrid|CubeGr
             return cube
         case '4': # 分子格点
             assert mol is not None,"没有提供分子"
-            p0,p1=mol.molBorder
+            p0,p1=mol.spaceBorder
             cube=CubeGrid().set_v1(p0,p1,0.2,5)
             return cube
         case '5': # 地图

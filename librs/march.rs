@@ -5,18 +5,19 @@ use pyo3::prelude::*;
 
 #[pyfunction]
 pub fn march_cube_rs(shape: [usize; 3], grids: Vec<[f64;3]>, values: Vec<f64>,isov:f64)
-    ->PyResult<(Vec<[f64;3]>,Vec<[usize;3]>)>{
+    ->PyResult<(Vec<[f64;3]>,Vec<[usize;3]>,Vec<[f64;3]>,Vec<[usize;3]>)>{
     println!("Marching Cube算法");
     let voxel=grids2voxel(shape, &grids, &values);
-    let verts=voxel2verts(&voxel, isov);
-    let (verts,faces)=merge_verts(&verts);
-    Ok((verts,faces))
+    let (pverts,nverts)=voxel2verts(&voxel, isov);
+    let (pverts,pfaces)=merge_verts(&pverts);
+    let (nverts,nfaces)=merge_verts(&nverts);
+    Ok((pverts,pfaces,nverts,nfaces))
 }
 
 
 fn grids2voxel(shape: [usize; 3], grids: &Vec<[f64;3]>, values: &Vec<f64>) -> Vec<Vec<Vec<[f64;4]>>> {
     let [nx,ny,nz]=shape;
-    let mut voxel:Vec<Vec<Vec<[f64;4]>>> = vec![vec![vec![[0.0,0.0,0.0,0.0];nx];ny];nz];
+    let mut voxel:Vec<Vec<Vec<[f64;4]>>> = vec![vec![vec![[0.0,0.0,0.0,0.0];nz];ny];nx];
     let mut n=0;
     for i in 0..nx {
         for j in 0..ny {
@@ -32,32 +33,39 @@ fn grids2voxel(shape: [usize; 3], grids: &Vec<[f64;3]>, values: &Vec<f64>) -> Ve
 }
 
 
-fn voxel2verts(voxel:&Vec<Vec<Vec<[f64;4]>>>,isov:f64)-> Vec<[f64;3]> {
+fn voxel2verts(voxel:&Vec<Vec<Vec<[f64;4]>>>,isov:f64)-> (Vec<[f64;3]>,Vec<[f64;3]>) {
     let nx=voxel.len();
     let ny=voxel[0].len();
     let nz=voxel[0][0].len();
-    let mut verts:Vec<[f64;3]> = Vec::new();
+    let mut pverts:Vec<[f64;3]> = Vec::new();
+    let mut nverts:Vec<[f64;3]> = Vec::new();
     for i in 0..nx-1 {
         for j in 0..ny-1 {
             for k in 0..nz-1 {
                 let (xyzs,vals)=get_around(&voxel,i,j,k);
                 // 获取vals的最小值及最小值所在的索引
-                let vmin=vals.iter().min_by(|a,b|a.partial_cmp(b).unwrap()).unwrap();
-                let vmax=vals.iter().max_by(|a,b|a.partial_cmp(b).unwrap()).unwrap();
+                let vmin = vals.iter().fold(f64::INFINITY, |a, &b| a.min(b));
+                let vmax = vals.iter().fold(-f64::INFINITY, |a, &b| a.max(b));
 
-                let mut key:usize=0;
-                if *vmin<isov && *vmax>isov {
-                    for n in 0..8 {
-                        key+=if vals[n]>isov {(2 as usize).pow((7-n) as u32)} else {0};
-                        
-                    }
-                    let box_verts=get_boxverts(key, xyzs, vals, isov);
-                    verts.extend(box_verts);
+                // 处理isov的等值面
+                if vmin < isov && isov < vmax {
+                    let key = (0..8).fold(0, |acc, n| {
+                        acc + if vals[n] > isov { 1 << (7 - n) } else { 0 }
+                    });
+                    pverts.extend(get_boxverts(key, &xyzs, &vals, isov));
+                }
+
+                // 处理-isov的等值面
+                if vmin < -isov && -isov < vmax {
+                    let key_neg = (0..8).fold(0, |acc, n| {
+                        acc + if vals[n] > -isov { 1 << (7 - n) } else { 0 }
+                    });
+                    nverts.extend(get_boxverts(key_neg, &xyzs, &vals, -isov));
                 }
             }
         }
     }
-    verts
+    (pverts,nverts)
 }
 
 fn get_around(voxel:&Vec<Vec<Vec<[f64;4]>>>,i:usize,j:usize,k:usize)->([[f64;3];8],[f64;8]) {
@@ -85,7 +93,7 @@ fn get_around(voxel:&Vec<Vec<Vec<[f64;4]>>>,i:usize,j:usize,k:usize)->([[f64;3];
     (xyzs,vals)
 }
 
-fn get_boxverts(key:usize,xyzs:[[f64;3];8],vals:[f64;8],isov:f64)->Vec<[f64;3]> {
+fn get_boxverts(key:usize,xyzs:&[[f64;3];8],vals:&[f64;8],isov:f64)->Vec<[f64;3]> {
     let bonds=[[0, 1], [1, 2], [2, 3], [0, 3], [1, 5], [2, 6], [3, 7], [0, 4], [4, 5], [5, 6], [6, 7], [7, 4]];
     let mut verts:Vec<[f64;3]> = Vec::new();
     let nface=MARCH[key].len()/3; // 面的数量，每个面3个顶点

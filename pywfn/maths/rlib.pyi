@@ -51,7 +51,7 @@ def march_cube_rs(
     grids:f2D,
     value:f1D,
     isov:float
-)->tuple[f2D,i2D]:...
+)->tuple[f2D,i2D,f2D,i2D]:...
 
 def a2m_weits_rs(
     iatm:int,

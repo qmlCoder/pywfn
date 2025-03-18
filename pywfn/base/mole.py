@@ -125,6 +125,7 @@ class Mole:
         occs=self.obtOccs
         nobt=len(occs)
         for i,s in enumerate(occs):
+            s='O' if s else 'U'
             if self.open:
                 if i<nobt//2:
                     s=f'A {s}'
@@ -257,7 +258,7 @@ class Mole:
         return ''.join(names)
     
     @property
-    def molBorder(self)->tuple[np.ndarray,np.ndarray]:
+    def spaceBorder(self)->tuple[np.ndarray,np.ndarray]:
         """获取分子空间边界"""
         p0=self.coords.min(axis=0)
         p1=self.coords.max(axis=0)

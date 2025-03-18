@@ -142,8 +142,6 @@ class Calculator(gridprop.SpaceCaler):
         vals=L/dens0**a
         print(np.min(vals),np.max(vals))
         return vals
-   
-    
     
     def piMolDens(self,grid:np.ndarray):
         """计算分子空间π电子密度"""
@@ -151,10 +149,10 @@ class Calculator(gridprop.SpaceCaler):
 
     def vandSurf(self):
         """返回分子的范德华表面"""
-        p0,p1=self.mol.molBorder
+        p0,p1=self.mol.spaceBorder
         shape,grids=gridprop.CubeGrid().set_v1(p0,p1,0.3,4).get()
         vals=self.molDens(grids,0)[0]
-        verts,faces=self.isoSurf(shape,grids,vals,0.04)
+        verts,faces,_,_=self.isoSurf(shape,grids,vals,0.04)
         assert verts is not None,"未找到范德华表面"
         assert faces is not None,"未找到范德华表面"
         return verts,faces

@@ -148,7 +148,8 @@ class Calculator():
                 fdens=radDens.get_radDens(atom.atomic,dists) # 自由原子电子密度
                 pdens+=fdens #*gcuts
                 if i==j:idens=fdens
-            mdens=densCaler.atmDens(atmGrids).sum(axis=0)
+            # mdens=densCaler.atmDens(atmGrids).sum(axis=0)
+            mdens=densCaler.molDens(atmGrids,0)[0]
             res=np.divide(idens,pdens,where=pdens!=0)*mdens*weits*gcuts
             # for j in range(npos):
             #     x,y,z=atmGrids[j]
