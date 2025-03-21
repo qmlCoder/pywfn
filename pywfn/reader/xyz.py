@@ -11,6 +11,8 @@ from pywfn import reader
 
 class XyzReader(reader.Reader):
     def __init__(self,path) -> None:
+        super().__init__(path)
+        self.type='xyz'
         self.path=path
         with open(path,'r',encoding='utf-8') as f:
             self.content=f.read()

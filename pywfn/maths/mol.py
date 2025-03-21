@@ -18,14 +18,15 @@ def dihedralAngle(mol:Mole,idxs:list[int]):
     angle=vector_angle(vi,vj)
     return angle
 
-def projCM(mol:Mole,
-        obts:list[int],
-        atms:list[int],
-        dirs:np.ndarray,
-        akeep:bool,
-        lkeep:bool,
-        akeeps:list[int]|None=None,
-        keeps:str|None=None)->np.ndarray:
+def projCM(
+    mol:Mole,
+    obts:list[int],
+    atms:list[int],
+    dirs:np.ndarray,
+    akeep:bool,
+    lkeep:bool,
+    akeeps:list[int]|None=None,
+    lkeeps:str|None=None)->np.ndarray:
     """
     获取投影后的系数矩阵
     atms:需要投影的原子
@@ -56,8 +57,8 @@ def projCM(mol:Mole,
                 Co=mol.CM[u:l,obt].copy()
             else:
                 Co=np.zeros(len(syms)) #根据是否P轨道之外的保留还是0由不同的选择
-            if keeps is not None: # 其它保留的层
-                idxs=[i for i,s in enumerate(syms) if re.match(keeps,s)]
+            if lkeeps is not None: # 其它保留的层
+                idxs=[i for i,s in enumerate(syms) if re.match(lkeeps,s)]
                 Cos=atom.obtCoeffs[idxs,obt].copy()
                 Co[idxs]=Cos
             Cop=atom.get_pProj(vect,obt)

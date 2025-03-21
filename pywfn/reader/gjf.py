@@ -12,6 +12,7 @@ from functools import lru_cache
 class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
+        self.type='gjf'
     
     def get_atmSyms(self) -> list[str]:
         symbols,coords=self.read_coord()

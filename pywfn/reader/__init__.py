@@ -57,6 +57,7 @@ class Reader:
             path (str): 文件路径
             cache (bool, optional): 是否缓存. Defaults to False.
         """
+        self.type:str='' # 读取器类型
         self.path:str=path
         self.cache=cache
         dataFold=Path(path).parent/f'{Path(path).suffix}#{Path(path).stem}' # 数据存储路径
@@ -148,6 +149,7 @@ from pywfn.reader.gjf import GjfReader
 from pywfn.reader.mol import MolReader
 from pywfn.reader.any import AnyReader
 from pywfn.reader.mod import ModReader
+from pywfn.reader.sdf import SdfReader
 def get_reader(path:str):
     """根据输入文件的类型自动判断应该使用哪个读取器"""
     suffix=Path(path).suffix

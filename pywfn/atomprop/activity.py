@@ -130,14 +130,12 @@ class Calculator:
         caler=order.Calculator(self.mol)
         STAND=3.0
         result=[]
-        bmays=caler.boundMayer(atm,dirs) # 计算束缚键级
+        bonds,orders=caler.boundMayer(atm,dirs) # 计算束缚键级
         # print(bmays)
         nebs=self.mol.atom(atm).neighbors # 原子的邻接原子
-        for i in range(0,len(bmays),len(nebs)):
-            orders=bmays[i:i+len(nebs),-1]
-            x,y,z=bmays[i,2:5]
-            valence=STAND-sum(orders)
-            result.append([atm,x,y,z,valence])
+        for i in range(0,len(orders),len(nebs)):
+            valence=STAND-orders[i:i+len(nebs)].sum()
+            result.append(valence)
         result=np.array(result)
         return result
 
@@ -146,7 +144,7 @@ class Calculator:
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
-        valn,val0,valp=[cal.freeValence(atm,dirs) for cal in cals]
+        valn,val0,valp=[cal.freeValence(atm,dirs)[1] for cal in cals]
         dirs=val0[:,:-1]
         valsn=(valn[:,-1]-val0[:,-1]).reshape(-1,1)
         valsp=(valp[:,-1]-val0[:,-1]).reshape(-1,1)
@@ -158,7 +156,7 @@ class Calculator:
         """计算自由价之差"""
         mols=[molN,self.mol,molP]
         cals=[Calculator(mol) for mol in mols]
-        valn,val0,valp=[cal.freeValence(atm,dirs) for cal in cals]
+        valn,val0,valp=[cal.freeValence(atm,dirs)[1] for cal in cals]
         val:float=self.valence()[atm-1] # 原子化合价
         dirs=val0[:,:-1]
         valsn=(4-val+(valn[:,-1])-val0[:,-1]).reshape(-1,1)
@@ -181,8 +179,8 @@ class Calculator:
             np.ndarray: 指定方向的福井函数[n,6](N-1,N,N+1,f-,f+,f0)
         """
         mols=[molN,self.mol,molP]
-        crgs=[mol.charge for mol in mols]
-        # assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
+        crgs=[mol.multi[0] for mol in mols]
+        assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
         cals=[charge.Calculator(mol) for mol in mols]
         
         vals:list[np.ndarray]=[]

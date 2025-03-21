@@ -10,6 +10,7 @@ from pywfn.maths import CM2PM
 from pywfn.maths.mol import projCM
 from pywfn.shell import Shell
 from collections import defaultdict
+from pywfn.atomprop import lutils
 
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
@@ -67,18 +68,12 @@ class Calculator():
     
     def mulliken(self)->np.ndarray:
         """
-        计算目录mulliken电荷
-        num：是否只保留电子数
+        计算mulliken电荷
         """
-        # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
-        PS=self.mol.PM@self.mol.SM
-        EV=np.diagonal(PS) # 矩阵的对角元素
-        atoms=self.mol.atoms
-        elects=np.zeros(len(atoms))
-        for a,atom in enumerate(atoms):
-            u,l=atom.obtBorder
-            elect=EV[u:l].sum()
-            elects[a]=elect
+        PM=self.mol.PM
+        SM=self.mol.SM
+        atmuls=self.mol.atoms.atmuls
+        elects=lutils.mulliken(PM,SM,atmuls)
         if self.numForm:
             return elects
         else:
@@ -189,10 +184,7 @@ class Calculator():
         self.numForm=True
         CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
         PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
-        PMo=self.PM.copy() # 备份老的密度矩阵
-        self.PM=PMp # 将密度矩阵替换为投影后的密度矩阵
-        eleNums=self.charge(ctype)
-        # print(eleNums)
+        elects=lutils.mulliken(PMp,self.mol.SM,self.mol.atoms.atmuls)
         result=[]
         for atom in self.mol.atoms:
             atm=atom.idx
@@ -200,9 +192,8 @@ class Calculator():
                 x,y,z=atmDirs[atm]
             else:
                 x,y,z=[0,0,0]
-            ele=eleNums[atm-1]
+            ele=elects[atm-1]
             result.append([atm,x,y,z,ele])
-        self.PM=PMo
         return np.array(result)
     
     def piElectDecom(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道

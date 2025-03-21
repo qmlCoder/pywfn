@@ -16,6 +16,7 @@ sym2ang={'s':0,'p':1,'d':2,'f':3,'g':4,'h':5,'i':6}
 class ModReader(reader.Reader):
     def __init__(self, path:str):
         super().__init__(path)
+        self.type='mod'
         self.titles={
             'N_ATOMS':0,
             'ATOMS':0,

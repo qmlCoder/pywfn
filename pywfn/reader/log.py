@@ -57,6 +57,7 @@ class Title:
 class LogReader(reader.Reader):
     def __init__(self, path:str,cache:bool=False) -> None:
         super().__init__(path,cache)
+        self.type='log'
         assert type(path)==str,'路径应该为字符串格式'
         assert Path(path).suffix in ['.log','.out'],'文件类型不匹配，应为.log文件或.out文件'
         self.index=0 #从第一行向下搜索，搜索到需要的就停止

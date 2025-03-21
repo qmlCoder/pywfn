@@ -18,7 +18,7 @@ class Bond:
         self.atm2=atm2
         self._length:float|None=None
         self.key:str=f'{atm1}-{atm2}'
-        self.ats:list[int]=[atm1,atm2]
+        self.ats:tuple[int,int]=(atm1,atm2)
     
     @property
     def a1(self):
@@ -93,6 +93,10 @@ class Bonds:
     @property
     def keys(self):
         return [bond.key for bond in self.bonds]
+    
+    @property
+    def ats(self):
+        return [bond.ats for bond in self.bonds]
     
     @property
     def num(self):

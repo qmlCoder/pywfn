@@ -8,6 +8,7 @@ from pywfn.base.basis import Basis
 class AnyReader(reader.Reader):
     def __init__(self,path:str='',props:dict={}):
         super().__init__(path)
+        self.type:str='any'
         self.charge:int=0
         self.spin:int=1
         self.symbols:list[str]=[]

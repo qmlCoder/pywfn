@@ -161,6 +161,17 @@ class Atoms:
         radius=[elements[atom.symbol].radius for  atom in self.atoms]
         return radius
 
+    @property
+    def atmuls(self)->list[tuple[int,int]]:
+        """所有原子在基函数矩阵中的上下限"""
+        atmuls=[atom.obtBorder for atom in self.atoms]
+        return atmuls
+    
+    @property
+    def uls(self)->list[tuple[int,int]]:
+        """所有原子在基函数矩阵中的上下限"""
+        atmuls=[atom.obtBorder for atom in self.atoms]
+        return atmuls
     
     @property
     def num(self)->int:

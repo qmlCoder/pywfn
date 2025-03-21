@@ -97,3 +97,26 @@ def formPrint(contents:list[list[str]],eachLength:int,lineNum:int=10):
         for log in logs:
             printer.warn(log[i])
 
+
+def mayer(PM:np.ndarray,SM:np.ndarray,atmuls:list[tuple[int,int]],bonds:list[tuple[int,int]])->np.ndarray:
+    """计算mayer键级，mayer键级是基础键级，很多方法的键级都是基于mayer键级计算出来的
+
+    Args:
+        PM (np.ndarray, optional): 密度矩阵，如不指定则使用分子默认密度矩阵
+        bonds (list[list[int]], optional): 可指定要计算的键，若不指定则使用所有键
+
+    Returns:
+        np.ndarray: 所有键的键级，形状为:[d,3](a1,a2,order)
+    """
+    # 获取密度矩阵 P
+    PS=PM@SM
+    OM=PS*PS.T
+    orders=[]
+    for a1,a2 in bonds:
+        u1,l1=atmuls[a1-1]
+        u2,l2=atmuls[a2-1]
+        vals=OM[u1:l1,u2:l2]
+        order=np.sum(vals)
+        orders.append(order)
+    order = np.array(orders)
+    return order

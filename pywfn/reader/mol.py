@@ -8,6 +8,7 @@ from functools import lru_cache
 class MolReader(reader.Reader):
     def __init__(self, path: str) -> None:
         super().__init__(path)
+        self.type='mol'
         line3=self.getline(3)
         self.natm=int(line3[:3])
         print(self.natm)

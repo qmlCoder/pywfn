@@ -35,7 +35,7 @@ titleMatch='^(.{40}) {3}(.{1})(.{5})(.{12})$'
 class FchReader(reader.Reader):
     def __init__(self,path:str):
         super().__init__(path)
-
+        self.type='fch'
         self.jobTitle:str=self.getline(0)
         
         mathc2=re.match(r'(.{10})(.{30})(.{30})',self.getline(1)).groups() # type: ignore

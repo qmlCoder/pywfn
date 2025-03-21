@@ -9,17 +9,6 @@ from pywfn import maths
 def atomIdxs(atoms:list[Atom])->list[int]:
     return [atom.idx for atom in atoms]
 
-def get_vects(mol:Mole,atoms:list[int]=None):
-    """获取指定原子的法向量或与相邻的原子的法向量"""
-    atoms:list[Atom]=[mol.atom(a) for a in atoms]
-    vects=[]
-    for atom in atoms:
-        vect=atom.get_Normal()
-        if vect is None:
-            idxn=maths.search_sp2(atom.idx,mol)
-            vect=mol.atom(idxn).get_Normal()
-        vects.append(vect)
-    return vects
 
 def get_ects(mol:Mole,obts:list[int],CM:np.ndarray)->list[int]:
     """
@@ -54,3 +43,22 @@ def atomValueStr(mol:Mole,satoms:list[int],values:list[float]):
         resStr+=f'{atom.idx:<2}{atom.symbol:>2}{value:>15.8f}\n'
 
     return resStr
+
+
+def mulliken(
+        PM:np.ndarray,
+        SM:np.ndarray,
+        atmuls:list[tuple[int,int]], # 每个原子在基函数中的上下限
+        )->np.ndarray:
+    """
+    计算目录mulliken电荷
+    num：是否只保留电子数
+    """
+    # 矩阵乘法的迹的加和=矩阵对应元素乘积之和
+    PS=PM@SM
+    EV=np.diagonal(PS) # 矩阵的对角元素
+    elects=np.zeros(len(atmuls))
+    for a,(u,l) in enumerate(atmuls):
+        elect=EV[u:l].sum()
+        elects[a]=elect
+    return elects

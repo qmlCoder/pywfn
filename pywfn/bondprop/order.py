@@ -7,6 +7,7 @@ from pywfn.maths import CM2PM
 from pywfn.maths.mol import hmo,projCM
 from pywfn.utils import printer
 from pywfn.shell import Shell
+from pywfn.bondprop import lutils
 
 import numpy as np
 from itertools import product
@@ -20,7 +21,7 @@ class Calculator:
         self.mol=mol
 
     # mayer键级
-    def mayer(self,PM:np.ndarray|None=None)->np.ndarray:
+    def mayer(self)->tuple[list[tuple[int,int]],np.ndarray]:
         """计算mayer键级，mayer键级是基础键级，很多方法的键级都是基于mayer键级计算出来的
 
         Args:
@@ -31,21 +32,24 @@ class Calculator:
             np.ndarray: 所有键的键级，形状为:[d,3](a1,a2,order)
         """
         # 获取密度矩阵 P
-        if PM is None:PM=self.mol.PM
+        PM=self.mol.PM
         # 获取重叠矩阵
         SM=self.mol.SM
         PS=PM@SM
         OM=PS*PS.T
-        orders=[]
-        for bond in self.mol.bonds:
-            a1,a2=bond.ats
-            u1,l1=self.mol.atom(a1).obtBorder
-            u2,l2=self.mol.atom(a2).obtBorder
-            vals=OM[u1:l1,u2:l2]
-            order=np.sum(vals)
-            orders.append([a1,a2,order])
-        order = np.array(orders)
-        return order
+        atmuls=self.mol.atoms.atmuls
+        bonds=self.mol.bonds.ats
+        orders=lutils.mayer(PM,SM,atmuls,bonds)
+        # orders=[]
+        # for bond in self.mol.bonds:
+        #     a1,a2=bond.ats
+        #     u1,l1=self.mol.atom(a1).obtBorder
+        #     u2,l2=self.mol.atom(a2).obtBorder
+        #     vals=OM[u1:l1,u2:l2]
+        #     order=np.sum(vals)
+        #     orders.append([a1,a2,order])
+        # order = np.array(orders)
+        return bonds,orders
     
     def multiCenter(self,atms:list[int]):
         """计算多中心键级"""
@@ -81,13 +85,14 @@ class Calculator:
             # CMp=projCM(self.mol,obts,[a1,a2],np.array([dir,dir]),False,True)
             CMp=projCM(self.mol,obts,[a1,a2],np.array([dir,dir]),False,False)
             PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
-            for a1_,a2_,order in self.mayer(PM=PMp):
+            orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
+            for (a1_,a2_),order in zip(self.mol.bonds.ats,orders):
                 if a1!=a1_ or a2!=a2_:continue
                 x,y,z=dir
                 result.append([a1,a2,x,y,z,order])
         return np.array(result)
     
-    def boundMayer(self,atm:int,dirs:np.ndarray)->np.ndarray:
+    def boundMayer(self,atm:int,dirs:np.ndarray)->tuple[list[tuple[int,int]],np.ndarray]:
         """计算与指定原子相邻的键的束缚键级，束缚键级投影指定原子，保留邻接原子，清除其它原子
 
         Args:
@@ -100,20 +105,22 @@ class Calculator:
         nebs=self.mol.atom(atm).neighbors
         obts=self.mol.O_obts
         result=[]
+        bonds=[]
         for d in range(len(dirs)):
             CMp=projCM(self.mol,obts,[atm],dirs[d,np.newaxis],True,True,akeeps=nebs)
             PMp=CM2PM(CMp,obts,self.mol.oE)
-            orders=self.mayer(PM=PMp)
+            orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
             x,y,z=dirs[d]
-            for a1,a2,val in orders:
+            for (a1,a2),val in zip(self.mol.bonds.ats,orders):
                 if int(a1) not in nebs+[atm]:continue
                 if int(a2) not in nebs+[atm]:continue
-                result.append([a1,a2,x,y,z,val])
+                bonds.append((a1,a2))
+                result.append(val)
         result=np.array(result)
-        print('束缚键级',atm,result)
-        return result
+        # print('束缚键级',atm,result)
+        return bonds,result
     
-    def pi_pocv(self)->np.ndarray:
+    def pi_pocv(self)->tuple[list[tuple[int,int]],np.ndarray]:
         """计算分子的所有pi键键级，每个可能的pi键计算出一个键级
 
         Returns:
@@ -131,12 +138,11 @@ class Calculator:
         PMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False)
         PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
         
-        result=self.mayer(PM=PMp)
-        orders=result[:,-1]
+        bonds=self.mol.bonds.ats
+        orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
         orders[orders<0]=0
         orders=np.sqrt(orders)
-        result[:,-1]=orders
-        return result
+        return bonds,orders
 
     def pi_smo(self,bond:list[int])->np.ndarray:
         """根据分子轨道挑选法计算pi键级
@@ -278,14 +284,14 @@ class Calculator:
             CMs.append(CMt)
             
             PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
-            results=self.mayer(PMt)
-            values=results[:,-1]
-            values[values<0]=0
-            results[:,-1]=values**0.5
-            for a1,a2,val in results:
+            bonds=self.mol.bonds.ats
+            orders=lutils.mayer(PMt,self.mol.PM,self.mol.atoms.uls,bonds)
+            orders[orders<0]=0
+            orders=orders**0.5
+            result=[]
+            for (a1,a2),val in zip(bonds,orders):
                 if a1 not in bond:continue
                 if a2 not in bond:continue
-                order=val.item()
-                orders.append(order)
+                result.append(val)
                 break
-        return orders
+        return np.array(result)
