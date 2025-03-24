@@ -45,7 +45,8 @@ params=[
     'main.py',
 ]
 pyi.run(params)
-shutil.copytree('./pywfn/libs','./dist/libs',dirs_exist_ok=True)
+os.mkdir('./dist/libs')
+shutil.copyfile('./pywfn/maths/flib.dll','./dist/libs/flib.dll')
 
 now=datetime.now()
 Y = now.year-2000

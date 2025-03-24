@@ -6,7 +6,6 @@ from pywfn.atomprop import lutils
 from pywfn.utils import printer
 from pywfn.maths.mol import projCM,engMat,piEleMat,eleMat
 import numpy as np
-import matplotlib.pyplot as plt
 
 class Calculator:
     def __init__(self,mol:Mole) -> None:

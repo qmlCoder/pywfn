@@ -21,10 +21,10 @@ from pywfn import config
 
 
 # config.ROOT_DATA=Path.cwd()/'data'
-# config.ROOT_LIBS=Path.cwd()/'maths'
+# config.ROOT_LIBS=Path.cwd()/'libs'
 # print(f'{config.ROOT_DATA}')
 # print(f'{config.ROOT_LIBS}')
-# os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
+os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
 if __name__=='__main__':
-    from pywfn.shell import Shell
+    from pywfn.cli import Shell
     Shell().homePage()

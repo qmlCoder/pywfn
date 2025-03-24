@@ -92,7 +92,7 @@ class Mole:
     def multi(self): # 电荷、自旋多重性
         total=sum(self.atoms.atomics)
         nela,nelb=self.nele
-        return nela+nelb-total,nela-nelb
+        return total-nela-nelb,nela-nelb+1
 
     @property
     def open(self)->bool:
@@ -198,7 +198,7 @@ class Mole:
         """根据原子编号获取一个原子，从1开始"""
         assert isinstance(idx,int),f"索引应该为整数"
         assert idx>0,"索引从1开始"
-        assert idx<=len(self.atoms),"原子索引超过原子数量"
+        assert idx<=len(self.atoms),f"原子索引超过原子数量,idx={idx}"
         return self.atoms[idx-1]
     
     @lru_cache

@@ -171,13 +171,16 @@ class Printer:
     
     def options(self,title,opts:dict[str,str]):
         if not config.IF_SHELL:return
-        table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
-        table.add_column('选项',justify="left")
-        table.add_column('功能',justify="left")
+        print(f'{title}')
+        print(f"{'选项'}{'功能'}")
+        # table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
+        # table.add_column('选项',justify="left")
+        # table.add_column('功能',justify="left")
         for idx,text in opts.items():
-            table.add_row(f'{idx: >2}. ',f'{text}')
-        print('')
-        self.console.print(table)
+            # table.add_row(f'{idx: >2}. ',f'{text}')
+            print(f'{idx: >2}. {text}')
+        # print('')
+        # self.console.print(table)
     
     def shell(self,text:str): # 以shell方式运行的时候才会打印
         if not config.IF_SHELL:return

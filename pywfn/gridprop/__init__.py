@@ -211,7 +211,7 @@ class SpaceCaler:
         else:
             return None,None
 
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 
 # 根据用户输入获取格点
 def read_grid(shell:Shell,gidx:str,mol:Mole|None=None)->LineGrid|RectGrid|CubeGrid|EarthGrid:

@@ -8,7 +8,7 @@ from pywfn import maths
 from typing import Literal
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import projCM
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 from collections import defaultdict
 from pywfn.atomprop import lutils
 

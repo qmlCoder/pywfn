@@ -1,5 +1,5 @@
 from pywfn.utils import printer
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 class Caler:
 
     def calculate(self,idx1:int,idx2:int)->float:

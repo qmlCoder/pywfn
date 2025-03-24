@@ -18,5 +18,5 @@ def main():
     parser.add_argument('-cli',action='store_true')
     opts=parser.parse_args()
     if opts.cli:
-        from pywfn.shell import Shell
+        from pywfn.cli import Shell
         Shell().homePage()

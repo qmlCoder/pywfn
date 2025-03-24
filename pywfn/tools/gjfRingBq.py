@@ -2,7 +2,7 @@
 在gjf的环中心添加Bq原子，方便计算NICS
 """
 from pywfn.base import Mole
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 from pywfn.writer import GjfWriter
 
 import numpy as np

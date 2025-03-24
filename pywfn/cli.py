@@ -189,7 +189,7 @@ class AtomPage:
                 '3':'双描述符',
                 '4':'原子能差',
                 '5':'化合价',
-                '6':'自由价',
+                '6':'自由价(活性矢量)',
                 '7':'方向福井函数',
             })
             opt=input('选择计算活性类型:')
@@ -239,9 +239,8 @@ class AtomPage:
                     result=caler.valence()
                     for i,val in enumerate(result):
                         print(f'{i+1:>3d}:{val:>10.4f}')
-                case '6': # 自由价，可以输入方向或内置方向
+                case '6': # 自由价(活性)，可以输入方向或内置方向
                     from pywfn.atomprop import direction
-                    mol=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=1)[0]
                     dirCaler=direction.Calculator(mol)
                     atm=self.shell.input.Integ(tip='输入原子编号: ',count=1)[0]
                     dirs=self.shell.input.Float(tip='?指定投影方向: ',count=3)
@@ -250,8 +249,9 @@ class AtomPage:
                     else:
                         dirs=np.array(dirs).reshape(1,3)
                     result=caler.freeValence(atm,dirs)
-                    for a,x,y,z,v in result:
-                        print(f'{atm:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
+                    print(f"{'atm':>3}{'dx':>10}{'dy':>10}{'dz':>10}{'val':>10}")
+                    for (x,y,z),v in zip(dirs,result):
+                        print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
                 case '7': # 方向fukui函数
                     # self.mols=shell.input.Moles(num=3)
                     copt=input('请输入电荷类型: ')
@@ -318,9 +318,9 @@ class BondPage:
             opt=input('选择要计算的键级：')
             match opt:
                 case '1':
-                    orders=caler.mayer()
-                    for a1,a2,val in orders:
-                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                    bonds,orders=caler.mayer()
+                    for (a1,a2),val in zip(bonds,orders):
+                        print(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
                 case '2':
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')
@@ -333,9 +333,9 @@ class BondPage:
                         for a1,a2,x,y,z,val in result:
                             print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
                 case '3':
-                    orders=caler.pi_pocv()
-                    for a1,a2,val in orders:
-                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                    bonds,orders=caler.pi_pocv()
+                    for (a1,a2),val in zip(bonds,orders):
+                        print(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
                 case '4':
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')

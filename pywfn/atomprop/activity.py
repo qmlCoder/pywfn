@@ -5,7 +5,7 @@ from pywfn.base import Mole
 from pywfn.atomprop import charge, direction, spin
 from pywfn.atomprop.charge import Chrgs
 import numpy as np
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 from pywfn.maths import CM2PM
 
 class Calculator:
@@ -124,7 +124,7 @@ class Calculator:
             mol (Mole | None): 可指定的分子
 
         Returns:
-            np.ndarray: 自由价[d,5](atm,x,y,z,val)
+            np.ndarray: 自由价[d](val)
         """
         from pywfn.bondprop import order
         caler=order.Calculator(self.mol)

@@ -6,7 +6,7 @@ from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import hmo,projCM
 from pywfn.utils import printer
-from pywfn.shell import Shell
+from pywfn.cli import Shell
 from pywfn.bondprop import lutils
 
 import numpy as np
