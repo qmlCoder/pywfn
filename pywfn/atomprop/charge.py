@@ -18,110 +18,78 @@ class Calculator():
     def __init__(self,mol:"Mole"):
         self.logTip:str=''
         self.mol=mol
-        self.numForm:bool=False # 输出格式，电子数或电荷数 number|charge
+        self.form:str='charge' # 输出格式，电子数或电荷数 number|charge
         self.PM=self.mol.PM.copy() # 计算时使用的密度矩阵
-        
-    def charge(self,ctype:str)->np.ndarray:
-        """计算四种基础电荷之一
-
-        Args:
-            chrg (Chrgs): 电荷类型
-
-        Returns:
-            np.ndarray: 原子电荷
-        """
-        if ctype=='mulliken':
-            return self.mulliken()
-        elif ctype=='lowdin':
-            return self.lowdin()
-        elif ctype=='space':
-            return self.sapce()
-        elif ctype=='hirshfeld':
-            return self.hirshfeld()
-        else:
-            raise ValueError('unknown charge type')
     
-    def spin(self,chrg:str='mulliken')->np.ndarray:
+    def spin(self,ctype:str='mulliken')->np.ndarray:
         """计算所有原子的自旋"""
         if not self.mol.open: #闭壳层自旋肯定为0
             return np.zeros(self.mol.atoms.natm)
         nmat=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
-        occs_old=self.mol.obtOccs # 记录原本的占据情况
+        occs=self.mol.obtOccs # 记录原本的占据情况
+        CMa=self.mol.CM[:,:nmat//2].copy() # alpha轨道系数
+        CMb=self.mol.CM[:,nmat//2:].copy() # beta轨道系数
         
-        a_occs=occs_old.copy() # 当你需要修改一个变量的时候，
-        b_occs=occs_old.copy()
-        a_occs[nmat:]=[False]*nmat
-        b_occs[:nmat]=[False]*nmat
-        elects=[]
-        for occs in (a_occs,b_occs):
-            self.mol._props.set('obtOccs',occs)
-            elect=self.charge(chrg) # 计算电荷分布
-            elects.append(elect)
-        a_elect,b_elect=elects
-        print(f'atm:{"Na":>10},{"Nb":>10}')
-        for i,(ela,elb) in enumerate(zip(a_elect,b_elect)):
-            print(f'{i+1:>3d}:{ela:>10.4f},{elb:>10.4f}')
-        print('-'*25)
-        # 恢复分子属性
-        self.mol._props.set('obtOccs',occs_old)
-        return -(a_elect-b_elect)
+        PMa=CM2PM(CMa,occs[:nmat//2],1) # alpha密度矩阵
+        PMb=CM2PM(CMb,occs[nmat//2:],1) # beta密度矩阵
+        SM=self.mol.SM # 重叠矩阵
+        atmuls=self.mol.atoms.atmuls # 原子的轨道数量
+        match ctype:
+            case 'mulliken':
+                electA=lutils.mulliken(PMa,SM,atmuls)
+                electB=lutils.mulliken(PMb,SM,atmuls)
+                return electA-electB
+            case _:
+                raise ValueError(f'未知的点和类型{ctype}')
     
-    def mulliken(self)->np.ndarray:
+    def mulliken(self,form:str='charge')->np.ndarray:
         """
         计算mulliken电荷
         """
-        PM=self.mol.PM
-        SM=self.mol.SM
-        atmuls=self.mol.atoms.atmuls
-        elects=lutils.mulliken(PM,SM,atmuls)
-        if self.numForm:
-            return elects
-        else:
-            return np.array(self.mol.atoms.atomics)-elects
+        elects=lutils.mulliken(self.mol.PM,self.mol.SM,self.mol.atoms.atmuls)
+        match form:
+            case 'number':
+                return elects
+            case 'charge':
+                return np.array(self.mol.atoms.atomics)-elects
+            case _:
+                raise ValueError(f'未知的输出格式{form}')
     
-    def lowdin(self)->np.ndarray:
+    def lowdin(self,form:str='charge')->np.ndarray:
         """
         计算每个原子的lowdin电荷
         """
-        PM=self.PM
-        SM=self.mol.SM
-        # 计算矩阵的1/2次方
-        v, Q=np.linalg.eig(SM)
-        V=np.diag(v)
-        V_=V**0.5
-        Q_=np.linalg.inv(Q)
-        SM_half=Q@(V_@Q_)
-        SPS=SM_half@(PM@SM_half)
-        eleNums=np.diagonal(SPS)
-        elects=np.zeros(len(self.mol.atoms))
-        for a,atom in enumerate(self.mol.atoms):
-            u,l=atom.obtBorder
-            eleNum=eleNums[u:l].sum()
-            elects[a]=eleNum
-        if self.numForm:
-            return elects
-        else:
-            return np.array(self.mol.atoms.atomics)-elects
+        elects=lutils.lowdin(self.mol.PM,self.mol.SM,self.mol.atoms.atmuls)
+        atmics=np.array(self.mol.atoms.atomics)
+        match form:
+            case 'number':
+                return elects
+            case 'charge':
+                return atmics-elects
+            case _:
+                raise ValueError(f'未知的输出格式{form}')
     
-    def sapce(self)->np.ndarray:
+    def space(self,form:str='charge')->np.ndarray:
         """计算空间电荷,DFT格点数值积分"""
         gridCaler=dftgrid.Calculator(self.mol)
-        grid,weit=gridCaler.molGrid()
+        grids,weits=gridCaler.molGrid()
         densCaler=density.Calculator(self.mol)
-        # PMo=densCaler.PM # 备份旧的PM
         densCaler.PM=self.PM # 设为当前PM
         elects=np.zeros(len(self.mol.atoms))
+        atmics=np.array(self.mol.atoms.atomics)
         for a,atom in enumerate(self.mol.atoms):
-            dens=densCaler.atmDens(grid,[atom.idx])
-            eleNum=np.sum(dens*weit)
+            dens=densCaler.atmDens(grids,[atom.idx])
+            eleNum=np.sum(dens*weits)
             elects[a]=eleNum
-        # densCaler.PM=PMo # 恢复旧的PM
-        if self.numForm:
-            return elects
-        else:
-            return np.array(self.mol.atoms.atomics)-elects
+        match form:
+            case 'number':
+                return elects
+            case 'charge':
+                return atmics-elects
+            case _:
+                raise ValueError(f'未知的输出格式{form}')
     
-    def hirshfeld(self)->np.ndarray:
+    def hirshfeld(self,form:str='charge')->np.ndarray:
         """计算原子的Hirshfeld电荷"""
         from pywfn.data import radDens
         from pywfn.gridprop import dftgrid
@@ -132,6 +100,7 @@ class Calculator():
         densCaler=density.Calculator(self.mol) # 电子密度计算器
         natm=self.mol.atoms.natm
         chargs=np.zeros(natm)
+        atmics=np.array(self.mol.atoms.atomics)
         grids,weits,gcuts=gridCaler.dftGrid(1)
         npos=len(grids)
         for i,atom in enumerate(self.mol.atoms): # 循环每个原子
@@ -143,67 +112,55 @@ class Calculator():
                 fdens=radDens.get_radDens(atom.atomic,dists) # 自由原子电子密度
                 pdens+=fdens #*gcuts
                 if i==j:idens=fdens
-            # mdens=densCaler.atmDens(atmGrids).sum(axis=0)
             mdens=densCaler.molDens(atmGrids,0)[0]
             res=np.divide(idens,pdens,where=pdens!=0)*mdens*weits*gcuts
-            # for j in range(npos):
-            #     x,y,z=atmGrids[j]
             chargs[i]=np.sum(res)
-            # print(i,chargs[i])
-            print(f'\r{i+1}/{natm}',end='')
-        print('')
-        if self.numForm:
-            return chargs
-        else:
-            return np.array(self.mol.atoms.atomics)-chargs
+        match form:
+            case 'number':
+                return chargs
+            case 'charge':
+                return atmics-chargs
 
-    def dirElectron(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
-        """计算不同方向的电子[n,5](atm,x,y,z,val)"""
+    def dirElects(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
+        """计算不同方向的电子数"""
         assert len(atms)==len(dirs),"原子与方向数量要相同"
         obts=self.mol.O_obts
-        PMo=self.PM.copy() # 记录旧的密度矩阵
         self.numForm=True
         CMp=projCM(self.mol,obts,atms,dirs,False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
         PMp=CM2PM(CMp,obts,self.mol.oE)
-        self.PM=PMp # 修改密度矩阵
-        vals=self.charge(ctype)
-        self.PM=PMo # 恢复旧的密度矩阵
+        match ctype:
+            case 'mulliken':
+                vals=lutils.mulliken(PMp,self.mol.SM,self.mol.atoms.atmuls)
+            case 'lowdin':
+                vals=lutils.lowdin(PMp,self.mol.SM,self.mol.atoms.atmuls)
+            case _:
+                raise ValueError(f'未知电荷类型{ctype}')
         return vals
     
-    def piElectron(self,ctype:str):
-        """计算π电子"""
+    def piElects(self,ctype:str='mulliken'):
+        """
+        计算π电子数
+        每个原子的方向为`法向量`的`方向电子数`即为`π电子数`
+        """
         from pywfn.atomprop import direction
         dirCaler=direction.Calculator(self.mol)
-        atmDirs={} # 记录每一个原子的方向
+        atms=[]
+        dirs=[]
         for atom in self.mol.atoms:
-            normal=dirCaler.normal(atom.idx) # 原子的法向量
-            if normal is None:continue # 没有法向量就跳过
-            atmDirs[atom.idx]=normal
-        atms=list(atmDirs.keys())
-        dirs=np.array([e for e in atmDirs.values()])
-        self.numForm=True
-        CMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False) # 所有能投影的原子同时投影各自的法向量
-        PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
-        elects=lutils.mulliken(PMp,self.mol.SM,self.mol.atoms.atmuls)
-        result=[]
-        for atom in self.mol.atoms:
-            atm=atom.idx
-            if atm in atms:
-                x,y,z=atmDirs[atm]
-            else:
-                x,y,z=[0,0,0]
-            ele=elects[atm-1]
-            result.append([atm,x,y,z,ele])
-        return np.array(result)
+            normal=dirCaler.normal(atom.idx)
+            if normal is None:continue
+            atms.append(atom.idx)
+            x,y,z=normal
+            dirs.append([x,y,z])
+        dirs=np.array(dirs)
+        return self.dirElects(atms,dirs,ctype)
     
-    def piElectDecom(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
+    def piDecomElects(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
         from pywfn.orbtprop import decom
 
         CMt=decom.Calculator(self.mol).pi_decom('atom')
         PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
-        self.PM=PMt
-        self.numForm=True
-        return self.mulliken()
+        return lutils.mulliken(PMt,self.mol.SM,self.mol.atoms.atmuls)
 
     
 def fit_dirs(mol:Mole,atms:list[int],dirs:list[np.ndarray]|None):

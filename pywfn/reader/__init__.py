@@ -150,13 +150,22 @@ from pywfn.reader.mol import MolReader
 from pywfn.reader.any import AnyReader
 from pywfn.reader.mod import ModReader
 from pywfn.reader.sdf import SdfReader
+from pywfn.reader.xyz import XyzReader
+
+supports=[".log",".out",".fch",".gjf",".mol",".molden",".sdf"]
+
 def get_reader(path:str):
     """根据输入文件的类型自动判断应该使用哪个读取器"""
     suffix=Path(path).suffix
     readers={
         '.out':LogReader,
         '.log':LogReader,
-        '.gjf':GjfReader
+        '.gjf':GjfReader,
+        '.fch':FchReader,
+        '.mol':MolReader,
+        '.sdf':SdfReader,
+        '.xyz':XyzReader,
+        '.molden':ModReader,
     }
-    assert suffix in readers.keys(),'不支持的读取'
+    assert suffix in readers.keys(),f'不支持的文件类型{suffix}'
     return readers[suffix](path)

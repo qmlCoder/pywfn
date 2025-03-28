@@ -62,3 +62,25 @@ def mulliken(
         elect=EV[u:l].sum()
         elects[a]=elect
     return elects
+
+def lowdin(
+        PM:np.ndarray,
+        SM:np.ndarray,
+        atmuls:list[tuple[int,int]], # 每个原子在基函数中的上下限
+    )->np.ndarray:
+    """
+    计算每个原子的lowdin电荷
+    """
+    # 计算矩阵的1/2次方
+    v, Q=np.linalg.eig(SM)
+    V=np.diag(v)
+    V_=V**0.5
+    Q_=np.linalg.inv(Q)
+    SM_half=Q@(V_@Q_)
+    SPS=SM_half@(PM@SM_half)
+    EV=np.diagonal(SPS)
+    elects=np.zeros(len(atmuls))
+    for a,(u,l) in enumerate(atmuls):
+        elect=EV[u:l].sum()
+        elects[a]=elect
+    return elects

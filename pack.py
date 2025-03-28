@@ -45,7 +45,8 @@ params=[
     'main.py',
 ]
 pyi.run(params)
-os.mkdir('./dist/libs')
+if not Path('./dist/libs').exists():
+    os.mkdir('./dist/libs')
 shutil.copyfile('./pywfn/maths/flib.dll','./dist/libs/flib.dll')
 
 now=datetime.now()

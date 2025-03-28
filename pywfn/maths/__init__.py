@@ -133,7 +133,7 @@ def sph_c2d(ts,ps):
     ys=np.array(ys)
     return xs,ys
 
-def CM2PM(CM, obts: list[int], oe: int) -> np.ndarray:
+def CM2PM(CM:np.ndarray, obts: list[int], oe: int) -> np.ndarray:
     """
     根据系数矩阵构建密度矩阵
     CM:系数矩阵,如果是开壳层的话,列数是行数的两倍[n,n]/[n,2n]

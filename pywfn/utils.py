@@ -143,8 +143,7 @@ class Printer:
         self.__call__(text,style='#e03131')
     
     def res(self,text):
-        self.__call__(text,style='#a9e34b')
-        self.bar()
+        self.__call__(text,style='green')
 
     def bar(self,len=40):
         self.__call__('-'*len,style='#6741d9')
@@ -154,8 +153,9 @@ class Printer:
         text=f'{frame.function}|{frame.filename}:{frame.lineno}\n{text}'
         self.__call__(text,style='#228be6')
     
-    def print(self,text):
-        self.__call__(text)
+    def print(self,text,style='',end='\n'):
+        self.__call__(text,style,end)
+        # self.__call__(text)
     
     def multi(self,texts:list[str]):
         for text in texts:
@@ -171,16 +171,16 @@ class Printer:
     
     def options(self,title,opts:dict[str,str]):
         if not config.IF_SHELL:return
-        print(f'{title}')
-        print(f"{'选项'}{'功能'}")
-        # table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
-        # table.add_column('选项',justify="left")
-        # table.add_column('功能',justify="left")
+        # print(f'{title}')
+        # print(f"{'选项'}{'功能'}")
+        table=Table(title=title,box=box.SIMPLE_HEAD,title_style="bold black on white")
+        table.add_column('选项',justify="left")
+        table.add_column('功能',justify="left")
         for idx,text in opts.items():
-            # table.add_row(f'{idx: >2}. ',f'{text}')
-            print(f'{idx: >2}. {text}')
-        # print('')
-        # self.console.print(table)
+            table.add_row(f'{idx: >2}. ',f'{text}')
+            # print(f'{idx: >2}. {text}')
+        print('')
+        self.console.print(table)
     
     def shell(self,text:str): # 以shell方式运行的时候才会打印
         if not config.IF_SHELL:return

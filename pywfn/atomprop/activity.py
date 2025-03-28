@@ -7,6 +7,7 @@ from pywfn.atomprop.charge import Chrgs
 import numpy as np
 from pywfn.cli import Shell
 from pywfn.maths import CM2PM
+from pywfn import config
 
 class Calculator:
     def __init__(self,mol:Mole) -> None:
@@ -22,18 +23,34 @@ class Calculator:
             ctype (Chrgs, optional): 电荷类型. Defaults to 'mulliken'.
 
         Returns:
-            np.ndarray: 福井函数[n,6](N-1,N,N+1,f-,f+,f0)
+            np.ndarray: 福井函数[n,7](N,N+1,N-1,f-,f+,f0,df)
         """
-        mols=[molN,self.mol,molP]
+        mols=[self.mol,molN,molP]
         cals=[charge.Calculator(mol) for mol in mols]
         natm=self.mol.atoms.natm
-        vals=np.zeros(shape=(natm,6)) # 记录所有原子的电荷
+        vals=np.zeros(shape=(natm,7)) # 记录所有原子的电荷
         for c,cal in enumerate(cals):
-            cal.numForm=False
-            vals[:,c]=cal.charge(ctype)
-        vals[:,3]=vals[:,2]-vals[:,1]
-        vals[:,4]=vals[:,1]-vals[:,0]
-        vals[:,5]=(vals[:,2]-vals[:,0])/2
+            cal.form='charge'
+            match ctype:
+                case 'mulliken':
+                    vals[:,c]=cal.mulliken()
+                case 'lowdin':
+                    vals[:,c]=cal.lowdin()
+                case 'hirshfeld':
+                    vals[:,c]=cal.hirshfeld()
+                case _:
+                    raise ValueError(f'未知的电荷类型{ctype}')
+        q0=vals[:,0]
+        qn=vals[:,1]
+        qp=vals[:,2]
+        fn=qp-q0
+        fp=q0-qn
+        f0=(qp-qn)/2
+        df=fp-fn
+        vals[:,3]=fn
+        vals[:,4]=fp
+        vals[:,5]=f0
+        vals[:,6]=df
         return vals
     
     # parr函数
@@ -58,7 +75,7 @@ class Calculator:
         natm=self.mol.atoms.natm
         vals=np.zeros(shape=(natm,4)) # 记录所有原子的电荷
         for c,cal in enumerate(cals):
-            cal.numForm=False
+            cal.form='charge'
             vals[:,c]=cal.charge(ctype)
         vals[:,3]=2*vals[:,1]-vals[:,0]-vals[:,2]
         return vals
@@ -112,7 +129,10 @@ class Calculator:
             for aj,atomj in enumerate(self.mol.atoms):
                 if atomj.idx==atomi.idx:continue
                 uj,lj=atomj.obtBorder
-                vals[ai]+=np.sum(OM[ui:li,uj:lj])
+                val=np.sum(OM[ui:li,uj:lj]) # 计算键级
+                vals[ai]+=val
+                if config.SHOW_LEVEL>=1:
+                    print(f'{atomi.idx:>3}{atomj.idx:>3}{vals[ai]:>10.4f}')
         return vals
 
     # 自由价(方向化合价)
@@ -178,15 +198,16 @@ class Calculator:
         Returns:
             np.ndarray: 指定方向的福井函数[n,6](N-1,N,N+1,f-,f+,f0)
         """
+        
         mols=[molN,self.mol,molP]
         crgs=[mol.multi[0] for mol in mols]
         assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
-        cals=[charge.Calculator(mol) for mol in mols]
+        calers=[charge.Calculator(mol) for mol in mols]
         
         vals:list[np.ndarray]=[]
-        for cal in cals:
-            cal.numForm=True
-            res=cal.dirElectron(atms,dirs,ctype) # 计算方向电子
+        for caler in calers:
+            caler.form='number'
+            res=caler.dirElectron(atms,dirs,ctype) # 计算方向电子
             vals.append(res)
 
         natm=self.mol.atoms.num
@@ -205,9 +226,9 @@ class Calculator:
         calerN=charge.Calculator(molN)
         calerP=charge.Calculator(molP)
         caler0=charge.Calculator(self.mol)
-        calerN.numForm=True
-        calerP.numForm=True
-        caler0.numForm=True
+        calerN.form='charge'
+        calerP.form='charge'
+        caler0.form='charge'
         piN=calerN.piElectron(ctype)
         piP=calerP.piElectron(ctype)
         pi0=caler0.piElectron(ctype)

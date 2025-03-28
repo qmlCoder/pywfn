@@ -45,8 +45,8 @@ IMG_SPACE_STEP=get_config('img.space.step',0.1)
 BOHR_RADIUS=1/0.529177
 
 SHOW_PRINT=False
+SHOW_LEVEL=0 
 
-IF_CM_P=False # 是否使用投影轨道
 IF_BUFF=get_config('if_buff',True) # 是否生成缓存
 
 # ROOT_DATA=Path(__file__).parent/'data'
@@ -59,3 +59,4 @@ MARCH_ISOV_DENS = get_config('march.dens',0.001) # Marching Cubes算法电子密
 # os.add_dll_directory(rf"{ROOT_LIBS}") # 添加动态链接库目录
 
 CACHE=False # 是否使用缓存
+

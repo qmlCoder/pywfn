@@ -96,7 +96,7 @@ class AtomPage:
                     self.energy()
                 case '4':
                     from pywfn.atomprop import activity
-                    mol=self.shell.input.Moles(tip='输入要计算活性的分子',num=1)[0]
+                    mol=self.shell.input.Moles(tip='输入要计算活性的分子: ',num=1)[0]
                     caler=activity.Calculator(mol)
                 case _:
                     break
@@ -180,7 +180,7 @@ class AtomPage:
     
     def activity(self):
         from pywfn.atomprop import activity
-        mol=self.shell.input.Moles(tip='输入要计算活性的分子',num=1)[0]
+        mol=self.shell.input.Moles(tip='请选择需计算活性的分子',num=1)[0]
         caler=activity.Calculator(mol)
         while True:
             printer.options('原子活性',{
@@ -190,7 +190,7 @@ class AtomPage:
                 '4':'原子能差',
                 '5':'化合价',
                 '6':'自由价(活性矢量)',
-                '7':'方向福井函数',
+                '7':'福井函数(pi)',
             })
             opt=input('选择计算活性类型:')
             ctypes={'':'hirshfeld','1':'mulliken','2':'lowdin','3':'hirshfeld','4':'pi_pocv'}
@@ -200,7 +200,7 @@ class AtomPage:
                     if len(self.shell.paths)<3:
                         print('需要至少3个分子')
                         break
-                    molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                    molN,molP=self.shell.input.Moles(tip='请选择N+1和N-1个电子的分子',num=2)
                     print(chrgTip)
                     copt=input('请输入电荷类型: ')
                     if copt not in ctypes.keys():continue
@@ -252,18 +252,29 @@ class AtomPage:
                     print(f"{'atm':>3}{'dx':>10}{'dy':>10}{'dz':>10}{'val':>10}")
                     for (x,y,z),v in zip(dirs,result):
                         print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
-                case '7': # 方向fukui函数
-                    # self.mols=shell.input.Moles(num=3)
+                case '7': # 福井函数(pi)
+                    from pywfn.atomprop import direction
+                    print(chrgTip)
                     copt=input('请输入电荷类型: ')
                     if copt not in ctypes.keys():continue
-                    atms=self.shell.input.Integ(tip='输入原子编号: ')
-                    assert atms is not None,"输入错误"
-                    dirs=self.shell.input.Float(tip='?指定投影方向: ',count=3)
-                    dirs=np.array(dirs).reshape(1,3)
+                    dirCaler=direction.Calculator(mol)
                     molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
-                    result=caler.dirFukui(atms,dirs,molN,molP,ctypes[copt])
-                    for i,val in enumerate(result):
-                        print(f'{i+1:>3d} {val:>8.4f}')
+                    atms=[]
+                    dirs=[]
+                    print(f"\natm:{'dx':>10}{'dy':>10}{'dz':>10}")
+                    for atom in mol.atoms:
+                        atmDirs=dirCaler.normal(atom.idx)
+                        if atmDirs is None:continue
+                        x,y,z=atmDirs
+                        print(f'{atom.idx:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}')
+                        dirs.append(atmDirs.reshape(1,3))
+                        atms.append(atom.idx)
+                    dirs=np.concat(dirs,axis=0)
+                    vals=caler.dirFukui(atms,dirs,molN,molP,ctypes[copt])
+                    print(f'\nidx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
+                    for i,(en,e0,ep,fn,fp,f0) in enumerate(vals):
+                        print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}')
+                    print("pi电子福井函数计算完成 O(∩_∩)O")
                 case _:
                     break
 
@@ -688,8 +699,9 @@ class Inputer:
         """
         用户输入文件
         """
+        from pywfn import reader
         path=input('请输入文件路径: ')
-        types = [".log", ".out", ".fch", ".gjf"]  # 支持的文件类型
+        types = reader.supports  # 支持的文件类型
         pathObj = Path(path)
         if pathObj.is_file():  # 如果是文件
             if pathObj.suffix in types:
@@ -711,11 +723,11 @@ class Inputer:
         count控制数量,如果count为0则没有限制
         """
         paths = self.shell.paths
-        printer.info(f"共{len(paths)}个文件:")
+        # printer.info(f"当前共{len(paths)}个文件:")
         printer.bar()
         for p,path in enumerate(paths):
-            print(f'{p:>2} {path}')
-
+            print(f'{p:>3} {path}')
+        printer.bar()
         while True:
             if len(paths)==0:
                 printer.warn("你还没有输入任何文件!!!")
@@ -725,7 +737,7 @@ class Inputer:
                 printer.warn(f"当前文件数量不够,至少需要{count}个")
                 self.Files()
                 continue
-            idxs = self.Integ(f"输入分子编号: ")
+            idxs = self.Integ(f"输入分子编号({count}): ")
             if len(idxs) != count and count!=0:
                 printer.warn(f"需要输入{count}个数字,当前{len(idxs)}个")
             else:
@@ -740,7 +752,6 @@ class Inputer:
         mtype:返回路径还是分子类
         """
         if tip!='':print(f'{tip}')
-        if num!=0:print(f'请输入{num}个分子')
         paths=self.Paths(num)
         
         mols = []

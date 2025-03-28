@@ -68,7 +68,7 @@ class Calculator:
         result=unit*abs(result)**(1/len(atms))
         return result
     
-    def dirMayer(self,bond:list[int],dirs:np.ndarray,aleep=False,lkeep=False)->np.ndarray:
+    def dirMayer(self,bond:tuple[int,int],dirs:np.ndarray,aleep=False,lkeep=False)->np.ndarray:
         """计算带有方向的Mayer键级，指定一个键的多个方向
 
         Args:
@@ -101,7 +101,8 @@ class Calculator:
         Returns:
             np.ndarray: 束缚键级`[a1,a2,x,y,z,val]`
         """
-
+        if config.SHOW_LEVEL>=1:
+            printer.info(f'计算原子{atm}的束缚键级')
         nebs=self.mol.atom(atm).neighbors
         obts=self.mol.O_obts
         result=[]
@@ -116,6 +117,8 @@ class Calculator:
                 if int(a2) not in nebs+[atm]:continue
                 bonds.append((a1,a2))
                 result.append(val)
+                if config.SHOW_LEVEL>=1:
+                    print(f"{a1}{a2}{val}")
         result=np.array(result)
         # print('束缚键级',atm,result)
         return bonds,result
