@@ -27,7 +27,7 @@ def CM2PMs(CM,orbital:list[int],oe:int):
     B=(CM[:,orbital].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算快多了
 
-def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator)->int:
+def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator,densCaler:density.Calculator)->int:
     """
     判断一个轨道是否为π轨道，几何方法
     centerAtom,aroundAtom:原子对象
@@ -44,8 +44,7 @@ def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculato
     # 根据键轴上的电子密度判断
     RA=atom1.coord*0.7+atom2.coord*0.3
     RB=atom1.coord*0.3+atom2.coord*0.7
-    densCaler=density.Calculator(mol)
-    dens=densCaler.molDens(np.array([RA,RB]),0)
+    dens=densCaler.molDens(np.array([RA,RB]),0)[0]
     if np.max(dens)<0.01:return 0
     # 1. 根据s轨道和p轨道的贡献
     sContCenter=get_sCont(mol,atm1,obt)

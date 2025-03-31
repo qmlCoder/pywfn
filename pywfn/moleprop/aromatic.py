@@ -16,7 +16,7 @@ class Calculator:
     
     def pisd(self,ring:list[int]|None=None): # 版本1 直接用键级标准差
         caler=orderProp.Calculator(self.mol)
-        bonds,orders=caler.pi_pocv()
+        bonds,orders=caler.piOrder_pocv()
         # orders=result[:,-1]
         forders=[] # 过滤掉C-H键
         for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
@@ -38,7 +38,7 @@ class Calculator:
     
     def pimsd(self,ring:list[int]|None=None,ratio=0.5): # 版本2 使用键级均值和标准差
         caler=orderProp.Calculator(self.mol)
-        bonds,orders=caler.pi_pocv()
+        bonds,orders=caler.piOrder_pocv()
         forders=[] # 过滤掉C-H键
         for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
             if self.mol.atom(a1).atomic==1:continue
@@ -56,7 +56,7 @@ class Calculator:
     def pimed(self): # 使用键级类比于HOMED方法
         D=0.2
         caler=orderProp.Calculator(self.mol)
-        bonds,orders=caler.pi_pocv()
+        bonds,orders=caler.piOrder_pocv()
         forders=[] # 过滤掉C-H键
         for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
             if self.mol.atom(a1).atomic==1:continue

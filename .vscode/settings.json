@@ -2,5 +2,7 @@
     "Codegeex.RepoIndex": true,
     "python.analysis.extraPaths": [
         "d:/code/pywfn"
-    ]
+    ],
+    "python.analysis.autoImportCompletions": false,
+    "python.analysis.diagnosticMode": "workspace"
 }

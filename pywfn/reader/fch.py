@@ -147,7 +147,7 @@ class FchReader(reader.Reader):
         coefs._atoShls=shls
         coefs._atoSyms=syms
         coefs._CM=CM
-        coefs._obtEngs=engs
+        coefs.obtEngs=engs
         return coefs
 
     def read_OB(self):

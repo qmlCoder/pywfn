@@ -80,13 +80,14 @@ class Calculator:
             return None
         else:
             return direction/length
-        
+    
+    
     def sphAround(self)->np.ndarray|None: # 直接用dft的角度网格算了
         """计算周围一圈的球形范围"""
         from pywfn.data import lebedev
         lebedev.LD0074()
         
-
+    @lru_cache
     def reactions(self,atm:int)->np.ndarray:
         """ reaction around
         计算原子可能的反应方向 以原子为中心的向量
@@ -250,7 +251,8 @@ class Calculator:
         return np.array([vx,vy,vz]).T
     
     def bases(self)->dict[int,np.ndarray]:
-        """计算每个原子的局部基坐标[natm,3,3]，每一列代表一个基向量
+        """
+        计算每个原子的局部基坐标[natm,3,3]，每一列代表一个基向量
         """
         atms=self.mol.heavyAtoms
         # base=np.zeros(shape=(natm,3,3))
@@ -310,37 +312,37 @@ class Calculator:
         return base
 
 
-def search_sp2Dir(v0,v1,v2,v3):
-    """找到与va夹角为90°，且与vb,vc夹角相同的向量
-    """
-    def loss_fn(v):
-        a1=vector_angle(v,v1)
-        a2=vector_angle(v,v2)
-        a3=vector_angle(v,v3)
-        return (a1-0.5)**2+(a2-a3)**2
-    def grad_fn(v):
-        loss=loss_fn(v)
-        grad=np.zeros(3)
-        for i in range(3):
-            dv=np.zeros(3)
-            dv[i]=1e-3
-            grad[i]=(loss_fn(v+dv)-loss)/1e-3
-        return grad
+# def search_sp2Dir(v0,v1,v2,v3):
+#     """找到与va夹角为90°，且与vb,vc夹角相同的向量
+#     """
+#     def loss_fn(v):
+#         a1=vector_angle(v,v1)
+#         a2=vector_angle(v,v2)
+#         a3=vector_angle(v,v3)
+#         return (a1-0.5)**2+(a2-a3)**2
+#     def grad_fn(v):
+#         loss=loss_fn(v)
+#         grad=np.zeros(3)
+#         for i in range(3):
+#             dv=np.zeros(3)
+#             dv[i]=1e-3
+#             grad[i]=(loss_fn(v+dv)-loss)/1e-3
+#         return grad
 
-    step=1.0
-    loss0=np.inf
-    for i in range(1000):
-        grad=grad_fn(v0)
-        vn=v0-step*grad
-        vn/=np.linalg.norm(vn)
-        loss=loss_fn(vn)
-        # print(i,loss,step,grad)
-        if loss<loss0:
-            loss0=loss
-            v0=vn
-        else:
-            if step<1e-6:
-                break
-            else:
-                step/=10
-    return v0
+#     step=1.0
+#     loss0=np.inf
+#     for i in range(1000):
+#         grad=grad_fn(v0)
+#         vn=v0-step*grad
+#         vn/=np.linalg.norm(vn)
+#         loss=loss_fn(vn)
+#         # print(i,loss,step,grad)
+#         if loss<loss0:
+#             loss0=loss
+#             v0=vn
+#         else:
+#             if step<1e-6:
+#                 break
+#             else:
+#                 step/=10
+#     return v0

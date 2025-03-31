@@ -89,7 +89,7 @@ class Mole:
 
 
     @property    
-    def multi(self): # 电荷、自旋多重性
+    def multi(self) -> tuple[int, int]: # 电荷、自旋多重性
         total=sum(self.atoms.atomics)
         nela,nelb=self.nele
         return total-nela-nelb,nela-nelb+1
@@ -114,7 +114,7 @@ class Mole:
 
     @cached_property
     def obtEngs(self)->list[float]:
-        engs=self.coefs._obtEngs
+        engs=self.coefs.obtEngs
         assert engs is not None,"未获取obtEngs"
         return engs
 

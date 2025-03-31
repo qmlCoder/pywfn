@@ -121,25 +121,25 @@ class AtomPage:
                 case '1': # Mulliken
                     charges=caler.mulliken()
                     for i,val in enumerate(charges):
-                        print(f'{i+1:>3d}: {val:>8.4f}')
+                        print(f'{i+1:>3d}: {val:>10.4f}')
                     print(f'sum:{np.sum(charges)}')
 
                 case '2': # Lowdin
                     charges=caler.lowdin()
                     for i,val in enumerate(charges):
-                        print(f'{i+1:>3d}: {val:>8.4f}')
+                        print(f'{i+1:>3d}: {val:>10.4f}')
                     print(f'sum:{np.sum(charges)}')
                 
                 case '3': # 空间积分电荷
-                    charges=caler.sapce()
+                    charges=caler.space()
                     for i,val in enumerate(charges):
-                        print(f'{i+1:>3d}: {val:>8.4f}')
+                        print(f'{i+1:>3d}: {val:>10.4f}')
                     print(f'sum:{np.sum(charges)}')
 
                 case '4': # hirshfeld电荷
                     charges=caler.hirshfeld()
                     for i,val in enumerate(charges):
-                        print(f'{i+1:>3d}: {val:>8.4f}')
+                        print(f'{i+1:>3d}: {val:>10.4f}')
                     print(f'sum:{np.sum(charges)}')
 
                 case '5': # 方向电子
@@ -152,25 +152,25 @@ class AtomPage:
                     dir=self.shell.input.Float(tip='输入原子向量: ',count=3)
                     assert dir is not None,'原子向量输入不正确'
                     dirs=np.array(dir).reshape(1,3)
-                    elects=caler.dirElectron(atms=[atm],dirs=dirs,ctype=chrg)
+                    elects=caler.dirElects(atms=[atm],dirs=dirs,ctype=chrg)
                     ele=elects[atm-1]
                     x,y,z=dir
-                    print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>8.4f}')
+                    print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>10.4f}')
                 
                 case '6': # pi电子
                     print(chrgStr)
                     opt=input('选择电荷类型: ')
                     if opt not in chrgMap.keys():return
                     chrg=chrgMap[opt]
-                    elects=caler.piElectron(chrg)
+                    atms,dirs,elects=caler.piElects(chrg)
                     for i,(idx,x,y,z,val) in enumerate(elects):
-                        print(f'{i+1:>3d}:{val:>8.4f}')
+                        print(f'{i+1:>3d}:{val:>10.4f}')
                     print(f'sum:{elects[:,-1].sum()}')
                 
                 case '7':
                     print(chrgStr)
                     opt=input('选择电荷类型: ')
-                    spins=caler.spin(chrg='mulliken')
+                    spins=caler.spin('mulliken')
                     for i,spin in enumerate(spins):
                         print(f'{i+1:>3d}:{spin:>10.4f}')
                     print(f'自旋之和: {sum(spins):>10.4f}')
@@ -186,7 +186,7 @@ class AtomPage:
             printer.options('原子活性',{
                 '1':'福井函数',
                 '2':'parr函数',
-                '3':'双描述符',
+                # '3':'双描述符',
                 '4':'原子能差',
                 '5':'化合价',
                 '6':'自由价(活性矢量)',
@@ -194,7 +194,7 @@ class AtomPage:
             })
             opt=input('选择计算活性类型:')
             ctypes={'':'hirshfeld','1':'mulliken','2':'lowdin','3':'hirshfeld','4':'pi_pocv'}
-            chrgTip='1.mulliken; 2.lowdin; 3.hirshfeld*; 4.pi_pocv'
+            chrgTip='1.mulliken; 2.lowdin; 3.hirshfeld; 4.pi_pocv'
             match opt:
                 case '1': # 福井函数
                     if len(self.shell.paths)<3:
@@ -205,9 +205,10 @@ class AtomPage:
                     copt=input('请输入电荷类型: ')
                     if copt not in ctypes.keys():continue
                     result=caler.fukui(molN,molP,ctypes[copt])
-                    print(f'idx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
-                    for i,(en,e0,ep,fn,fp,f0) in enumerate(result):
-                        print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}')
+                    print(f'\nidx:{"q(N)":>10}{"q(N+1)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}{"df":>10}')
+                    for i,(e0,en,ep,fn,fp,f0,df) in enumerate(result):
+                        print(f'{i+1:>3d}:{e0:>10.4f}{en:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}{df:>10.4f}')
+                    print('福井函数计算完成')
                 case '2': # parr函数
                     molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
                     print(chrgTip)
@@ -217,18 +218,6 @@ class AtomPage:
                     print(f'idx:{"s(N+1)":>10}{"s(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
                     for i,(sn,s0,sp,ve,vn) in enumerate(result):
                         print(f'{i+1:>3d}:{sn:>10.4f}{s0:>10.4f}{sp:>10.4f}{ve:>10.4f}{vn:>10.4f}')
-                case '3': # 双描述符
-                    if len(self.shell.paths)<3:
-                        print('需要至少3个分子')
-                        break
-                    molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
-                    print(chrgTip)
-                    opt=input('请输入电荷类型: ')
-                    if opt not in ctypes.keys():continue
-                    result=caler.dual(molN,molP,ctypes[opt])
-                    print(f'idx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"CDD":>10}')
-                    for i,(en,e0,ep,val) in enumerate(result):
-                        print(f'{i+1:>3}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{val:>10.4f}')
                 case '4': # 原子能差
                     molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
                     result=caler.engDiff(molN,molP)
@@ -239,19 +228,20 @@ class AtomPage:
                     result=caler.valence()
                     for i,val in enumerate(result):
                         print(f'{i+1:>3d}:{val:>10.4f}')
+                    print('原子化合价计算完成')
                 case '6': # 自由价(活性)，可以输入方向或内置方向
                     from pywfn.atomprop import direction
                     dirCaler=direction.Calculator(mol)
                     atm=self.shell.input.Integ(tip='输入原子编号: ',count=1)[0]
-                    dirs=self.shell.input.Float(tip='?指定投影方向: ',count=3)
-                    if dirs is None:
-                        dirs=dirCaler.reactions(atm)
+                    dir_=self.shell.input.Float(tip='?指定投影方向: ',count=3)
+                    if dir_ is None:
+                        dir_=dirCaler.reactions(atm)
                     else:
-                        dirs=np.array(dirs).reshape(1,3)
-                    result=caler.freeValence(atm,dirs)
+                        dir_=np.array(dir_).reshape(1,3)
+                    val=caler.freeValence(atm,dir_)
                     print(f"{'atm':>3}{'dx':>10}{'dy':>10}{'dz':>10}{'val':>10}")
-                    for (x,y,z),v in zip(dirs,result):
-                        print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{v:>10.4f}')
+                    print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{val:>10.4f}')
+                    print('原子自由价计算完成')
                 case '7': # 福井函数(pi)
                     from pywfn.atomprop import direction
                     print(chrgTip)
@@ -271,10 +261,10 @@ class AtomPage:
                         atms.append(atom.idx)
                     dirs=np.concat(dirs,axis=0)
                     vals=caler.dirFukui(atms,dirs,molN,molP,ctypes[copt])
-                    print(f'\nidx:{"q(N+1)":>10}{"q(N)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}')
-                    for i,(en,e0,ep,fn,fp,f0) in enumerate(vals):
-                        print(f'{i+1:>3d}:{en:>10.4f}{e0:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}')
-                    print("pi电子福井函数计算完成 O(∩_∩)O")
+                    print(f'\nidx:{"q(N)":>10}{"q(N+1)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}{"df":>10}')
+                    for i,(e0,en,ep,fn,fp,f0,df) in enumerate(vals):
+                        print(f'{i+1:>3d}:{e0:>10.4f}{en:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}{df:>10.4f}')
+                    print("pi电子福井函数计算完成")
                 case _:
                     break
 
@@ -320,7 +310,7 @@ class BondPage:
         while True:
             printer.options('键级计算',{
                 '1':'mayer键级',
-                '2':'方向mayer键级',
+                '2':'方向键级',
                 '3':'pi键级(POCV)',
                 '4':'pi键级(SMO)',
                 '5':'HMO键级',
@@ -331,39 +321,39 @@ class BondPage:
                 case '1':
                     bonds,orders=caler.mayer()
                     for (a1,a2),val in zip(bonds,orders):
-                        print(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
+                        print(f'{a1:>2d}-{a2:>2d}:{val:>10.4f}')
                 case '2':
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')
                         if not opt:break
                         
                         a1,a2=opt.split('-')
-                        dirs=self.shell.input.Float(tip='输入方向: ',count=3)
-                        dirs=np.array(dirs).reshape(1,3)
-                        result=caler.dirMayer(bond=[int(a1),int(a2)],dirs=dirs)
-                        for a1,a2,x,y,z,val in result:
-                            print(f'{int(a1):>2d}-{int(a2):>2d}({x:>8.4f} {y:>8.4f} {z:>8.4f}):{val:>8.4f}')
+                        dir_=self.shell.input.Float(tip='输入方向: ',count=3)
+                        dir_=np.array(dir_)
+                        val=caler.dirOrder(bond=(int(a1),int(a2)),dir_=dir_)
+                        x,y,z=dir_
+                        print(f'{int(a1):>2d}-{int(a2):>2d}({x:>10.4f} {y:>10.4f} {z:>10.4f}):{val:>10.4f}')
                 case '3':
-                    bonds,orders=caler.pi_pocv()
+                    bonds,orders=caler.piOrder_pocv()
                     for (a1,a2),val in zip(bonds,orders):
-                        print(f'{a1:>2d}-{a2:>2d}:{val:>8.4f}')
+                        print(f'{a1:>2d}-{a2:>2d}:{val:>10.4f}')
                 case '4':
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')
                         if not opt:break
                         a1,a2=opt.split('-')
-                        order=caler.pi_smo(bond=[int(a1),int(a2)])
-                        print(f'{int(a1):>2d}-{int(a2):>2d}:{order:>8.4f}')
+                        order=caler.piOrder_smo(bond=(int(a1),int(a2)))
+                        print(f'{int(a1):>2d}-{int(a2):>2d}:{order:>10.4f}')
                 case '5':
-                    orders=caler.hmo()
-                    for a1,a2,val in orders:
-                        print(f'{int(a1):>2d}-{int(a2):>2d}:{val:>8.4f}')
+                    bonds,orders=caler.HMO()
+                    for (a1,a2),val in zip(bonds,orders):
+                        print(f'{int(a1):>3}-{int(a2):>3}:{val:>10.4f}')
                 case '6':
                     while True:
                         opt=input('请输入需要计算的键，例如(1-2): ')
                         if not opt:break
                         a1,a2=opt.split('-')
-                        orders=caler.decompose([int(a1),int(a2)])
+                        orders=caler.decompose((int(a1),int(a2)))
                         sig,piz,pix,det=orders
                         print(f'σ : {sig:>10.4f}')
                         print(f'πz: {piz:>10.4f}')

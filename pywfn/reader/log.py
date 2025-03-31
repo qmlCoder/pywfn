@@ -191,7 +191,8 @@ class LogReader(reader.Reader):
         coefs._atoAtms=atms
         coefs._atoShls=shls
         coefs._atoSyms=syms
-        coefs._obtEngs=engs
+        coefs.obtEngs=engs
+        coefs.obtOccs=occs
         coefs._CM=CM
         return coefs
 
@@ -216,7 +217,7 @@ class LogReader(reader.Reader):
             printer.warn('没有读取到原子坐标')
             return None
         s1=r' +\d+ +(\d+) +\d +(-?\d+.\d{6}) +(-?\d+.\d{6}) +(-?\d+.\d{6})'
-        coords=[]
+        coords:list[list[float]]=[]
         symbols=[]
         for i in range(titleNum+5,self.lineNum):
             line=self.getline(i)

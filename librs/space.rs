@@ -472,11 +472,12 @@ pub fn mol_rhos_rs(
         mol_rho0s.push(rho0);
         mol_rho1s.push(rho1);
         mol_rho2s.push(rho2);
-        let filled=i*100/ngrid;
+        let filled=(i+1)*100/ngrid;
         let bar=format!("\r{}{}","*".repeat(filled),"_".repeat(100-filled));
         print!("{bar}");
         io::stdout().flush().unwrap();
     }
+    println!("电子密度计算完成");
     Ok((mol_rho0s,mol_rho1s,mol_rho2s))
 }
 

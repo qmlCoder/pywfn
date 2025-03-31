@@ -71,7 +71,7 @@ def decomOrbitalS(T:np.ndarray,coefs:np.ndarray,keeps:list[int]):
         return np.array([0.])
 
 # 分解P轨道
-def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int])->np.ndarray:
+def decomOrbitalP(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
     """分解P轨道
 
     Args:

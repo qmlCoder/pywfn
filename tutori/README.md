@@ -2,5 +2,5 @@
 
 ipynb转md
 ```
-
+jupyter nbconvert --to markdown notebook.ipynb
 ```

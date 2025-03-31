@@ -76,7 +76,8 @@ class ModReader(reader.Reader):
         coefs._atoAtms=atms
         coefs._atoShls=shls
         coefs._atoSyms=syms
-        coefs._obtEngs=engs
+        coefs.obtEngs=engs
+        coefs.obtOccs=occs
         coefs._CM=CM
         return coefs
 

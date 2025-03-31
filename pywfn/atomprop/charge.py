@@ -26,7 +26,7 @@ class Calculator():
         if not self.mol.open: #闭壳层自旋肯定为0
             return np.zeros(self.mol.atoms.natm)
         nmat=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
-        occs=self.mol.obtOccs # 记录原本的占据情况
+        occs=[int(e) for e in self.mol.obtOccs] # 记录原本的占据情况
         CMa=self.mol.CM[:,:nmat//2].copy() # alpha轨道系数
         CMb=self.mol.CM[:,nmat//2:].copy() # beta轨道系数
         
@@ -120,6 +120,8 @@ class Calculator():
                 return chargs
             case 'charge':
                 return atmics-chargs
+            case _:
+                raise ValueError(f'未知的输出格式{form}')
 
     def dirElects(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
         """计算不同方向的电子数"""
@@ -153,14 +155,20 @@ class Calculator():
             x,y,z=normal
             dirs.append([x,y,z])
         dirs=np.array(dirs)
-        return self.dirElects(atms,dirs,ctype)
+        return atms,dirs,self.dirElects(atms,dirs,ctype)
     
-    def piDecomElects(self): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
+    def piDecomElects(self,ctype='mulliken'): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
         from pywfn.orbtprop import decom
 
         CMt=decom.Calculator(self.mol).pi_decom('atom')
         PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
-        return lutils.mulliken(PMt,self.mol.SM,self.mol.atoms.atmuls)
+        match ctype:
+            case 'mulliken':
+                return lutils.mulliken(PMt,self.mol.SM,self.mol.atoms.atmuls)
+            case 'lowdin':
+                return lutils.lowdin(PMt,self.mol.SM,self.mol.atoms.atmuls)
+            case _:
+                raise ValueError(f'未知电荷类型{ctype}')
 
     
 def fit_dirs(mol:Mole,atms:list[int],dirs:list[np.ndarray]|None):

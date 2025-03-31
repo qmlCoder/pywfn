@@ -65,8 +65,8 @@ class Coefs:
         self._atoAtms:None|list[int]   = None
         self._atoShls:None|list[int]   = None
         self._atoSyms:None|list[str]   = None
-        self._obtEngs:None|list[float] = None
-        # self._obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
+        self.obtEngs:None|list[float] = None
+        self.obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
         self._CM:np.ndarray|None = None
         
         # raw:原始系数，car:笛卡尔系数，sph:球谐系数
@@ -130,16 +130,16 @@ class Coefs:
             case _:
                 raise ValueError('无效的系数形式')
     
-    @property
-    def obtOccs(self)->list[bool]:
-        assert self.mol is not None,"未初始化分子"
-        nela,nelb=self.mol.nele
-        if self.mol.open:
-            nobt=self.mol.CM.shape[1]//2
-            return [True]*nela+[False]*(nobt-nela)+[True]*nelb+[False]*(nobt-nelb)
-        else:
-            nobt=self.mol.CM.shape[1]
-            return [True]*nela+[False]*(nobt-nela)
+    # @property
+    # def obtOccs(self)->list[bool]:
+    #     assert self.mol is not None,"未初始化分子"
+    #     nela,nelb=self.mol.nele
+    #     if self.mol.open:
+    #         nobt=self.mol.CM.shape[1]//2
+    #         return [True]*nela+[False]*(nobt-nela)+[True]*nelb+[False]*(nobt-nelb)
+    #     else:
+    #         nobt=self.mol.CM.shape[1]
+    #         return [True]*nela+[False]*(nobt-nela)
     
     def atoKeys(self,form:str):
         atms=self.atoAtms(form)
