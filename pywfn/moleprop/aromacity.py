@@ -36,7 +36,7 @@ class Calculator:
             return 0
         return np.std(forders).item()
     
-    def pimsd(self,ring:list[int]|None=None,ratio=0.5): # 版本2 使用键级均值和标准差
+    def pimsd(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
         caler=orderProp.Calculator(self.mol)
         bonds,orders=caler.piOrder_pocv()
         forders=[] # 过滤掉C-H键
@@ -53,7 +53,7 @@ class Calculator:
         stds=np.std(forders)
         return (ratio*mean-(1-ratio)*stds).item()
 
-    def pimed(self): # 使用键级类比于HOMED方法
+    def pimed(self) -> float: # 使用键级类比于HOMED方法
         D=0.2
         caler=orderProp.Calculator(self.mol)
         bonds,orders=caler.piOrder_pocv()
@@ -66,7 +66,7 @@ class Calculator:
         result=1-sum(forders)/(nbond*D)
         return result
     
-    def homed(self):
+    def homed(self) -> float:
         D=0.2
         idea=1.39645
         vals=[]

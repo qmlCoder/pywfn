@@ -130,7 +130,7 @@ class Calculator(gridprop.SpaceCaler):
         rdg=K*L/dens0**(4/3)
         return rdg
     
-    def IRI(self,grids:np.ndarray,pro:bool=False,a=1.1): # 
+    def IRI(self,grids:np.ndarray,pro:bool=False,alp=1.1): # 
         assert utils.chkArray(grids,[None,3]),"格点的形状应为: (n,3)"
         if pro: # 如果使用预分子
             dens0,dens1,_=self.proMolDens_v2(grids,1) # type: ignore
@@ -139,8 +139,8 @@ class Calculator(gridprop.SpaceCaler):
         L=np.linalg.norm(dens1,axis=1)
         # return L/dens0**a
         
-        vals=L/dens0**a
-        print(np.min(vals),np.max(vals))
+        vals=L/dens0**alp
+        # print(np.min(vals),np.max(vals))
         return vals
     
     def piMolDens(self,grid:np.ndarray):

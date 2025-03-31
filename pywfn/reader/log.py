@@ -16,6 +16,7 @@ import json
 
 from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
+from pywfn.base.geome import Geome
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 from pywfn import reader
@@ -146,22 +147,14 @@ class LogReader(reader.Reader):
         lastLine='\n'.join(self.getlines(self.lineNum-10,self.lineNum))
         return 'Normal termination of Gaussian' in lastLine
     
-    @lru_cache
-    def get_atmXyzs(self)->np.ndarray:
-        """原子坐标[n,3]"""
+    
+    def get_geome(self)->"Geome":
+        """获取分子几何信息"""
+        
         result=self.read_coords()
         assert result is not None,"没有找到原子坐标"
-        atmSyms,atmXyzs = result
-        assert isinstance(atmXyzs,np.ndarray),'coord必须是np.ndarray类型'
-        return atmXyzs
-
-    @lru_cache
-    def get_atmSyms(self)->list[str]:
-        """原子符号[n]"""
-        result=self.read_coords()
-        assert result is not None,"没有找到原子符号"
-        atmSyms,atmXyzs = result
-        return atmSyms
+        syms,xyzs = result
+        return Geome(syms,xyzs)
     
     def get_nele(self)->tuple[int,int]: # 根据总核电荷数和电荷、自旋计算α、β电子数，不可行的
         lineNum=self.titles['nele'].line
@@ -268,7 +261,9 @@ class LogReader(reader.Reader):
         from pywfn.base.basis import BasisData
         assert 'gfinput' in self.read_keyWrds(),'关键词应该包含：gfinput'
         titleNum=self.titles['basisData'].line
-        symbols=self.get_atmSyms()
+        corods=self.read_coords()
+        assert corods is not None,'没有原子坐标'
+        symbols,_=corods
         if titleNum is None:return
         basisDatas:list[BasisData]=[]
         angDict={'S':0,'P':1,'D':2} #角动量对应的字典

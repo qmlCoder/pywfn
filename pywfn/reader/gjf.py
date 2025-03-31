@@ -3,6 +3,11 @@
 """
 from numpy import ndarray
 from pywfn import reader
+
+from pywfn.base.geome import Geome
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
+
 from pywfn.data.elements import elements
 import re
 import numpy as np
@@ -13,14 +18,10 @@ class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
         self.type='gjf'
-    
-    def get_atmSyms(self) -> list[str]:
-        symbols,coords=self.read_coord()
-        return symbols
-    
-    def get_atmXyzs(self) -> ndarray:
-        symbols,coords=self.read_coord()
-        return coords
+
+    def get_geome(self) -> Geome:
+        syms,xyzs=self.read_coord()
+        return Geome(syms,xyzs)
     
     def get_charge(self) -> int:
         charge,multi=self.read_multi()

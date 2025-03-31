@@ -1,5 +1,6 @@
 from pywfn.reader import Reader
 from pywfn.data import consts
+from pywfn.base.geome import Geome
 
 import numpy as np
 
@@ -8,13 +9,9 @@ class SdfReader(Reader):
         super().__init__(path, cache)
         self.type='sdf'
 
-    def get_atmSyms(self) -> list[str]:
+    def get_geome(self) -> Geome:
         syms,xyzs=self.read_geom()
-        return syms
-    
-    def get_atmXyzs(self) -> np.ndarray:
-        syms,xyzs=self.read_geom()
-        return xyzs
+        return Geome(syms,xyzs)
 
     def read_geom(self):
         finds=self.getline(3).split()

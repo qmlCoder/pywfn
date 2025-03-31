@@ -62,14 +62,15 @@ class Bond:
         return f'{self.a1.idx}-{self.a2.idx},{self.length:.4f}'
     
 class Bonds:
-    def __init__(self,mol:"base.Mole") -> None:
-        self.mol=mol
+    def __init__(self,geome:"base.Geome") -> None:
+        self.geome=geome
         self.bonds:list[Bond]=[]
     
     def add(self,idx1:int,idx2:int):
         """添加一个键"""
+        assert self.geome.mol is not None,"未绑定分子对象"
         if idx1>=idx2:idx1,idx2=idx2,idx1
-        bond=Bond(self.mol,idx1,idx2)
+        bond=Bond(self.geome.mol,idx1,idx2)
         self.bonds.append(bond)
         return bond
     

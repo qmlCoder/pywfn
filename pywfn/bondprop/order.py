@@ -275,9 +275,8 @@ class Calculator:
             ]
         else:
             raise ValueError("dobt must be 0 or 1 or -1")
-
-        orders=[]
         CMs=[]
+        result=[]
         for k,keeps in enumerate(keepList):
             CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
             for o in self.mol.O_obts:
@@ -295,7 +294,6 @@ class Calculator:
                     if iatm in bond:
                         T=Ts[bond.index(iatm)]
                         tcoefs=decomOrbitals(T,rcoefs,keeps[iang],dtype='bond')
-                        # print(rcoefs,tcoefs)
                     else:
                         tcoefs=rcoefs
                     assert len(rcoefs)==len(tcoefs),"长度对不上"
@@ -304,16 +302,15 @@ class Calculator:
                 values=list(coefDict.values())
                 CMt[:,o]=np.concatenate(values)
             CMs.append(CMt)
-            
             PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
             bonds=self.mol.bonds.ats
-            orders=lutils.mayer(PMt,self.mol.PM,self.mol.atoms.uls,bonds)
+            orders=lutils.mayer(PMt,self.mol.SM,self.mol.atoms.uls,bonds)
             orders[orders<0]=0
             orders=orders**0.5
-            result=[]
             for (a1,a2),val in zip(bonds,orders):
                 if a1 not in bond:continue
                 if a2 not in bond:continue
                 result.append(val)
                 break
+        # print(np.array(CMs).sum(axis=0)-self.mol.CM)
         return np.array(result)

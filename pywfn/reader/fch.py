@@ -8,6 +8,7 @@ import numpy as np
 from pywfn import base
 from pywfn.base.basis import BasisData,Basis
 from pywfn.base.coefs import Coefs
+from pywfn.base.geome import Geome
 from pywfn.data.elements import elements
 from pywfn import reader
 from pywfn.reader.utils import toCart
@@ -109,14 +110,11 @@ class FchReader(reader.Reader):
             # print(text)
         return vals
     
-    def get_atmSyms(self) -> list[str]:
+    def get_geome(self) -> Geome:
         atomics:list[str]=self.read_atoms() # type: ignore
-        symbols=[elements[a].symbol for a in atomics]
-        return symbols
-    
-    def get_atmXyzs(self) -> np.ndarray:
-        coords=self.read_coord()
-        return coords
+        syms=[elements[a].symbol for a in atomics]
+        xyzs=self.read_coord()
+        return Geome(syms,xyzs)
     
     def get_energy(self) -> float:
         lineNum=self.titles['Total Energy']

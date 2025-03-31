@@ -104,8 +104,8 @@ class Atom:
         return f'Atom:({self.symbol},{self.idx})'
 
 class Atoms:
-    def __init__(self,mol:"base.Mole") -> None:
-        self.mol=mol
+    def __init__(self,geome:"base.Geome") -> None:
+        self.geome=geome
         self.atoms:list[Atom]=[]
     
     def __repr__(self) -> str:
@@ -114,7 +114,8 @@ class Atoms:
     
     def add(self,symbol:str,coord:np.ndarray):
         assert coord.shape==(3,), '坐标必须是三维'
-        atom=Atom(symbol,coord,len(self.atoms)+1,self.mol)
+        assert self.geome.mol is not None, '未绑定分子对象'
+        atom=Atom(symbol,coord,len(self.atoms)+1,self.geome.mol)
         self.atoms.append(atom)
     
     @property

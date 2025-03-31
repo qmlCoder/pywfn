@@ -4,6 +4,7 @@
 from pywfn import reader
 from pywfn.base.basis import BasisData,Basis
 from pywfn.base.coefs import Coefs
+from pywfn.base.geome import Geome
 from pywfn.reader.utils import toCart
 from pywfn.data import bastrans
 import numpy as np
@@ -52,15 +53,9 @@ class ModReader(reader.Reader):
             nleb=sum(occs[col//2:])
         return nela,nelb
     
-    
-
-    def get_atmSyms(self) -> list[str]:
+    def get_geome(self) -> Geome:
         syms,xyzs=self.read_geom()
-        return syms
-    
-    def get_atmXyzs(self) -> np.ndarray:
-        syms,xyzs=self.read_geom()
-        return xyzs
+        return Geome(syms,xyzs)
     
     def get_basis(self) -> Basis:
         atms,shls,syms,datas=self.read_basis()

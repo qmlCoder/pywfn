@@ -119,8 +119,8 @@ class Calculator:
                     print(f'{atomi.idx:>3}{atomj.idx:>3}{vals[ai]:>10.4f}')
         return vals
 
-    # 自由价(方向化合价)
-    def freeValence(self,atm:int,dir_:np.ndarray)->float:
+    # 自由价(活性矢量)
+    def vector(self,atm:int,dir_:np.ndarray)->float:
         """计算指定原子的自由价，计算的分子可指定，该原子在不同方向的自由价
 
         Args:

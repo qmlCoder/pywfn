@@ -104,21 +104,16 @@ class Reader:
             lines.append(self.getline(i,keepEnd=False))
         return lines
 
-
-    def get_atmXyzs(self)->np.ndarray:
-        """原子坐标[n,3]"""
-        raise ValueError("未继承的函数")
-
-    def get_atmSyms(self)->list[str]:
-        """原子符号[n]"""
-        raise ValueError("未继承的函数")
-
     def get_energy(self)->float:
         """获取分子能量"""
         raise ValueError("未继承的函数")
 
     def get_nele(self)->tuple[int,int]:
         """获取分子电子数"""
+        raise ValueError("未继承的函数")
+    
+    def get_geome(self)->"base.Geome":
+        """获取分子几何信息"""
         raise ValueError("未继承的函数")
     
     def get_basis(self)->"base.Basis":

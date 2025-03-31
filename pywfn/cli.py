@@ -238,7 +238,7 @@ class AtomPage:
                         dir_=dirCaler.reactions(atm)
                     else:
                         dir_=np.array(dir_).reshape(1,3)
-                    val=caler.freeValence(atm,dir_)
+                    val=caler.vector(atm,dir_)
                     print(f"{'atm':>3}{'dx':>10}{'dy':>10}{'dz':>10}{'val':>10}")
                     print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{val:>10.4f}')
                     print('原子自由价计算完成')
@@ -378,9 +378,9 @@ class MolePage:
 
     def aromacity(self):
         from pywfn.utils import printer
-        from pywfn.moleprop import aromatic
+        from pywfn.moleprop import aromacity
         mol=self.shell.input.Moles()[0]
-        caler=aromatic.Calculator(mol)
+        caler=aromacity.Calculator(mol)
         while True:
             printer.options('芳香性',{
                 '1':'piSD  (根据pi键级的标准差)',
@@ -500,9 +500,9 @@ class ToolPage:
                 for path in paths:
                     logSplitLink.Tool(path).split()
             case '5': # 拼接gjf文件
-                from pywfn.tools import gjfJoin
+                from pywfn.tools.gjf import Tool
                 paths=self.shell.input.Paths()
-                gjfJoin.Tool(paths).save(f'{cwd}/join.gjf')
+                Tool().join(paths,f'{cwd}/join.gjf')
             case '6': # 环心添加Bq原子
                 from pywfn.tools import gjfEdit
                 printer.info('在gjf文件指定环的中心添加Bq原子，方便NICS计算')

@@ -7,6 +7,7 @@ from typing import List
 import re
 import numpy as np
 from pywfn import base
+from pywfn.base.geome import Geome
 from pywfn import reader
 
 class XyzReader(reader.Reader):
@@ -18,13 +19,12 @@ class XyzReader(reader.Reader):
             self.content=f.read()
         self.logLines=self.content.splitlines(keepends=False)
         self.geoms=self.read_geoms()
-
-    def get_atmSyms(self) -> List[str]:
-        return [sym for (sym,x,y,z) in self.geoms[-1]]
     
-    def get_atmXyzs(self) -> np.ndarray:
+    def get_geome(self)->Geome:
+        syms=[sym for (sym,x,y,z) in self.geoms[-1]]
         xyzs=[(x,y,z) for (sym,x,y,z) in self.geoms[-1]]
-        return np.array(xyzs)
+        xyzs=np.array(xyzs)
+        return Geome(syms,xyzs)
     
     def read_geoms(self):
         """

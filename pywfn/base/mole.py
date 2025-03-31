@@ -20,11 +20,11 @@
 
 from typing import Any
 from pywfn import maths
+from pywfn.base.geome import Geome
 from pywfn.base.coefs import Coefs
 from pywfn.base.basis import Basis
 from pywfn.base.atom import Atom,Atoms
 from pywfn.base.bond import Bond,Bonds
-from pywfn.base.basis import Basis
 from pywfn import reader
 from pywfn import data
 from pywfn.data.elements import elements
@@ -63,8 +63,6 @@ class Mole:
         分子实例化
         `reader:Reader`，分子读取器
         """
-        self._atoms:Atoms=Atoms(self)
-        self._bonds:Bonds=Bonds(self)
         self._props:Props=Props()
         self.reader:"reader.Reader"=reader
         
@@ -81,6 +79,12 @@ class Mole:
         coefs=self.reader.get_coefs()
         coefs.mol=self
         return coefs
+    
+    @property
+    def geome(self)->Geome:
+        geome=self.reader.get_geome()
+        geome.mol=self
+        return geome.build()
     
     @property
     def nele(self)->tuple[int,int]:
@@ -174,25 +178,11 @@ class Mole:
     @property
     def atoms(self)->Atoms:
         """获取所有原子"""
-        if self._atoms:return self._atoms
-        atmSyms=self._props.get('atmSyms',self.reader.get_atmSyms)
-        atmXyzs=self._props.get('atmXyzs',self.reader.get_atmXyzs)
-        for s,c in zip(atmSyms,atmXyzs):
-            self._atoms.add(symbol=s,coord=c)
-        return self._atoms
+        return self.geome.atoms
     
     @property
     def bonds(self)->Bonds:
-        if self._bonds:return self._bonds
-        for atom1 in self.atoms:
-            for atom2 in self.atoms:
-                if atom1.idx>=atom2.idx:continue
-                r=np.linalg.norm(atom2.coord-atom1.coord)
-                r1=elements[atom1.symbol].radius
-                r2=elements[atom2.symbol].radius
-                if r>(r1+r2)*1.1:continue
-                self._bonds.add(atom1.idx,atom2.idx)
-        return self._bonds
+        return self.geome.bonds
     
     def atom(self,idx:int)->Atom:
         """根据原子编号获取一个原子，从1开始"""

@@ -35,22 +35,22 @@ class Calculator(gridprop.SpaceCaler):
         return np.array(wfns0)
 
     
-    def obtWfns_(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
-        """
-        计算分子轨道的波函数，为原子轨道的线性组合
-        obt：分子轨道指标
-        """
-        atowfns,_,_=self.atoWfns(grid,level=0) # 所有原子轨道的波函数
-        ngrid=grid.shape[0]
-        nobt=len(obts)
-        wfns=np.zeros(shape=(nobt,ngrid))
-        for o,obt in enumerate(obts):
-            coefs=self.CM[:,obt] # 轨道系数
-            wfn=np.zeros(grid.shape[0])
-            for c,coef in enumerate(coefs):
-                wfn+=coef*atowfns[c]
-            wfns[o]=wfn
-        return wfns
+    # def obtWfns_(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
+    #     """
+    #     计算分子轨道的波函数，为原子轨道的线性组合
+    #     obt：分子轨道指标
+    #     """
+    #     atowfns,_,_=self.atoWfns(grid,level=0) # 所有原子轨道的波函数
+    #     ngrid=grid.shape[0]
+    #     nobt=len(obts)
+    #     wfns=np.zeros(shape=(nobt,ngrid))
+    #     for o,obt in enumerate(obts):
+    #         coefs=self.CM[:,obt] # 轨道系数
+    #         wfn=np.zeros(grid.shape[0])
+    #         for c,coef in enumerate(coefs):
+    #             wfn+=coef*atowfns[c]
+    #         wfns[o]=wfn
+    #     return wfns
     
     def atoWfns(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
         """计算所有原子轨道"""
@@ -125,9 +125,3 @@ class Calculator(gridprop.SpaceCaler):
                 wfn=coef*atowfns[i]
                 wfns[o]+=wfn
         return wfns
-    
-def meshgrid(xr,yr):
-    xs,ys=np.meshgrid(xr,yr)
-    xs=xs.flatten()
-    ys=ys.flatten()
-    return xs,ys

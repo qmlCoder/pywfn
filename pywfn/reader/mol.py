@@ -4,7 +4,10 @@ mol文件读取器
 import numpy as np
 from numpy import ndarray
 from pywfn import reader
+from pywfn.base.geome import Geome
 from functools import lru_cache
+
+
 class MolReader(reader.Reader):
     def __init__(self, path: str) -> None:
         super().__init__(path)
@@ -13,17 +16,15 @@ class MolReader(reader.Reader):
         self.natm=int(line3[:3])
         print(self.natm)
 
-    def get_atmXyzs(self) -> ndarray:
-        return self.read_coords()[1]
-    
-    def get_atmSyms(self) -> list[str]:
-        return self.read_coords()[0]
+    def get_geome(self) -> Geome:
+        syms,xyzs=self.read_geome()
+        return Geome(syms,xyzs)
     
     @lru_cache
-    def read_coords(self):
+    def read_geome(self):
         """读取原子坐标"""
         xyzs=[]
-        syms=[]
+        syms:list[str]=[]
         for i in range(4,4+self.natm):
             line=self.getline(i)[:-1]
             x=line[ 0:10].strip()
