@@ -92,6 +92,24 @@ class Tool:
     def split_irc(self):
         pass
 
-    def split_link(self):
-        pass
+    def split_link(self,path:str):
+        """将link链接的作业分割成单独的log文件"""
+        def save(path:str,text:str):
+            with open(path,'w',encoding='utf-8') as f:
+                f.write(text)
+            print(f'save {path} complete')      
+        root=Path(path).parent
+        stem=Path(path).stem
+        self.fold=root/f'{stem}_lsp'
+        self.fold.mkdir(exist_ok=True)
+        lkIdx=0
+        ftext=''
+        with open(path,'r',encoding='utf-8') as file:
+            for line in file:
+                ftext+=f'{line}'
+                if 'Normal termination of Gaussian' in line: # 如果遇到标志行
+                    save(f'{self.fold}/{lkIdx}.log',ftext)
+                    lkIdx+=1
+                    ftext=''
+        print('导出完成 >_<')
             

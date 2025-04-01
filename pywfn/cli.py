@@ -504,14 +504,15 @@ class ToolPage:
                 for path in paths:
                     logSplitIrc.Tool(path).split()
             case '4': # 分割link任务
-                from pywfn.tools import logSplitLink
+                from pywfn.tools import log
                 paths=self.shell.input.Paths()
                 for path in paths:
-                    logSplitLink.Tool(path).split()
+                    log.Tool().split_link(path)
             case '5': # 拼接gjf文件
                 from pywfn.tools.gjf import Tool
                 paths=self.shell.input.Paths()
-                Tool().join(paths,f'{cwd}/join.gjf')
+                text=Tool().join(paths)
+                Path(f'{cwd}/join.gjf').write_text(text)
             case '6': # 环心添加Bq原子
                 from pywfn.tools import gjf
                 printer.info('在gjf文件指定环的中心添加Bq原子，方便NICS计算')

@@ -82,8 +82,6 @@ class Tool:
         mol=Mole(reader)
         return mol
             
-
-
     def split(self):
         """分割文件"""
         # 首先获取所有构象的坐标

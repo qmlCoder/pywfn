@@ -70,7 +70,6 @@ class Tool:
         edges=self.root.findall('.//b')
         
         cidx=len(self.colors.findall('color'))+2
-        print(cidx)
         for edge in edges:
             B=int(edge.attrib['B'])
             E=int(edge.attrib['E'])
