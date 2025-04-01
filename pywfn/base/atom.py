@@ -11,18 +11,23 @@ class Atom:
     """
     原子对象
     """
-    def __init__(self,sym:str,xyz:np.ndarray,idx:int,mol:"base.Mole"): # 每个原子应该知道自己属于哪个分子
+    def __init__(self,sym:str,xyz:np.ndarray,idx:int,geome:"base.Geome"): # 每个原子应该知道自己属于哪个分子
         self.sym=sym
         self.xyz=xyz
         self.xyz.flags.writeable=False
         self.idx=idx
-        self.mol:"base.Mole"=mol
+        self.geome=geome
 
         self._layersData={}
         self.layers:list[str]|None=None
         self._squareSum=None
         self._sContribution:dict={}
         self._props:dict={}
+    
+    @property
+    def mol(self):
+        assert self.geome.mol is not None,"未绑定分子"
+        return self.geome.mol
     
     @property
     def symbol(self)->str:
@@ -114,8 +119,7 @@ class Atoms:
     
     def add(self,symbol:str,coord:np.ndarray):
         assert coord.shape==(3,), '坐标必须是三维'
-        assert self.geome.mol is not None, '未绑定分子对象'
-        atom=Atom(symbol,coord,len(self.atoms)+1,self.geome.mol)
+        atom=Atom(symbol,coord,len(self.atoms)+1,self.geome)
         self.atoms.append(atom)
     
     @property

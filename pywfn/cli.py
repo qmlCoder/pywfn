@@ -478,17 +478,26 @@ class ToolPage:
         opt=input('请输入选项：')
         match opt:
             case '1': # 提取SI信息
-                from pywfn.tools import logSI
+                from pywfn.tools import log
                 paths=self.shell.input.Paths()
-                tool=logSI.Tool(paths)
+                tool=log.Tool()
                 path0=Path(paths[0]) # 第一个分子
                 spath=path0.parent/'SI.txt' # 第一个文件所在的文件夹
-                tool.save(f'{spath}')
+                spath.write_text(tool.get_si(paths))
             case '2': # 分割SCAN文件
-                from pywfn.tools import logSpiltScan
+                from pywfn.tools import log
+                from pywfn.reader import AnyReader
+                from pywfn.writer import GjfWriter
                 paths=self.shell.input.Paths()
                 for path in paths:
-                    logSpiltScan.Tool(path).save()
+                    mols=log.Tool().split_scan(path)
+                    texts=[]
+                    for mol in mols:
+                        text=GjfWriter().fromMol(mol).build()
+                        texts.append(text)
+                path0=Path(paths[0]) # 第一个分子
+                spath=path0.parent/'split_scan.gjf'
+                spath.write_text('--Link1--\n\n'.join(texts))
             case '3': # 分割IRC文件
                 from pywfn.tools import logSplitIrc
                 paths=self.shell.input.Paths()
@@ -504,18 +513,18 @@ class ToolPage:
                 paths=self.shell.input.Paths()
                 Tool().join(paths,f'{cwd}/join.gjf')
             case '6': # 环心添加Bq原子
-                from pywfn.tools import gjfEdit
+                from pywfn.tools import gjf
                 printer.info('在gjf文件指定环的中心添加Bq原子，方便NICS计算')
-                mol=self.shell.input.Moles(num=1)[0]
-                tool=gjfEdit.Tool(mol)
+                path=self.shell.input.Paths(count=1)[0]
+                tool=gjf.Tool()
                 rings=input('输入环编号: ')
                 rings=[[int(atm) for atm in ring] for ring in rings.split(';')]
-                tool.addRingBq(rings)
-                path=Path(mol.reader.path)
+                text=tool.ringBq(path,rings)
+                path=Path(path)
                 path=(path.parent/f'{path.stem}_ringBq.gjf')
-                tool.save(f'{path}')
+                path.write_text(text)
             case '7': # 加/减gjf电子数
-                from pywfn.tools import gjfEdit
+                from pywfn.tools import gjf
                 mols=self.shell.input.Moles()
                 nele=input('输入加减电子数: ')
                 nele=int(nele)
@@ -526,10 +535,10 @@ class ToolPage:
                 else:
                     raise ValueError('加减电子数不能为0')
                 for mol in mols:
-                    tool=gjfEdit.Tool(mol)
-                    tool.addElectron(nele)
+                    tool=gjf.Tool()
+                    text=tool.addElec(mol.reader.path,nele)
                     path=Path(mol.reader.path)
-                    tool.save(f'{path.parent}/{path.stem}_{sufx}{abs(nele)}.gjf')
+                    Path(f'{path.parent}/{path.stem}_{sufx}{abs(nele)}.gjf').write_text(text)
 
 
 class SavePage:

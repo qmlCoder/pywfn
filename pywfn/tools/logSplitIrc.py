@@ -77,8 +77,8 @@ class Tool:
         
     def build_mol(self,i:int):
         reader=AnyReader()
-        reader.coords=self.xyzs[i]
-        reader.symbols=self.syms[i]
+        # reader.coords=self.xyzs[i]
+        # reader.symbols=self.syms[i]
         mol=Mole(reader)
         return mol
             

@@ -12,13 +12,18 @@ class Bond:
     """
     键对象
     """
-    def __init__(self,mol:"base.Mole",atm1:int,atm2:int) -> None:
-        self.mol=mol
+    def __init__(self,geome:"base.Geome",atm1:int,atm2:int) -> None:
+        self.geome=geome
         self.atm1=atm1
         self.atm2=atm2
         self._length:float|None=None
         self.key:str=f'{atm1}-{atm2}'
         self.ats:tuple[int,int]=(atm1,atm2)
+    
+    @property
+    def mol(self):
+        assert self.geome.mol is not None,"未绑定分子"
+        return self.geome.mol
     
     @property
     def a1(self):
@@ -68,9 +73,8 @@ class Bonds:
     
     def add(self,idx1:int,idx2:int):
         """添加一个键"""
-        assert self.geome.mol is not None,"未绑定分子对象"
         if idx1>=idx2:idx1,idx2=idx2,idx1
-        bond=Bond(self.geome.mol,idx1,idx2)
+        bond=Bond(self.geome,idx1,idx2)
         self.bonds.append(bond)
         return bond
     

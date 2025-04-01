@@ -154,7 +154,7 @@ class LogReader(reader.Reader):
         result=self.read_coords()
         assert result is not None,"没有找到原子坐标"
         syms,xyzs = result
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     def get_nele(self)->tuple[int,int]: # 根据总核电荷数和电荷、自旋计算α、β电子数，不可行的
         lineNum=self.titles['nele'].line

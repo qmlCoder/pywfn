@@ -21,7 +21,7 @@ class GjfReader(reader.Reader):
 
     def get_geome(self) -> Geome:
         syms,xyzs=self.read_coord()
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     def get_charge(self) -> int:
         charge,multi=self.read_multi()

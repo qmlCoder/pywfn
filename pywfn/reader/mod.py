@@ -55,7 +55,7 @@ class ModReader(reader.Reader):
     
     def get_geome(self) -> Geome:
         syms,xyzs=self.read_geom()
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     def get_basis(self) -> Basis:
         atms,shls,syms,datas=self.read_basis()

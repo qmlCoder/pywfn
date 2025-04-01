@@ -11,7 +11,6 @@ import numpy as np
 class Editor:
     def __init__(self,mol:Mole) -> None:
         self.mol=mol
-
     
     def search_group(self,start:int,excludes:list[int]):
         """
@@ -45,7 +44,9 @@ class Editor:
         axis=self.mol.atom(atm2).coord-center
         result=points_rotate(points,center,axis,angle)
         coords[gidxs,:]=result
-        return coords
+        syms=self.mol.geome.syms.copy()
+        self.mol.geome.build(syms,coords)
+        return self.mol
     
     def add_ringBq(self): # 在环中心添加Bq原子
         pass

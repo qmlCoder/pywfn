@@ -198,8 +198,11 @@ class Basis:
     def __repr__(self) -> str:
         resStr=''
         resStr+=f'{"idx":>5}{"atm":>5}{"shl":>5}{"ang":>5}{"coe":>12}{"alp":>12}\n'
+        
         for i,each in enumerate(self.data):
+            if i>4 and i<len(self.data)-4:continue
             resStr+=f'{i+1:>5}{each.atm:>5}{each.shl:>5}{each.ang:>5}{each.coe:>12.4e}{each.alp:>12.4e}\n'
+            if len(self.data)>10 and i==4:resStr+=(' ...'*4+'       .....'*2+'\n')
         return resStr
             
         

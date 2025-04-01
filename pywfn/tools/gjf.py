@@ -1,8 +1,17 @@
+"""
+每个函数都是对gjf文件的修改或生成新的gjf，并返回新的gjf的内容
+"""
+
+
 from pathlib import Path
 import numpy as np
 
 from pywfn.base import Mole
+from pywfn.reader import GjfReader
 from pywfn.writer import GjfWriter
+from pywfn.editor import Editor
+from pywfn.data import temps
+from pywfn.data.elements import elements
 
 class Tool:
     def __init__(self) -> None:
@@ -22,20 +31,56 @@ class Tool:
             Path(path).write_text('--Link1--\n\n'.join(texts),encoding='utf-8')
         return text
     
-    def ringBq(self,mol:Mole,rings:list[list[int]],title:str='b3lyp/6-31g(d) NMR',path:str=''):
+    def ringBq(self,path:str,rings:list[list[int]],title:str='b3lyp/6-31g(d) NMR'):
         """在gjf的环中心添加Bq原子，方便计算NICS"""
-        writer=GjfWriter().fromMol(mol)
-        molCoords=mol.coords.copy()
+        mol=Mole(GjfReader(path))
         for ring in rings:
             idxs=[atm-1 for atm in ring]
-            x,y,z=np.mean(molCoords[idxs,:],axis=0)
+            x,y,z=np.mean(mol.coords[idxs,:],axis=0)
             mol.geome.addAtom('Bq',np.array([x,y,z]))
+        writer=GjfWriter().fromMol(mol)
         writer.title=title
         writer.chk=f'{Path(mol.reader.path).stem}_Bq.chk'
         text=writer.build()
-        if path=='':
-            return text
-        else:
-            Path(path).write_text(text,encoding='utf-8')
         return text
+    
+    def scan_bond(self,path:str,atm1:int,atm2:int,step:int,size:float):
+        reader=GjfReader(path)
+        mol=Mole(reader)
+        editor=Editor(mol)
+        writer=GjfWriter().fromMol(mol)
+        gjfs=[]
+        for i in range(step):
+            rmol=editor.rotate_bond(atm1,atm2,i*size)
+            writer=GjfWriter().fromMol(rmol)
+            gjfs.append(writer.build())
+        text='--Link1--\n\n'.join(gjfs)
+        return text
+    
+    def addElec(self,path:str,delta:int):
+        """分子加减电子，影响电荷，加一个电子电荷变为-1
+
+        Args:
+            delEle (int): 加减电子数
+        """
+        reader=GjfReader(path)
+        mol=Mole(reader)
+        sat1=delta>0 # 增加还是减少
+        nela,nelb=mol.nele
+        for i in range(abs(delta)):
+            sat2=nela==nelb
+            match (sat1,sat2):
+                case (True,True):
+                    nela+=1
+                case (True,False):
+                    nelb+=1
+                case (False,True):
+                    nelb-=1
+                case (False,False):
+                    nela-=1
+        writer=GjfWriter().fromMol(mol)
+        atomic=sum(mol.atoms.atomics)
+        writer.charge=atomic-nela-nelb
+        writer.spin=nela-nelb+1
+        return writer.build()
     

@@ -26,7 +26,7 @@ class Tool:
         self.path=path
         self.tree=ElementTree.parse(path)
         self.root=self.tree.getroot()
-        self.colors=list(self.root.find('colortable')) # type: ignore # 所有的颜色
+        self.colors:Element=self.root.find('colortable') # type: ignore # 所有的颜色
         self.page=self.root.find('page')
         self.frags=self.page.findall('fragment') # type: ignore
         self.nodes:list[Node]=[]
@@ -62,9 +62,26 @@ class Tool:
         attrib=self.colors[idx].attrib
         r,g,b=[float(attrib[c]) for c in ('r','g','b')]
         return r,g,b
+    
+    def set_color(self,bond:tuple[int,int],color:tuple[float,float,float]):
+        """
+        设置指定边的颜色，n1,n2,r,g,b {n1-n2:[r,g,b]}
+        """
+        edges=self.root.findall('.//b')
+        
+        cidx=len(self.colors.findall('color'))+2
+        print(cidx)
+        for edge in edges:
+            B=int(edge.attrib['B'])
+            E=int(edge.attrib['E'])
+            if (B,E)==bond or (E,B)==bond:
+                r,g,b=color
+                self.colors.append(Element('color',{'r':f'{r:.4f}','g':f'{g:.4f}','b':f'{b:.4f}'}))
+                edge.set('color',str(cidx))
+                cidx+=1
 
             
-    def draw(self):
+    def show(self):
         # 先画边
         for edge in self.edges:
             B=edge.B
@@ -85,3 +102,6 @@ class Tool:
             plt.text(node.x,node.y,str(node.nid),color='red')
         plt.scatter(xs,ys,s=10)
         plt.show()
+    
+    def save(self,path:str):
+        self.tree.write(path)

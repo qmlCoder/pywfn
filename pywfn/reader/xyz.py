@@ -24,14 +24,14 @@ class XyzReader(reader.Reader):
         syms=[sym for (sym,x,y,z) in self.geoms[-1]]
         xyzs=[(x,y,z) for (sym,x,y,z) in self.geoms[-1]]
         xyzs=np.array(xyzs)
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     def read_geoms(self):
         """
         有三种情况,原子数量,标题,原子坐标
         """
         
-        p1=r'^ +\d+$'
+        p1=r'^ *\d+$'
         # 不满足第一种和第二种情况就是第三种情况
         p3=r'^ +([A-Za-z])+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)$'
         geoms:list[list[tuple[str,float,float,float]]]=[]

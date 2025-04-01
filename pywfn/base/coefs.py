@@ -292,3 +292,40 @@ class Coefs:
         eigVal,eigVec=np.linalg.eigh(SM)
         X=(eigVec@np.diag(eigVal))@eigVec.T
         return X.T@CM
+    
+    def __repr__(self) -> str:
+        text=''
+        nato,nobt=self.CM('raw').shape
+        assert self.obtEngs is not None,"未初始化obtEngs"
+        assert self.obtOccs is not None,"未初始化obtOccs"
+        assert self._atoAtms is not None,"未初始化_atoAtms"
+        assert self._atoShls is not None,"未初始化_atoShls"
+        assert self._atoSyms is not None,"未初始化_atoSyms"
+        engs=self.obtEngs
+        occs=['O' if e else 'V' for e in self.obtOccs]
+        atms=self._atoAtms
+        shls=self._atoShls
+        syms=self._atoSyms
+        
+        obtIdxs=[0,1,2,3,4]+[nobt-(5-e) for e in range(5)]
+        atoIdxs=[0,1,2,3,4]+[nato-(5-e) for e in range(5)]
+        text+=' '*15
+        for i,obt in enumerate(obtIdxs):
+            text+=f'{occs[obt]:>10}'
+            if i==4:text+=f"{'.....':>10}"
+        text+='\n'
+        text+=' '*15
+        for i,obt in enumerate(obtIdxs):
+            text+=f'{engs[obt]:>10.4f}'
+            if i==4:text+=f"{'.....':>10}"
+        text+='\n'
+        CM=self.CM('raw')
+        for j,ato in enumerate(atoIdxs):
+            if j==4:text+=(" "*15+"     ....."*11+'\n')
+            text+=f"{atms[ato]:>5}{shls[ato]:>5}{syms[ato]:>5}"
+            for i,obt in enumerate(obtIdxs):
+                text+=f'{CM[ato,obt]:>10.4f}'
+                if i==4:text+=f"{'.....':>10}"
+            text+='\n'
+
+        return text

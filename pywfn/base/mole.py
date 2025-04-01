@@ -80,11 +80,11 @@ class Mole:
         coefs.mol=self
         return coefs
     
-    @property
+    @cached_property
     def geome(self)->Geome:
         geome=self.reader.get_geome()
         geome.mol=self
-        return geome.build()
+        return geome
     
     @property
     def nele(self)->tuple[int,int]:

@@ -18,7 +18,7 @@ class MolReader(reader.Reader):
 
     def get_geome(self) -> Geome:
         syms,xyzs=self.read_geome()
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     @lru_cache
     def read_geome(self):

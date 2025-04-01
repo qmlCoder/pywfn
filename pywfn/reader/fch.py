@@ -114,7 +114,7 @@ class FchReader(reader.Reader):
         atomics:list[str]=self.read_atoms() # type: ignore
         syms=[elements[a].symbol for a in atomics]
         xyzs=self.read_coord()
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
     
     def get_energy(self) -> float:
         lineNum=self.titles['Total Energy']
@@ -146,6 +146,8 @@ class FchReader(reader.Reader):
         coefs._atoSyms=syms
         coefs._CM=CM
         coefs.obtEngs=engs
+        elea,eleb=self.get_nele()
+        coefs.obtOccs=[True]*elea+[False]*(len(aengs)-elea)+[True]*eleb+[False]*(len(bengs)-eleb)
         return coefs
 
     def read_OB(self):

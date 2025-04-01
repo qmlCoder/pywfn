@@ -11,28 +11,17 @@ from pywfn.utils import chkArray
 from pywfn.data.elements import elements
 
 class Geome:
-    def __init__(self,syms:list[str],xyzs:np.ndarray) -> None:
-        self.syms:list[str]=syms # 原子符号
-        self.xyzs:np.ndarray=xyzs # 原子坐标
-        chkArray(xyzs,[None,3])
+    def __init__(self) -> None:
         self.edited=False # 是否被编辑过
         self.atoms=Atoms(self)
         self.bonds=Bonds(self)
         self.mol:"base.Mole|None"=None # 绑定的分子对象
     
-    def update(self,syms,xyzs):
-        """更新分子结构信息"""
-        self.syms=syms
-        self.xyzs=xyzs
-        chkArray(xyzs,[None,3])
-        self.edited=True # 被编辑过
-        self.build()
-    
-    def build(self):
+    def build(self,syms:list[str],xyzs:np.ndarray):
         """构建分子结构信息"""
         self.atoms.atoms.clear()
         self.bonds.bonds.clear()
-        for sym,xyz in zip(self.syms,self.xyzs):
+        for sym,xyz in zip(syms,xyzs):
             self.atoms.add(sym,xyz)
         for atom1 in self.atoms:
             for atom2 in self.atoms:
@@ -55,6 +44,14 @@ class Geome:
             if r>(r1+r2)*1.1:continue
             self.bonds.add(atom.idx,len(self.atoms.atoms))
         self.edited=True
+
+    @property
+    def syms(self)->list[str]:
+        return [atom.sym for atom in self.atoms]
+    
+    @property
+    def xyzs(self):
+        return np.array([atom.coord for atom in self.atoms])
 
     def __repr__(self) -> str:
         text=''

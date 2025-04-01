@@ -11,7 +11,7 @@ class SdfReader(Reader):
 
     def get_geome(self) -> Geome:
         syms,xyzs=self.read_geom()
-        return Geome(syms,xyzs)
+        return Geome().build(syms,xyzs)
 
     def read_geom(self):
         finds=self.getline(3).split()
