@@ -8,6 +8,7 @@ from pywfn.bondprop import order as orderProp
 import numpy as np
 from pywfn.cli import Shell
 from pywfn.utils import printer
+from pywfn.data import consts
 
 class Calculator:
     def __init__(self, mol:Mole):
@@ -77,3 +78,36 @@ class Calculator:
             vals.append((bond.length/1.889-idea)**2)
         val=sum(vals)
         return 1-val/(self.mol.bonds.num*D)
+    
+    def HOMER(self,rings:list[list[int]]):
+        """
+        Phys. Chem. Chem. Phys., 2023, 25, 16763
+        """
+        paras={
+            'CC':[1.437,950.74],
+            'CN':[1.390,506.43],
+            'NC':[1.390,506.43],
+            'NN':[1.375,187.36],
+            'CO':[1.379,164.96],
+            'OC':[1.379,164.96],
+        }
+        vals:list[float]=[]
+        for ring in rings:
+            val=0.0
+            n=0
+            for bond in self.mol.bonds:
+                a1,a2=bond.ats
+                if a1 not in ring or a2 not in ring:continue # 两个原子都必须在环中
+                s1=self.mol.atom(a1).sym
+                s2=self.mol.atom(a2).sym
+                key=f'{s1}{s2}'
+                assert key in paras.keys(),"只能包含C,N,O三种元素"
+                # print(bond,bond.length*consts.Bohr)
+                n+=1
+                Ropt,alp=paras[key]
+                val+=alp*(bond.length*consts.Bohr-Ropt)**2
+            # print(n)
+            vals.append(1-val/n)
+        return vals
+
+

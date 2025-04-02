@@ -3,7 +3,7 @@ import shutil
 from pathlib import Path
 from pywfn import config
 import sys,traceback
-config.ROOT_LIBS=Path.cwd()/'libs'
+# config.ROOT_LIBS=Path.cwd()/'libs'
 os.add_dll_directory(rf"{config.ROOT_LIBS}") # 添加动态链接库目录
 
 def error():

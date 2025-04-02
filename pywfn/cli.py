@@ -233,14 +233,16 @@ class AtomPage:
                     from pywfn.atomprop import direction
                     dirCaler=direction.Calculator(mol)
                     atm=self.shell.input.Integ(tip='输入原子编号: ',count=1)[0]
-                    dir_=self.shell.input.Float(tip='?指定投影方向: ',count=3)
-                    if dir_ is None:
-                        dir_=dirCaler.reactions(atm)
+                    dirs=self.shell.input.Float(tip='?指定投影方向: ',count=3)
+                    if dirs is None:
+                        dirs=dirCaler.reactions(atm)
                     else:
-                        dir_=np.array(dir_).reshape(1,3)
-                    val=caler.vector(atm,dir_)
+                        dirs=np.array(dirs).reshape(1,3)
                     print(f"{'atm':>3}{'dx':>10}{'dy':>10}{'dz':>10}{'val':>10}")
-                    print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{val:>10.4f}')
+                    for dir_ in dirs:
+                        val=caler.vector(atm,dir_)
+                        x,y,z=dir_
+                        print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{val:>10.4f}')
                     print('原子自由价计算完成')
                 case '7': # 福井函数(pi)
                     from pywfn.atomprop import direction

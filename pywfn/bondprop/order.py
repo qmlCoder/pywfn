@@ -14,6 +14,7 @@ from itertools import product
 from pywfn import config
 from collections import defaultdict
 from itertools import product
+from pywfn.utils import chkArray
 
 class Calculator:
     def __init__(self,mol:Mole) -> None:
@@ -85,6 +86,7 @@ class Calculator:
         Returns:
             np.ndarray: 束缚键级`[a1,a2,x,y,z,val]`
         """
+        chkArray(dir_,shape=[3,])
         if config.SHOW_LEVEL>=1:
             printer.info(f'计算原子{atm}的束缚键级')
         nebs=self.mol.atom(atm).neighbors
