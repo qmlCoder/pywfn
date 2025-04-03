@@ -15,7 +15,7 @@ class Calculator:
         self.mol = mol
         self.ratio=0.5
     
-    def pisd(self,ring:list[int]|None=None): # 版本1 直接用键级标准差
+    def PISD(self,ring:list[int]|None=None): # 版本1 直接用键级标准差
         caler=orderProp.Calculator(self.mol)
         bonds,orders=caler.piOrder_pocv()
         # orders=result[:,-1]
@@ -37,7 +37,7 @@ class Calculator:
             return 0
         return np.std(forders).item()
     
-    def pimsd(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
+    def PIMSD(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
         caler=orderProp.Calculator(self.mol)
         bonds,orders=caler.piOrder_pocv()
         forders=[] # 过滤掉C-H键

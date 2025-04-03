@@ -389,6 +389,7 @@ class MolePage:
                 '2':'piMSD (根据pi键级的均值和标准差)',
                 '3':'piMED',
                 '4':'HOMED',
+                '5':'HOMER'
             })
             opt=input('输入芳香性类型:')
             
@@ -396,10 +397,12 @@ class MolePage:
                 case '1':
                     ring=self.shell.input.Integ('?输入环编号: ')
                     if len(ring)==0:ring=None
-                    result=caler.pisd(ring)
+                    result=caler.PISD(ring)
                     print(f'{result}')
                 case '2':
-                    result=caler.pimsd(ring=ring,ratio=0.5)
+                    ring=self.shell.input.Integ('?输入环编号: ')
+                    if len(ring)==0:ring=None
+                    result=caler.PIMSD(ring=ring,ratio=0.5)
                     print(f'{result}')
                 case '3':
                     result=caler.pimed()
@@ -407,6 +410,10 @@ class MolePage:
                 case '4':
                     result=caler.homed()
                     print(f'{result}')
+                case '6':
+                    ring=self.shell.input.Integ('输入环编号: ')
+                    assert ring is not None,"请正确输入环编号"
+                    result=caler.HOMER([ring])
                 case _:
                     break
 

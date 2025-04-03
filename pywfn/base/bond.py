@@ -64,7 +64,7 @@ class Bond:
             return 2
     
     def __repr__(self) -> str:
-        return f'{self.a1.idx}-{self.a2.idx},{self.length:.4f}'
+        return f'{self.a1.idx:>3}-{self.a2.idx:>3},{self.length:>10.6f}'
     
 class Bonds:
     def __init__(self,geome:"base.Geome") -> None:

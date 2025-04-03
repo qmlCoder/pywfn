@@ -119,7 +119,14 @@ class Calculator:
                     print(f'{atomi.idx:>3}{atomj.idx:>3}{vals[ai]:>10.4f}')
         return vals
 
-    # 自由价(活性矢量)
+    # 自由价
+    def freeValence(self,atm:int):
+        from pywfn.bondprop import order
+        caler=order.Calculator(self.mol)
+        orders=caler.piOrder_pocv()
+
+
+    # 活性矢量
     def vector(self,atm:int,dir_:np.ndarray)->float:
         """计算指定原子的自由价，计算的分子可指定，该原子在不同方向的自由价
 
@@ -214,7 +221,7 @@ class Calculator:
         vals=np.zeros(shape=(natm,7))
         for c,caler in enumerate(calers):
             caler.form='number'
-            vals[:,c]=caler.piElects(ctype) # 计算pi电子
+            vals[:,c]=caler.piElects(ctype)[-1] # 计算pi电子
         p0=vals[:,0]
         pn=vals[:,1]
         pp=vals[:,2]
