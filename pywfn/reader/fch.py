@@ -147,7 +147,9 @@ class FchReader(reader.Reader):
         coefs._CM=CM
         coefs.obtEngs=engs
         elea,eleb=self.get_nele()
-        coefs.obtOccs=[True]*elea+[False]*(len(aengs)-elea)+[True]*eleb+[False]*(len(bengs)-eleb)
+        coefs.obtOccs = [True]*elea + [False]*(len(aengs)-elea)
+        if len(bengs)!=0:
+            coefs.obtOccs+= [True]*eleb + [False]*(len(bengs)-eleb)
         return coefs
 
     def read_OB(self):
