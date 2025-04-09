@@ -16,15 +16,15 @@ python main.py
 
 ## 示例(API)
 ```python
-from pywfn.base import Mol
+from pywfn.base import Mole
 from pywfn.reader import LogReader
-from pywfn.atomProp import atomCharge
+from pywfn.atomprop import charge
 
 path="D:\BaiduSyncdisk\gfile\CnHn\C6H6.log" # 高斯输出文件的路径
 reader=LogReader(path) # 实例化log文件读取器
-mol=Mol(reader) # 实例化分子对象
+mol=Mole(reader) # 实例化分子对象
 
-caler=atomCharge.Calculator(mol) # 实例化原子电荷计算器，传入分子对象
+caler=charge.Calculator(mol) # 实例化原子电荷计算器，传入分子对象
 result=caler.mulliken() # 计算mulliken电荷
 print(result) # 打印结果
 ```

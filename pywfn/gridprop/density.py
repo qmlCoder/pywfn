@@ -156,3 +156,40 @@ class Calculator(gridprop.SpaceCaler):
         assert verts is not None,"未找到范德华表面"
         assert faces is not None,"未找到范德华表面"
         return verts,faces
+    
+    def AIM(self):
+        """AIM分析，寻找键临界点"""
+        def show_type(Hessian):
+            eigval,eigvec=np.linalg.eigh(Hessian)
+            rank=[1 if abs(e)>1e-6 else  0 for e in eigval]
+            syms=[1 if e>0         else -1 for e in eigval]
+            # print(sum(rank),sum(syms))
+            return sum(rank),sum(syms)
+        crits=[]
+        for bond in self.mol.bonds:
+            a1,a2=bond.ats
+            pos0=(self.mol.atom(a1).coord+self.mol.atom(a2).coord)/2.0
+            # print(pos0)
+            for i in range(100):
+                dens0,dens1,dens2=self.molDens(pos0.reshape(1,3),level=2) #计算电子密度，电子密度梯度和电子密度Hessian矩阵
+                Hessian=dens2[0] #取出Hess矩阵
+                # eigvals,eigvecs=np.linalg.eigh(Hessian) #计算Hess矩阵的特征值和特征向量
+                if np.abs(np.linalg.det(Hessian)) < 1e-10:
+                    x,y,z=pos0.tolist() # type: ignore
+                    # print(f'Hessian is singular at :{x:>10.4f},{y:>10.4f},{z:>10.4f}')
+                    # print(dens0[0])
+                    # print(dens1[0])
+                    # print(Hessian)
+                    r,s=show_type(Hessian)
+                    crits.append([x,y,z,r,s])
+                    break
+                if np.linalg.norm(dens1[0]) < 1e-6:
+                    # print(dens1[0])
+                    r,s=show_type(Hessian)
+                    x,y,z=pos0.tolist() # type: ignore
+                    crits.append([x,y,z,r,s])
+                    break
+                delta = np.linalg.solve(Hessian, dens1[0])
+                pos0 -= delta
+                # print(i,pos0,np.linalg.norm(dens1[0]))
+        return crits

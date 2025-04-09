@@ -9,6 +9,7 @@ import numpy as np
 from pywfn import base
 from pywfn.base.geome import Geome
 from pywfn import reader
+from pywfn.data import consts
 
 class XyzReader(reader.Reader):
     def __init__(self,path) -> None:
@@ -23,7 +24,7 @@ class XyzReader(reader.Reader):
     def get_geome(self)->Geome:
         syms=[sym for (sym,x,y,z) in self.geoms[-1]]
         xyzs=[(x,y,z) for (sym,x,y,z) in self.geoms[-1]]
-        xyzs=np.array(xyzs)
+        xyzs=np.array(xyzs)/consts.Bohr
         return Geome().build(syms,xyzs)
     
     def read_geoms(self):
@@ -33,7 +34,7 @@ class XyzReader(reader.Reader):
         
         p1=r'^ *\d+$'
         # 不满足第一种和第二种情况就是第三种情况
-        p3=r'^ +([A-Za-z])+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)$'
+        p3=r'^ *([A-Za-z])+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)$'
         geoms:list[list[tuple[str,float,float,float]]]=[]
         for line in self.logLines:
             if s1:=re.search(p1,line):
@@ -42,6 +43,7 @@ class XyzReader(reader.Reader):
                 sym,x,y,z=s3.groups()
                 x,y,z=[float(x),float(y),float(z)]
                 geoms[-1].append((sym,x,y,z))
+                # print(sym,x,y,z)
             else:
                 continue
         return geoms

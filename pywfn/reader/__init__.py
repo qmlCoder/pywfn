@@ -146,8 +146,9 @@ from pywfn.reader.any import AnyReader
 from pywfn.reader.mod import ModReader
 from pywfn.reader.sdf import SdfReader
 from pywfn.reader.xyz import XyzReader
+from pywfn.reader.wfn import WfnReader
 
-supports=[".log",".out",".fch",".gjf",".mol",".molden",".sdf"]
+supports=[".log",".out",".fch",".gjf",".mol",".molden",".sdf",".xyz"] # 支持的文件类型
 
 def get_reader(path:str):
     """根据输入文件的类型自动判断应该使用哪个读取器"""
