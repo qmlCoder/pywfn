@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "pywfn"
-version = "1.0.6"
+version = "1.0.7"
 authors = [
   { name="shixiaofei", email="1103275712@qq.com" },
 ]
@@ -23,7 +23,8 @@ license-files = ["LICENSE"]
 keywords = ["chemistry", "wave function"]
 dependencies = [
     "numpy>=2.2.3",
-    "rich>=13.9.4"
+    "rich>=13.9.4",
+    "matplotlib>=3.10.1"
 ]
 [project.scripts]
 pywfn = "pywfn:main"
@@ -36,11 +37,11 @@ Issues = "https://github.com/qmlCoder/pywfn/issues"
 include = [
     "pywfn/**/*.py",      # 包含所有 Python 文件
 ]
-artifacts = [
-    "pywfn/maths/*.pyd",
-    "pywfn/maths/*.so",
-    "pywfn/maths/*.dll"
-]
+# artifacts = [
+#     "pywfn/maths/*.pyd",
+#     "pywfn/maths/*.so",
+#     "pywfn/maths/*.dll"
+# ]
 
 [tool.hatch.build.targets.wheel]
 packages=["pywfn"]
