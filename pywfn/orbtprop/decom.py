@@ -57,7 +57,8 @@ def decomOrbitals(T:np.ndarray,coefs:np.ndarray,keeps:list[int],dtype:str):
                 tcoefs = decomOrbitalD(T,coefs,keeps)
             else:
                 raise Exception('未知轨道类型')
-            # tcoefs = coefs
+        case 10:
+            pass
         case _:
             # return coefs
             raise Exception('未知轨道类型')
@@ -99,8 +100,6 @@ def decomOrbitalD(T:np.ndarray,rcoefs:np.ndarray,keeps:list[int]):
         [2*T[0,0]*T[2,0], (T[0,0]*T[2,1]+T[0,1]*T[2,0]), (T[0,0]*T[2,2]+T[0,2]*T[2,0]), 2*T[0,1]*T[2,1], (T[0,1]*T[2,2]+T[0,2]*T[2,1]), 2*T[0,2]*T[2,2]],
         [2*T[1,0]*T[2,0], (T[1,0]*T[2,1]+T[1,1]*T[2,0]), (T[1,0]*T[2,2]+T[1,2]*T[2,0]), 2*T[1,1]*T[2,1], (T[1,1]*T[2,2]+T[1,2]*T[2,1]), 2*T[1,2]*T[2,2]],
     ])
-    # print('decomOrbitalD',np.linalg.norm(M,axis=0))
-    # np.cross()
     Mr=np.linalg.inv(M)
     Mi=np.linalg.inv(Mr)
     tcoefs=Mr@rcoefs

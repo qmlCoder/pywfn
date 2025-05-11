@@ -162,10 +162,10 @@ class AtomPage:
                     opt=input('选择电荷类型: ')
                     if opt not in chrgMap.keys():return
                     chrg=chrgMap[opt]
-                    atms,dirs,elects=caler.piElects(chrg)
-                    for i,(idx,x,y,z,val) in enumerate(elects):
-                        print(f'{i+1:>3d}:{val:>10.4f}')
-                    print(f'sum:{elects[:,-1].sum()}')
+                    atms,dirs,vals=caler.piElects(chrg)
+                    for atm,(dx,dy,dz),val in zip(atms,dirs,vals):
+                        print(f'{atm:>3d}{dx:>10.4f}{dy:>10.4f}{dz:>10.4f}{val:>10.4f}')
+                    print(f'sum:{sum(vals)}')
                 
                 case '7':
                     print(chrgStr)

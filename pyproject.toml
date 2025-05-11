@@ -37,11 +37,11 @@ Issues = "https://github.com/qmlCoder/pywfn/issues"
 include = [
     "pywfn/**/*.py",      # 包含所有 Python 文件
 ]
-# artifacts = [
-#     "pywfn/maths/*.pyd",
-#     "pywfn/maths/*.so",
-#     "pywfn/maths/*.dll"
-# ]
+artifacts = [
+    "pywfn/maths/*.pyd",
+    "pywfn/maths/*.so",
+    "pywfn/maths/*.dll"
+]
 
 [tool.hatch.build.targets.wheel]
 packages=["pywfn"]

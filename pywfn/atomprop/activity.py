@@ -214,14 +214,16 @@ class Calculator:
     def piFukui(self,molN:Mole,molP:Mole,ctype:str='mulliken')->np.ndarray:
         """基于pi电子数的福井函数"""
         mols=[self.mol,molN,molP]
-        # crgs=[mol.multi[0] for mol in mols]
-        # assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
         calers=[charge.Calculator(mol) for mol in mols]
         natm=self.mol.atoms.num
         vals=np.zeros(shape=(natm,7))
         for c,caler in enumerate(calers):
             caler.form='number'
-            vals[:,c]=caler.piElects(ctype)[-1] # 计算pi电子
+            atms,dirs,elects=caler.piElects(ctype)
+            # print(atms,dirs,elects)
+            for atm,dir,val in zip(atms,dirs,elects):
+                # print(atm,val)
+                vals[atm-1,c]=val
         p0=vals[:,0]
         pn=vals[:,1]
         pp=vals[:,2]

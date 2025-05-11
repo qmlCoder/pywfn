@@ -176,10 +176,6 @@ class Calculator(gridprop.SpaceCaler):
                 # eigvals,eigvecs=np.linalg.eigh(Hessian) #计算Hess矩阵的特征值和特征向量
                 if np.abs(np.linalg.det(Hessian)) < 1e-10:
                     x,y,z=pos0.tolist() # type: ignore
-                    # print(f'Hessian is singular at :{x:>10.4f},{y:>10.4f},{z:>10.4f}')
-                    # print(dens0[0])
-                    # print(dens1[0])
-                    # print(Hessian)
                     r,s=show_type(Hessian)
                     crits.append([x,y,z,r,s])
                     break

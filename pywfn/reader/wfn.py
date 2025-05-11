@@ -1,5 +1,3 @@
-from pywfn.base import Mole
-
 from pywfn.base.geome import Geome
 from pywfn.reader import Reader
 import re

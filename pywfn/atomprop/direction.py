@@ -226,8 +226,19 @@ class Calculator:
             vac/=np.linalg.norm(vac)
             normal=np.cross(vab,vac)
             normal/=np.linalg.norm(normal)
-            if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
-            atom._props['normal']=normal
+            A,B,C=normal
+            cx,cy,cz=(pa+pb+pc)/3 # 三个点的中心坐标
+            D=-A*cx+B*cy+C*cz # 平面方程
+            ax,ay,az=atom.coord # 原子坐标
+            dist=abs(A*ax+B*ay+C*az+D)/np.sqrt(A**2+B**2+C**2) # 原子到平面的距离
+            if(dist<1e-1): # 如果在平面上
+                atom._props['normal']=normal
+            else:
+                vect=atom.coord-np.array([cx,cy,cz])
+                angle=vector_angle(vect,normal)
+                if angle>0.5:normal*=-1 # 如果在平面上，法向量和原子到平面的向量夹角大于90°，则法向量反向
+                # if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
+                atom._props['normal']=normal
             return normal
         return None
 

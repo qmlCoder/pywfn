@@ -155,7 +155,13 @@ class Calculator():
             x,y,z=normal
             dirs.append([x,y,z])
         dirs=np.array(dirs)
-        return atms,dirs,self.dirElects(atms,dirs,ctype)
+        vals=[]
+        elects=self.dirElects(atms,dirs,ctype)
+        for i,val in enumerate(elects):
+            if i+1 not in atms:continue
+            vals.append(val.item())
+        assert len(atms)==len(dirs)==len(vals),"数量不一致"
+        return atms,dirs,vals
     
     def piDecomElects(self,ctype='mulliken'): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
         from pywfn.orbtprop import decom
