@@ -18,7 +18,7 @@ class Calculator(gridprop.SpaceCaler):
         self.mol=mol
         self.molPos=np.zeros((1,3)) # 初始坐标设为原点
         self.wfns:np.ndarray|None=None
-        self.CM=self.mol.coefs.CM('car').copy()
+        self.CM=self.mol.coefs.get_CM('car').copy()
         self.atms=self.mol.atoms.atms
     
     def obtWfns(self,grids:np.ndarray,obts:list[int])->np.ndarray:
@@ -33,24 +33,6 @@ class Calculator(gridprop.SpaceCaler):
             # print(wfn0)
             wfns0.append(wfn0)
         return np.array(wfns0)
-
-    
-    # def obtWfns_(self,grid:np.ndarray,obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
-    #     """
-    #     计算分子轨道的波函数，为原子轨道的线性组合
-    #     obt：分子轨道指标
-    #     """
-    #     atowfns,_,_=self.atoWfns(grid,level=0) # 所有原子轨道的波函数
-    #     ngrid=grid.shape[0]
-    #     nobt=len(obts)
-    #     wfns=np.zeros(shape=(nobt,ngrid))
-    #     for o,obt in enumerate(obts):
-    #         coefs=self.CM[:,obt] # 轨道系数
-    #         wfn=np.zeros(grid.shape[0])
-    #         for c,coef in enumerate(coefs):
-    #             wfn+=coef*atowfns[c]
-    #         wfns[o]=wfn
-    #     return wfns
     
     def atoWfns(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
         """计算所有原子轨道"""
@@ -112,7 +94,7 @@ class Calculator(gridprop.SpaceCaler):
 
     def atmWfns(self,grid:np.ndarray,atms:list[int],obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
         """计算几个原子的波函数"""
-        CM=self.mol.coefs.CM('car')
+        CM=self.mol.coefs.get_CM('car')
         nbas=CM.shape[0] # 基函数的数量
         obtAtms=self.mol.atoAtms
         atowfns,_,_=self.atoWfns(grid,level=0)
@@ -125,3 +107,17 @@ class Calculator(gridprop.SpaceCaler):
                 wfn=coef*atowfns[i]
                 wfns[o]+=wfn
         return wfns
+    
+    def fragOverlap(self,mols:list[Mole],obts:list[int]):
+        """
+        计算一个分子两个片段之间的重叠
+        将一个分子的两个片段单独导出并进行单点计算
+        指定这两个分子的分子轨道索引
+        """
+        from pywfn.gridprop import dftgrid
+        grids,weits=dftgrid.Calculator(self.mol).molGrid()
+        mol0,mol1=mols
+        obt0,obt1=obts
+        wfn0=Calculator(mol0).obtWfns(grids,[obt0]).flatten()
+        wfn1=Calculator(mol1).obtWfns(grids,[obt1]).flatten()
+        return np.sum(wfn0*wfn1*weits)

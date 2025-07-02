@@ -11,6 +11,7 @@ from pywfn import config
 import re
 import numpy as np
 from functools import lru_cache
+from collections import deque
 
 maxWeaves={} # 记录已经计算过的原子最大值方向
 
@@ -18,6 +19,7 @@ class Calculator:
     def __init__(self,mol:Mole) -> None:
         self.mol=mol
         self.noNorms=[] # 已经计算过的原子法向量
+        self.normals={} # 存储原子的法向量
 
     def pOrbital(self)->np.ndarray|None:
         """计算p轨道的方向向量"""
@@ -172,51 +174,52 @@ class Calculator:
         Returns:
             np.ndarray|None: 原子法向量，可能没有(None)
         """
+        
         def deep_search(atm:int):
             atom=self.mol.atom(atm)
             searchd=[atm] # 已经搜索的原子
-            searchs=atom.neighbors # 将要搜索的原子
-            while len(searchs)>0:
-                idx=searchs.pop(0)
-                searchd.append(idx)
-                atom=self.mol.atom(idx)
-                norm=self.normal(idx)
-                if norm is not None:
-                    # print(idx,norm)
-                    return idx,norm
-                for each in atom.neighbors:
-                    if each in searchd:continue
-                    searchs.append(each)
+            searchs=list(atom.neighbors) # 将要搜索的原子
+            while len(searchs)>0: # 遍历相邻原子
+                atm=searchs.pop(0) # 从待搜索中弹出一个
+                searchd.append(atm)
+                normal=self.get_normal(atm)
+                if normal is not None:
+                    return normal
+                else:
+                    for each in self.mol.atom(atm).neighbors:
+                        if each in searchd:continue
+                        if each in searchs:continue
+                        searchs.append(each)
             return None
         
-        atom=self.mol.atom(atm)
-        if 'normal' in atom._props.keys(): # 方便用户指定
-            return atom._props['normal']
-        nebs=atom.neighbors
-        if len(nebs)==1: # 如果只连接一个原子
-            searchs=deep_search(atm)
-            assert searchs is not None,"未搜索到想要的原子"
-            idx,normal=searchs
+        normal=self.get_normal(atm)
+        if normal is None:
+            return deep_search(atm)
+        else:
             return normal
+    
+    def get_normal(self,atm):
+        atom=self.mol.atom(atm)
+        nebs=atom.neighbors
+        if atm in self.normals.keys(): # 方便用户指定
+            return self.normals[atm]
+        if len(nebs)==1: # 如果只连接一个原子
+            return None
         if len(nebs)==2:
             ia,ib=nebs
             va=self.mol.atom(ia).coord-atom.coord
             vb=self.mol.atom(ib).coord-atom.coord
             angle=vector_angle(va,vb)
-            linear=abs(1-angle)<1e-1
-            if linear:
-                searchs=deep_search(atm)
-                assert searchs is not None,"未搜索到想要的原子"
-                idx,normal=searchs
-                atom._props['normal']=normal
-                return normal
+            # linear=abs(1-angle)<1e-1
+            if atom.is_linear:
+                return None
             else:
                 va/=np.linalg.norm(va)
                 vb/=np.linalg.norm(vb)
                 normal=np.cross(va,vb)
                 normal/=np.linalg.norm(normal)
                 if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
-                atom._props['normal']=normal
+                self.normals[atm]=normal
                 return normal
         if len(nebs)==3:
             pa,pb,pc=[self.mol.atom(n).coord.copy() for n in nebs]
@@ -232,13 +235,14 @@ class Calculator:
             ax,ay,az=atom.coord # 原子坐标
             dist=abs(A*ax+B*ay+C*az+D)/np.sqrt(A**2+B**2+C**2) # 原子到平面的距离
             if(dist<1e-1): # 如果在平面上
-                atom._props['normal']=normal
+                angle=vector_angle(config.BASE_VECTOR,normal)
+                if angle>0.5:normal*=-1
+                self.normals[atm]=normal
             else:
                 vect=atom.coord-np.array([cx,cy,cz])
                 angle=vector_angle(vect,normal)
                 if angle>0.5:normal*=-1 # 如果在平面上，法向量和原子到平面的向量夹角大于90°，则法向量反向
-                # if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
-                atom._props['normal']=normal
+                self.normals[atm]=normal
             return normal
         return None
 
@@ -270,18 +274,44 @@ class Calculator:
         base={}
         for i,atm in enumerate(atms):
             atom=self.mol.atom(atm)
+            nebs=atom.neighbors # 相邻的原子
             norm=self.normal(atom.idx) # 原子法向量
-            nebs=atom.neighbors
-            
+            if norm is None:
+                if atom.is_linear:
+                    atm1,atm2=atom.neighbors
+                elif len(atom.neighbors)==1:
+                    atm1=atom.neighbors[0]
+                    atm2=atm
+                else:
+                    raise ValueError(f"原子{atm}无法给定法向量")
+                vx=self.mol.atom(atm1).xyz-self.mol.atom(atm2).xyz
+                vx/=np.linalg.norm(vx)
+                randVect=np.random.rand(3)
+                randVect/=np.linalg.norm(randVect)
+                norm=np.cross(vx,randVect)
+                norm/=np.linalg.norm(norm)
+                self.normals[atm]=norm
+            # print(atm,norm)
             cent=self.mol.coords[[e-1 for e in nebs],:].copy().mean(axis=0) # 邻居原子坐标的平均值
             vect=atom.coord-cent # 原子到邻居原子的向量
-            vect/=np.linalg.norm(vect) # 单位化
-            assert norm is not None,"原子法向量计算失败"
-            if vector_angle(norm,vect)>0.5:norm*=-1
-            anyv=np.random.rand(3) # 任意向量
+            
             vz=norm/np.linalg.norm(norm) # 单位法向量
-            vx=np.cross(vz,anyv)
-            vx/=np.linalg.norm(vx)
+            # 决定vx
+            if atom.is_linear:
+                # print(f'原子{atom.idx}是线性的')
+                idx1,idx2=nebs
+                vx=self.mol.atom(idx1).coord-self.mol.atom(idx2).coord
+                vx/=np.linalg.norm(vx)
+            else:
+                dist=np.linalg.norm(vect)
+                # print(f'原子{atom.idx}到其邻心距离{dist}',vect)
+                if dist>1e-1: # 两个点不重合
+                    vx=vect/dist
+                    if vector_angle(vz,vx)>0.5:vz*=-1
+                else:
+                    anyv=np.random.rand(3) # 任意向量
+                    vx=np.cross(vz,anyv)
+                    vx/=np.linalg.norm(vx)
             vy=np.cross(vz,vx)
             vy/=np.linalg.norm(vy)
             base[atm]=np.array([vx,vy,vz]).T # 原子局部坐标系的基坐标向量

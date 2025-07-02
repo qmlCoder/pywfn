@@ -7,21 +7,24 @@
 - atoSyms 每个原子轨道的符号
 - obtEngs 分子轨道能量
 - obtOccs 分子轨道是否占据
+
+轨道的类型要能够在混合、全笛卡尔和全球谐之间转换
 """
 import numpy as np
 from functools import lru_cache,cached_property
 
 from pywfn import base
 
-from pywfn.data import bastrans
+from pywfn.data import bastrans as bt
 
-def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
+
+def toCar(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
+    # 将轨道系数转为笛卡尔类型
     CMlist=[]
     atmList=[]
     shlList=[]
     symList=[]
     i=0
-    from pywfn.data import bastrans as bt
     while i<CM.shape[0]:
         sym=syms[i]
         match sym:
@@ -59,6 +62,50 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
     CM=np.concatenate(CMlist,axis=0)
     return atmList,shlList,symList,CM
 
+carAng=[1,3,6,10,15,21]
+sphAng=[1,3,5,7,9,11]
+def Car2Raw(carCM:np.ndarray,rawType:list[tuple[int,int,str,int]]):
+    rawCM=[]
+    atms=[]
+    shls=[]
+    syms=[]
+
+    idx=0
+    for atm,shl,rtype,ang in rawType:
+        if rtype=='car': # 如果原本就是笛卡尔型的则不需要改变
+            count=carAng[ang]
+            rawCM.append(carCM[idx:idx+count])
+            atms+=[atm]*count
+            shls+=[shl]*count
+            syms+=bt.carSyms[ang]
+            idx+=count
+        if rtype=='sph': # 如果原本不是笛卡尔型的，则需要将现在的笛卡尔型的转为球谐的
+            count=sphAng[ang]
+            rawCM.append((bt.Mats[ang].T)@carCM[idx:idx+count])
+            atms+=[atm]*count
+            shls+=[shl]*count
+            syms+=bt.sphSyms[ang]
+            idx+=count
+    return atms,shls,syms,np.concatenate(rawCM,axis=0)
+
+def Raw2Car(rawCM:np.ndarray,rawType:list[tuple[int,int,str,int]]):
+    carCM=[]
+    atms=[]
+    shls=[]
+    syms=[]
+    idx=0
+    for atm,shl,rtype,ang in rawType:
+        count=carAng[ang]
+        if rtype=='car': # 如果原本就是笛卡尔型的则不需要改变
+            carCM.append(rawCM[idx:idx+count])
+        if rtype=='sph': # 如果原本是球谐型的需要转为笛卡尔型
+            carCM.append(bt.Mats[ang]@rawCM[idx:idx+sphAng[ang]])
+        atms+=[atm]*count
+        shls+=[shl]*count
+        syms+=bt.carSyms[ang]
+        idx+=count
+    return atms,shls,syms,np.concatenate(carCM,axis=0)
+
 class Coefs:
     def __init__(self):
         self.mol:"base.Mole|None"=None
@@ -67,9 +114,58 @@ class Coefs:
         self._atoSyms:None|list[str]   = None
         self.obtEngs:None|list[float] = None
         self.obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
-        self._CM:np.ndarray|None = None
+        self._CM:np.ndarray|None = None # 原始的系数
+        self.name='Canonical'
         
         # raw:原始系数，car:笛卡尔系数，sph:球谐系数
+
+        # 记录每个原子每个壳层的原始基函数类型
+    
+    @cached_property
+    def rawType(self):
+        assert self._atoAtms is not None,"未初始化atoAtms"
+        assert self._atoShls is not None,"未初始化atoShls"
+        assert self._atoSyms is not None,"未初始化atoSyms"
+        nbas=len(self._atoAtms)
+        rawType=[]
+        i=0
+        while i<nbas:
+            atm=self._atoAtms[i]
+            shl=self._atoShls[i]
+            sym=self._atoSyms[i]
+            match sym:
+                case 'S':
+                    rawType.append((atm,shl,'car',0)) # 笛卡尔型/球谐型,角动量
+                    i+=1
+                case 'PX':
+                    rawType.append((atm,shl,'car',1))
+                    i+=3
+                case 'XX':
+                    rawType.append((atm,shl,'car',2))
+                    i+=6
+                case 'XXX':
+                    rawType.append((atm,shl,'car',3))
+                    i+=10
+                case 'ZZZZ':
+                    rawType.append((atm,shl,'car',4))
+                    i+=15
+                case 'ZZZZZ':
+                    rawType.append((atm,shl,'car',5))
+                    i+=21
+                case 'D 0':
+                    rawType.append((atm,shl,'sph',2))
+                    i+=5
+                case 'F 0':
+                    rawType.append((atm,shl,'sph',3))
+                    i+=7
+                case 'G 0':
+                    rawType.append((atm,shl,'sph',4))
+                    i+=9
+                case 'H 0':
+                    rawType.append((atm,shl,'sph',5))
+                    i+=11
+        return rawType
+
     
     @cached_property
     def carData(self)->tuple[list[int],list[int],list[str],np.ndarray]:
@@ -77,11 +173,11 @@ class Coefs:
         assert self._atoShls is not None,"未初始化atoShls"
         assert self._atoSyms is not None,"未初始化atoSyms"
         assert self._CM is not None,"未初始化CM"
-        atms,shls,syms,CM=toCart(self._atoAtms,self._atoShls,self._atoSyms,self._CM)
+        atms,shls,syms,CM=Raw2Car(self._CM,self.rawType)
         return atms,shls,syms,CM
     
     @lru_cache
-    def CM(self,form:str):
+    def get_CM(self,form:str):
         match form:
             case 'raw':
                 assert self._CM is not None,"未初始化CM"
@@ -92,6 +188,15 @@ class Coefs:
                 raise NotImplementedError('球谐系数尚未实现')
             case _:
                 raise ValueError('无效的系数形式')
+    
+    def set_CM(self,form:str,CM:np.ndarray):
+        """设置分子轨道"""
+        match form:
+            case 'raw':
+                self._CM=CM.copy()
+            case 'car':
+                self._CM=Car2Raw(CM,self.rawType)[-1].copy()
+            
     
     def atoAtms(self,form:str)->list[int]:
         match form:
@@ -130,17 +235,6 @@ class Coefs:
             case _:
                 raise ValueError('无效的系数形式')
     
-    # @property
-    # def obtOccs(self)->list[bool]:
-    #     assert self.mol is not None,"未初始化分子"
-    #     nela,nelb=self.mol.nele
-    #     if self.mol.open:
-    #         nobt=self.mol.CM.shape[1]//2
-    #         return [True]*nela+[False]*(nobt-nela)+[True]*nelb+[False]*(nobt-nelb)
-    #     else:
-    #         nobt=self.mol.CM.shape[1]
-    #         return [True]*nela+[False]*(nobt-nela)
-    
     def atoKeys(self,form:str):
         atms=self.atoAtms(form)
         shls=self.atoShls(form)
@@ -167,9 +261,9 @@ class Coefs:
         for atm,shl,sym in zip(atms,shls,syms):
             key=f'{atm}-{shl}'
             if key not in rawTypes:rawTypes[key]=''
-            if sym in bastrans.carDsyms:
+            if sym in bt.carDsyms:
                 rawTypes[key]='car'
-            elif sym in bastrans.sphDsyms:
+            elif sym in bt.sphDsyms:
                 rawTypes[key]='sph'
         return rawTypes
     
@@ -250,7 +344,7 @@ class Coefs:
                 case 'd':
                     vals=SM_car[:,start:end] # [n,6]
                     if rawTypes[key]=='sph':
-                        SM_mid.append(vals@bastrans.DMat)
+                        SM_mid.append(vals@bt.DMat)
                     else:
                         SM_mid.append(vals)
                 case _:
@@ -267,7 +361,7 @@ class Coefs:
                     
                     vals=SM_mid[start:end,:] # [6,n]
                     if rawTypes[key]=='sph':
-                        SM_raw.append(bastrans.DMat.T@vals)
+                        SM_raw.append(bt.DMat.T@vals)
                     else:
                         SM_raw.append(vals)
                 case _:
@@ -288,14 +382,13 @@ class Coefs:
 
     def CMr(self,form:str): # 行平方和为1的系数矩阵
         SM=self.SM(form)
-        CM=self.CM(form)
+        CM=self.get_CM(form)
         eigVal,eigVec=np.linalg.eigh(SM)
         X=(eigVec@np.diag(eigVal))@eigVec.T
         return X.T@CM
     
     def __repr__(self) -> str:
-        text=''
-        nato,nobt=self.CM('raw').shape
+        nato,nobt=self.get_CM('raw').shape
         assert self.obtEngs is not None,"未初始化obtEngs"
         assert self.obtOccs is not None,"未初始化obtOccs"
         assert self._atoAtms is not None,"未初始化_atoAtms"
@@ -309,7 +402,7 @@ class Coefs:
         
         obtIdxs=[0,1,2,3,4]+[nobt-(5-e) for e in range(5)]
         atoIdxs=[0,1,2,3,4]+[nato-(5-e) for e in range(5)]
-        text+=' '*15
+        text=' '*14
         for i,obt in enumerate(obtIdxs):
             text+=f'{occs[obt]:>10}'
             if i==4:text+=f"{'.....':>10}"
@@ -319,7 +412,7 @@ class Coefs:
             text+=f'{engs[obt]:>10.4f}'
             if i==4:text+=f"{'.....':>10}"
         text+='\n'
-        CM=self.CM('raw')
+        CM=self.get_CM('raw')
         for j,ato in enumerate(atoIdxs):
             if j==4:text+=(" "*15+"     ....."*11+'\n')
             text+=f"{atms[ato]:>5}{shls[ato]:>5}{syms[ato]:>5}"

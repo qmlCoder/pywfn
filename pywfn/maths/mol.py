@@ -46,7 +46,6 @@ def projCM(
         
     for a,(atom,vect) in enumerate(zip(atms,dirs)):
         atom=mol.atom(atom)
-        nebNum=len(atom.neighbors)
         u,l=atom.obtBorder
         syms=mol.atoSyms[u:l] #该原子的轨道符号
         
@@ -108,18 +107,6 @@ def hmo(mol:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     es=es[idxs].copy()
     CM=CM[:,idxs].copy() # 每一列对应一个特征向量
     return BM,es,CM,idxs
-
-# def eleMat_(mol:Mole)->np.ndarray:
-#     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
-#     # 使用法向量可以计算每个分子的pi电子分布
-#     from pywfn.maths import flib
-#     obts=mol.O_obts
-
-#     nobt=len(obts)
-#     CM=mol.CM.copy()
-#     nmat,nobt=CM.shape
-#     NM=flib.eleMat(nmat,nobt,CM,mol.SM)*mol.oE
-#     return NM
 
 def eleMat(mol:Mole)->np.ndarray:
     """计算与分子轨道系数矩阵对应的电子分布矩阵"""

@@ -1,11 +1,11 @@
 import numpy as np
 
-f1D=list[float]
-i1D=list[int]
-f2D=list[list[float]]
-i2D=list[list[int]]
-f3D=list[list[list[float]]]
-i3D=list[list[list[int]]]
+f1D=list[float]|np.ndarray
+i1D=list[int]|np.ndarray
+f2D=list[list[float]]|np.ndarray
+i2D=list[list[int]]|np.ndarray
+f3D=list[list[list[float]]]|np.ndarray
+i3D=list[list[list[int]]]|np.ndarray
 
 def ato_wfns_rs(
     grids:f2D,
@@ -68,7 +68,7 @@ def mat_integ_rs(
     coes:f1D,
     alps:f1D,
     lmns:i2D,
-    xyzs:f2D
+    xyzs:f2D 
 )->f2D:...
 
 def nuc_potential_rs(
@@ -87,3 +87,22 @@ def ele_potential_rs(
 def get_grids_rs(nx:int,ny:int,nz:int)->f2D:...
 
 def ele_mat_rs(matc:f2D,mats:f2D)->f2D:...
+
+def calc_EIEBA_rs(
+    fragA:f2D,
+    fragB:f2D,
+    rhosA:f1D,
+    rhosB:f1D,
+    gridsA:f2D,
+    weitsA:f1D,
+    gridsB:f2D,
+    weitsB:f1D,
+)->tuple[float,float,float]:...
+
+def search_title(path:str)->dict[str,int]:...
+
+def read_geome(path:str,title_number:int)->tuple[f1D,f2D]:...
+def read_nbas(path:str,title_number:int)->int:...
+
+def read_cmat(path:str,title_number:int,nbas:int):...
+def read_basis(path:str,title_number:int)->list[tuple[int,int,int,float,float]]:...

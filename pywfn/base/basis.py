@@ -61,12 +61,13 @@ LMN2SYM={
 
 # @dataclass
 class BasisData:
-    def __init__(self,atm:int,shl:int,ang:int,coe:float,alp:float) -> None:
+    def __init__(self,atm:int,shl:int,ang:int,alp:float,coe:float) -> None:
         self.atm = atm # 原子序号，从1开始
         self.shl = shl
         self.ang = ang
-        self.coe = coe
         self.alp = alp
+        self.coe = coe
+        
 
     def __iter__(self):
         data = self.atm, self.shl, self.ang, self.alp, self.coe
@@ -172,7 +173,7 @@ class Basis:
     
     def atoMap(self):
         assert self.mol is not None, "请先设置分子信息"
-        nato=self.mol.coefs.CM('car').shape[0]
+        nato=self.mol.coefs.get_CM('car').shape[0]
         lmns=[[] for i in range(nato)]
         coes=[[] for i in range(nato)]
         alps=[[] for i in range(nato)]
@@ -196,8 +197,7 @@ class Basis:
         return xyzs,lmns,coes,alps
 
     def __repr__(self) -> str:
-        resStr=''
-        resStr+=f'{"idx":>5}{"atm":>5}{"shl":>5}{"ang":>5}{"coe":>12}{"alp":>12}\n'
+        resStr=f'{"idx":>4}{"atm":>5}{"shl":>5}{"ang":>5}{"alp":>12}{"coe":>12}\n'
         
         for i,each in enumerate(self.data):
             if i>4 and i<len(self.data)-4:continue

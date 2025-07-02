@@ -81,11 +81,11 @@ HMat[ 8, 1]=-3*np.sqrt(28)
 HMat[ 8, 5]=-np.sqrt(3/2)
 HMat[ 9, 4]=-np.sqrt(5/12)
 HMat[ 9, 8]=-np.sqrt(5/2)
-HMat[10, 1]=np.sqrt(5/3)/8
-HMat[10, 5]=np.sqrt(35/2)/8
-HMat[10, 9]=5/8*np.sqrt(7/2)
+HMat[10, 1]= np.sqrt(5/3)/8
+HMat[10, 5]= np.sqrt(35/2)/8
+HMat[10, 9]= 5/8*np.sqrt(7/2)
 HMat[11, 0]=-5*np.sqrt(21)
-HMat[11, 3]=np.sqrt(5/2)
+HMat[11, 3]= np.sqrt(5/2)
 HMat[12, 2]=-3*np.sqrt(28)
 HMat[12, 6]= np.sqrt(3/2)
 HMat[13, 0]= np.sqrt(15/7)/4
@@ -110,13 +110,78 @@ HMat[20, 1]= np.sqrt(15/8)
 HMat[20, 5]=-np.sqrt(35/2)/8
 HMat[20, 9]= 3/8*np.sqrt(7/2)
 
-carDsyms=['XX','YY','ZZ','XY','XZ','YZ']
-carFsyms=['XXX','YYY','ZZZ','XYY','XXY','XXZ','XZZ','YZZ','YYZ','XYZ']
-carGsyms=['ZZZZ','YZZZ','YYZZ','YYYZ','YYYY','XZZZ','XYZZ','XYYZ','XYYY','XXZZ','XXYZ','XXYY','XXXZ','XXXY','XXXX']
-carHsyms=['ZZZZZ','YZZZZ','YYZZZ','YYYZZ','YYYYZ','YYYYY','XZZZZ','XYZZZ','XYYZZ','XYYYZ','XYYYY','XXZZZ','XXYZZ','XXYYZ','XXYYY','XXXZZ','XXXYZ','XXXYY','XXXXZ']
+Mats:list[np.ndarray]=[None,None,DMat,FMat,GMat,HMat] # type: ignore
+
+carSsyms=['S']
+carPsyms=['PX','PY','PZ']
+
+carDsyms=[
+    'XX', # [2,0,0]
+    'YY', # [0,2,0]
+    'ZZ', # [0,0,2]
+    'XY', # [1,1,0]
+    'XZ', # [1,0,1]
+    'YZ', # [0,1,1]
+]
+carFsyms=[
+    'XXX', # [3,0,0]
+    'YYY', # [0,3,0]
+    'ZZZ', # [0,0,3]
+    'XYY', # [1,2,0]
+    'XXY', # [2,1,0]
+    'XXZ', # [2,0,1]
+    'XZZ', # [1,0,2]
+    'YZZ', # [0,1,2]
+    'YYZ', # [0,2,1]
+    'XYZ', # [1,1,1]
+]
+carGsyms=[
+    'ZZZZ', # [0,0,4]
+    'YZZZ', # [0,1,3]
+    'YYZZ', # [0,2,2]
+    'YYYZ', # [0,3,1]
+    'YYYY', # [0,4,0]
+    'XZZZ', # [1,0,3]
+    'XYZZ', # [1,1,2]
+    'XYYZ', # [1,2,1]
+    'XYYY', # [1,3,0]
+    'XXZZ', # [2,0,2]
+    'XXYZ', # [2,1,1]
+    'XXYY', # [2,2,0]
+    'XXXZ', # [3,0,1]
+    'XXXY', # [3,1,0]
+    'XXXX', # [3,0,0]
+]
+carHsyms=[
+    'ZZZZZ', # [0,0,5]
+    'YZZZZ', # [0,1,4]
+    'YYZZZ', # [0,2,3]
+    'YYYZZ', # [0,3,2]
+    'YYYYZ', # [0,4,1]
+    'YYYYY', # [0,5,0]
+    'XZZZZ', # [1,0,4]
+    'XYZZZ', # [1,1,3]
+    'XYYZZ', # [1,2,2]
+    'XYYYZ', # [1,3,1]
+    'XYYYY', # [1,4,0]
+    'XXZZZ', # [2,0,3]
+    'XXYZZ', # [2,1,2]
+    'XXYYZ', # [2,2,1]
+    'XXYYY', # [2,3,0]
+    'XXXZZ', # [3,0,2]
+    'XXXYZ', # [3,1,1]
+    'XXXYY', # [3,2,0]
+    'XXXXZ', # [4,0,1]
+    'XXXXY', # [4,1,0]
+    'XXXXX', # [5,0,0]
+]
+
+carSyms=[carSsyms,carPsyms,carDsyms,carFsyms,carGsyms,carHsyms]
 
 
 sphDsyms=['D 0','D+1','D-1','D+2','D-2']
 sphFsyms=['F 0','F+1','F-1','F+2','F-2','F+3','F-3']
 sphGsyms=['G 0','G+1','G-1','G+2','G-2','G+3','G-3','G+4','G-4']
 sphHsyms=['H 0','H+1','H-1','H+2','H-2','H+3','H-3','H+4','H-4','H+5','H-5']
+
+sphSyms=[carSsyms,carPsyms,sphDsyms,sphFsyms,sphGsyms,sphHsyms]

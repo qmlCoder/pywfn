@@ -21,6 +21,7 @@
 from typing import Any
 from pywfn import maths
 from pywfn.base.geome import Geome
+# from pywfn.base import coefs
 from pywfn.base.coefs import Coefs
 from pywfn.base.basis import Basis
 from pywfn.base.atom import Atom,Atoms
@@ -219,7 +220,7 @@ class Mole:
     @property
     def CM(self)->npt.NDArray[np.float64]:
         """分子轨道系数矩阵"""
-        return self.coefs.CM('raw')
+        return self.coefs.get_CM('raw')
         # return self.coefs.CM('car')
     
     @property
@@ -309,6 +310,19 @@ class Mole:
                 DM[i,j]=dis
                 DM[j,i]=dis
         return DM
+    
+    @cached_property
+    def BM(self):
+        """键连矩阵"""
+        natm=self.atoms.num
+        BM=np.zeros(shape=(natm,natm))
+        for bond in self.bonds:
+            a1,a2=bond.ats
+            # print(bond.ats)
+            BM[a1-1,a2-1]=1.0
+            BM[a2-1,a1-1]=1.0
+        return BM
+
 
     def __repr__(self):
         atmDict={}

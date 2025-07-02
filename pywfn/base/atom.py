@@ -5,6 +5,7 @@ from functools import cached_property,lru_cache
 from pywfn import config
 from pywfn import base
 from pywfn import maths
+from pywfn.maths import vector_angle
 from pywfn.utils import printer
 from pywfn.data.elements import elements
 class Atom:
@@ -61,7 +62,7 @@ class Atom:
         return self.obtCoeffs
 
     @cached_property
-    def neighbors(self)->list[int]:
+    def neighbors(self)->tuple[int,...]:
         """每个原子相邻的原子有哪些，根据分子的键来判断"""
         idxs=[]
         bonds=self.mol.bonds
@@ -71,7 +72,7 @@ class Atom:
                 idxs.append(idx2) # 添加不是该原子的键上的原子
             if idx2==self.idx:
                 idxs.append(idx1)
-        return [idx for idx in set(idxs)]
+        return tuple(idxs)
 
     @lru_cache
     def pLayersCs(self,obt:int):
@@ -104,6 +105,17 @@ class Atom:
         syms=self.mol.atoSyms[u:l]
         sidx=[i for i,l in enumerate(syms) if 'S' in l]
         return self.obtCoeffs[sidx,obt]
+    
+    @cached_property
+    def is_linear(self):
+        """判断原子是否是线性的"""
+        if len(self.neighbors)!=2:return False
+        a1,a2=list(self.neighbors)
+        v1=self.mol.atom(a1).coord-self.coord
+        v2=self.mol.atom(a2).coord-self.coord
+        angle=vector_angle(v1,v2)
+        return abs(1-angle)<1e-1
+
     
     def __repr__(self) -> str:
         return f'Atom:({self.symbol},{self.idx})'

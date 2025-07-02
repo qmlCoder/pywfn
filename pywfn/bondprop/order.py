@@ -73,7 +73,7 @@ class Calculator:
         orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
         for (a1_,a2_),order in zip(self.mol.bonds.ats,orders):
             if a1!=a1_ or a2!=a2_:continue
-            return order.item()
+            return order.item()**0.5
         raise ValueError(f"没有找到键级，bond={bond},dir={dir_}")
     
     def boundOrder(self,atm:int,dir_:np.ndarray)->tuple[list[tuple[int,int]],np.ndarray]:
@@ -89,7 +89,7 @@ class Calculator:
         chkArray(dir_,shape=[3,])
         if config.SHOW_LEVEL>=1:
             printer.info(f'计算原子{atm}的束缚键级')
-        nebs=self.mol.atom(atm).neighbors
+        nebs=list(self.mol.atom(atm).neighbors)
         obts=self.mol.O_obts
         result=[]
         bonds=[]

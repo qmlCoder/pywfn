@@ -147,7 +147,7 @@ class ModReader(reader.Reader):
                 alp,coe=m3.groups()
                 alp=float(alp)
                 coe=float(coe)
-                basisDatas.append(BasisData(atm,shl,syms.index(sym),coe,alp))
+                basisDatas.append(BasisData(atm,shl,syms.index(sym),alp,coe))
                 
             else:
                 print('解析失败',line)

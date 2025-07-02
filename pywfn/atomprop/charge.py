@@ -25,13 +25,13 @@ class Calculator():
         """计算所有原子的自旋"""
         if not self.mol.open: #闭壳层自旋肯定为0
             return np.zeros(self.mol.atoms.natm)
-        nmat=self.mol.CM.shape[0] # 系数矩阵行数，基函数数量
+        nobt=self.mol.CM.shape[1] # 系数矩阵行数，基函数数量
         occs=[int(e) for e in self.mol.obtOccs] # 记录原本的占据情况
-        CMa=self.mol.CM[:,:nmat//2].copy() # alpha轨道系数
-        CMb=self.mol.CM[:,nmat//2:].copy() # beta轨道系数
+        CMa=self.mol.CM[:,:nobt//2].copy() # alpha轨道系数
+        CMb=self.mol.CM[:,nobt//2:].copy() # beta轨道系数
         
-        PMa=CM2PM(CMa,occs[:nmat//2],1) # alpha密度矩阵
-        PMb=CM2PM(CMb,occs[nmat//2:],1) # beta密度矩阵
+        PMa=CM2PM(CMa,occs[:nobt//2],1) # alpha密度矩阵
+        PMb=CM2PM(CMb,occs[nobt//2:],1) # beta密度矩阵
         SM=self.mol.SM # 重叠矩阵
         atmuls=self.mol.atoms.atmuls # 原子的轨道数量
         match ctype:
@@ -78,7 +78,7 @@ class Calculator():
         elects=np.zeros(len(self.mol.atoms))
         atmics=np.array(self.mol.atoms.atomics)
         for a,atom in enumerate(self.mol.atoms):
-            dens=densCaler.atmDens(grids,[atom.idx])
+            dens=densCaler.fragDens(grids,[atom.idx])
             eleNum=np.sum(dens*weits)
             elects[a]=eleNum
         match form:
@@ -123,18 +123,19 @@ class Calculator():
             case _:
                 raise ValueError(f'未知的输出格式{form}')
 
-    def dirElects(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
-        """计算不同方向的电子数"""
+    def proj_elect(self,atms:list[int],dirs:np.ndarray,ctype:str)->np.ndarray:
+        """计算投影分子轨道的电子数"""
         assert len(atms)==len(dirs),"原子与方向数量要相同"
         obts=self.mol.O_obts
         self.numForm=True
         CMp=projCM(self.mol,obts,atms,dirs,False,False) # 获取投影后的轨道系数，单个原子投影到指定方向
         PMp=CM2PM(CMp,obts,self.mol.oE)
+        SM=self.mol.SM
         match ctype:
             case 'mulliken':
-                vals=lutils.mulliken(PMp,self.mol.SM,self.mol.atoms.atmuls)
+                vals=lutils.mulliken(PMp,SM,self.mol.atoms.atmuls) # 这个算出来的都是电子数量
             case 'lowdin':
-                vals=lutils.lowdin(PMp,self.mol.SM,self.mol.atoms.atmuls)
+                vals=lutils.lowdin(PMp,SM,self.mol.atoms.atmuls)
             case _:
                 raise ValueError(f'未知电荷类型{ctype}')
         return vals
@@ -156,7 +157,7 @@ class Calculator():
             dirs.append([x,y,z])
         dirs=np.array(dirs)
         vals=[]
-        elects=self.dirElects(atms,dirs,ctype)
+        elects=self.proj_elect(atms,dirs,ctype)
         for i,val in enumerate(elects):
             if i+1 not in atms:continue
             vals.append(val.item())

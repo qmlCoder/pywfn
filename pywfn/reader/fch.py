@@ -216,10 +216,10 @@ class FchReader(reader.Reader):
                 shl=1
             for j in range(shlNum): # type: ignore
                 if shlType==-1:
-                    basisDatas.append(BasisData(shlAtm,shl,0,pmcoes[idx],pmexps[idx]))
-                    basisDatas.append(BasisData(shlAtm,shl,1,spcoes[idx],pmexps[idx]))
+                    basisDatas.append(BasisData(shlAtm,shl,0,pmexps[idx],pmcoes[idx]))
+                    basisDatas.append(BasisData(shlAtm,shl,1,pmexps[idx],spcoes[idx]))
                 else:
-                    basisDatas.append(BasisData(shlAtm,shl,abs(shlType),pmcoes[idx],pmexps[idx]))
+                    basisDatas.append(BasisData(shlAtm,shl,abs(shlType),pmexps[idx],pmcoes[idx]))
                 idx+=1
             shl+=1
         # for each in basisData:

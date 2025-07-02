@@ -9,6 +9,7 @@ from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
 
 from pywfn.data.elements import elements
+from pywfn.data import consts
 import re
 import numpy as np
 from functools import lru_cache
@@ -41,7 +42,7 @@ class GjfReader(reader.Reader):
                 s=elements[int(s)].symbol
             symbols.append(s)
             coords.append([x,y,z])
-        coords=np.array(coords,dtype=np.float32)*1.889
+        coords=np.array(coords,dtype=np.float32)/consts.Bohr
         return symbols,coords
     
     @lru_cache

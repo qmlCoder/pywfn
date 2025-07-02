@@ -312,10 +312,12 @@ def points_rotate(
         [nx*ny*(1-c)-nz*s,ny**2*(1-c)+c,ny*nz*(1-c)+nx*s],
         [nx*nz*(1-c)+ny*s,ny*nz*(1-c)-nx*s,nz**2*(1-c)+c],
     ])
+    # print('旋转的点\n',points)
+    # print('旋转矩阵\n',matrix)
     length0 = np.linalg.norm(points, axis=1)
     points = np.copy(points)
     points -= center
-    points = np.dot(matrix, points.T).T
+    points = (matrix@points.T).T
     points += center
     length1 = np.linalg.norm(points, axis=1)
     return points

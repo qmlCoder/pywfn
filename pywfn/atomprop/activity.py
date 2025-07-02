@@ -44,12 +44,14 @@ class Calculator:
         q0=vals[:,0]
         qn=vals[:,1]
         qp=vals[:,2]
-        fn=qp-q0
+        
         fp=q0-qn
+        fn=qp-q0
         f0=(qp-qn)/2
         df=fp-fn
-        vals[:,3]=fn
-        vals[:,4]=fp
+        
+        vals[:,3]=fp
+        vals[:,4]=fn
         vals[:,5]=f0
         vals[:,6]=df
         return vals
@@ -60,11 +62,9 @@ class Calculator:
         mols=[molN,molP]
         cals=[charge.Calculator(mol) for mol in mols]
         natm=molN.atoms.natm
-        vals=np.zeros(shape=(natm,5))
+        vals=np.zeros(shape=(natm,2))
         for c,cal in enumerate(cals):
             vals[:,c]=cal.spin(ctype)
-        vals[:,3]=vals[:,0]-vals[:,1]
-        vals[:,4]=vals[:,1]-vals[:,2]
         return vals
     
     def mayerTotalValence(self):
@@ -149,38 +149,13 @@ class Calculator:
             valence=STAND-orders[i:i+len(nebs)].sum()
         return valence.item()
 
-    # 亲核亲电自由价 v1
-    # def neFreeValence_v1(self,atm:int,dirs:np.ndarray,molN:Mole,molP:Mole):
-    #     """计算自由价之差"""
-    #     mols=[molN,self.mol,molP]
-    #     cals=[Calculator(mol) for mol in mols]
-    #     valn,val0,valp=[cal.freeValence(atm,dirs) for cal in cals]
-    #     dirs=val0[:,:-1]
-    #     valsn=(valn[:,-1]-val0[:,-1]).reshape(-1,1)
-    #     valsp=(valp[:,-1]-val0[:,-1]).reshape(-1,1)
-    #     result=np.concatenate([dirs,valsn,valsp],axis=1)
-    #     return result
-    
-    # # 亲核亲电自由价 v2
-    # def neFreeValence_v2(self,atm:int,dirs:np.ndarray,molN:Mole,molP:Mole):
-    #     """计算自由价之差"""
-    #     mols=[molN,self.mol,molP]
-    #     cals=[Calculator(mol) for mol in mols]
-    #     valn,val0,valp=[cal.freeValence(atm,dirs)[1] for cal in cals]
-    #     val:float=self.valence()[atm-1] # 原子化合价
-    #     dirs=val0[:,:-1]
-    #     valsn=(4-val+(valn[:,-1])-val0[:,-1]).reshape(-1,1)
-    #     valsp=(4-val+(val0[:,-1])-valp[:,-1]).reshape(-1,1)
-    #     result=np.concatenate([dirs,valsn,valsp],axis=1)
-    #     return result
-
-    # 方向福井函数
-    def dirFukui(self,atms:list[int],dirs:np.ndarray,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
+    # 某个原子的方向福井函数
+    def dirFukui(self,atm:int,dirs:np.ndarray|None,molN:Mole,molP:Mole,ctype:str)->np.ndarray:
         """计算方向福井函数
 
         Args:
-            atms (list[int]): 要计算的原子
-            dirs (list[np.ndarray]): 原子的方向
+            atms (int): 要计算的原子
+            dirs (np.ndarray): 原子的方向，可以为多个[n,3]
             molN (Mole): 多一个电子的分子
             molP (Mole): 少一个电子的分子
             ctype(str): 电荷类型,默认为mulliken
@@ -189,27 +164,38 @@ class Calculator:
             np.ndarray: 指定方向的福井函数[n,6](N,N+1,N-1,f-,f+,f0,df)
         """
         
+        if dirs is None:
+            dirCaler=direction.Calculator(self.mol)
+            dirs=dirCaler.reactions(atm)
+        else:
+            utils.chkArray(dirs,[None,3])
+        # print("方向数量",dirs.shape)
         mols=[self.mol,molN,molP]
         crgs=[mol.multi[0] for mol in mols]
-        # assert crgs[0]<crgs[1]<crgs[2],"电荷顺序不符"
+        # assert crgs[0]<crgs[1]<crgs[2],f"电荷顺序不符:{crgs}"
+        assert crgs[0]-1==crgs[1],"电荷不符"
+        assert crgs[0]+1==crgs[2],"电荷不符"
         calers=[charge.Calculator(mol) for mol in mols]
         natm=self.mol.atoms.num
-        vals=np.zeros(shape=(natm,7))
-        for c,caler in enumerate(calers):
-            caler.form='number'
-            vals[:,c]=caler.dirElects(atms,dirs,ctype) # 计算方向电子
-        p0=vals[:,0]
-        pn=vals[:,1]
-        pp=vals[:,2]
-        fn=p0-pp
-        fp=pn-p0
-        f0=(pn-pp)/2
-        df=fn-fp
-        vals[:,3]=fn
-        vals[:,4]=fp
-        vals[:,5]=f0
-        vals[:,6]=df
-        return vals
+        ele_0s=[]
+        ele_Ns=[]
+        ele_Ps=[]
+        for dir in dirs:
+            ele_0=calers[0].proj_elect([atm],dir.reshape(1,3),ctype)[atm-1] # 计算方向电子
+            ele_N=calers[1].proj_elect([atm],dir.reshape(1,3),ctype)[atm-1] # 计算方向电子
+            ele_P=calers[2].proj_elect([atm],dir.reshape(1,3),ctype)[atm-1] # 计算方向电子
+            ele_0s.append(ele_0)
+            ele_Ns.append(ele_N)
+            ele_Ps.append(ele_P)
+        e0=np.array(ele_0s).reshape(-1,1)
+        en=np.array(ele_Ns).reshape(-1,1)
+        ep=np.array(ele_Ps).reshape(-1,1)
+
+        fp=en-e0
+        fn=e0-ep
+        f0=(fn+fp)/2
+        df=fp-fn
+        return np.concatenate([dirs,e0,en,ep,fp,fn,f0,df],axis=1)
     
     def piFukui(self,molN:Mole,molP:Mole,ctype:str='mulliken')->np.ndarray:
         """基于pi电子数的福井函数"""
@@ -224,13 +210,15 @@ class Calculator:
             for atm,dir,val in zip(atms,dirs,elects):
                 # print(atm,val)
                 vals[atm-1,c]=val
-        p0=vals[:,0]
-        pn=vals[:,1]
-        pp=vals[:,2]
-        fn=p0-pp
-        fp=pn-p0
-        f0=(pn-pp)/2
-        df=fn-fp
+        e0=vals[:,0]
+        en=vals[:,1]
+        ep=vals[:,2]
+        
+        fp=en-e0
+        fn=e0-ep
+        f0=(fn+fp)/2
+        df=fp-fn
+        
         vals[:,3]=fn
         vals[:,4]=fp
         vals[:,5]=f0

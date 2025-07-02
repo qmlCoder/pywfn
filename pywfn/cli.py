@@ -142,20 +142,20 @@ class AtomPage:
                         print(f'{i+1:>3d}: {val:>10.4f}')
                     print(f'sum:{np.sum(charges)}')
 
-                case '5': # 方向电子
-                    print(chrgStr)
-                    opt=input('选择电荷类型: ')
-                    if opt not in chrgMap.keys():return
-                    chrg=chrgMap[opt]
-                    # numStr=input('输入原子编号: ')
-                    atm=self.shell.input.Integ(tip='输入原子编号: ',count=1)[0]
-                    dir=self.shell.input.Float(tip='输入原子向量: ',count=3)
-                    assert dir is not None,'原子向量输入不正确'
-                    dirs=np.array(dir).reshape(1,3)
-                    elects=caler.dirElects(atms=[atm],dirs=dirs,ctype=chrg)
-                    ele=elects[atm-1]
-                    x,y,z=dir
-                    print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>10.4f}')
+                # case '5': # 方向电子
+                #     print(chrgStr)
+                #     opt=input('选择电荷类型: ')
+                #     if opt not in chrgMap.keys():return
+                #     chrg=chrgMap[opt]
+                #     # numStr=input('输入原子编号: ')
+                #     atm=self.shell.input.Integ(tip='输入原子编号: ',count=1)[0]
+                #     dir=self.shell.input.Float(tip='输入原子向量: ',count=3)
+                #     assert dir is not None,'原子向量输入不正确'
+                #     dirs=np.array(dir).reshape(1,3)
+                #     elects=caler.dirElects(atms=[atm],dirs=dirs,ctype=chrg)
+                #     ele=elects[atm-1]
+                #     x,y,z=dir
+                #     print(f'{atm:>3d} ({x:>6.2f},{y:>6.2f},{z:>6.2f}):{ele:>10.4f}')
                 
                 case '6': # pi电子
                     print(chrgStr)
@@ -244,29 +244,29 @@ class AtomPage:
                         x,y,z=dir_
                         print(f'{atm:>3d}{x:>10.4f}{y:>10.4f}{z:>10.4f}{val:>10.4f}')
                     print('原子自由价计算完成')
-                case '7': # 福井函数(pi)
-                    from pywfn.atomprop import direction
-                    print(chrgTip)
-                    copt=input('请输入电荷类型: ')
-                    if copt not in ctypes.keys():continue
-                    dirCaler=direction.Calculator(mol)
-                    molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
-                    atms=[]
-                    dirs=[]
-                    print(f"\natm:{'dx':>10}{'dy':>10}{'dz':>10}")
-                    for atom in mol.atoms:
-                        atmDirs=dirCaler.normal(atom.idx)
-                        if atmDirs is None:continue
-                        x,y,z=atmDirs
-                        print(f'{atom.idx:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}')
-                        dirs.append(atmDirs.reshape(1,3))
-                        atms.append(atom.idx)
-                    dirs=np.concat(dirs,axis=0)
-                    vals=caler.dirFukui(atms,dirs,molN,molP,ctypes[copt])
-                    print(f'\nidx:{"q(N)":>10}{"q(N+1)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}{"df":>10}')
-                    for i,(e0,en,ep,fn,fp,f0,df) in enumerate(vals):
-                        print(f'{i+1:>3d}:{e0:>10.4f}{en:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}{df:>10.4f}')
-                    print("pi电子福井函数计算完成")
+                # case '7': # 福井函数(pi)
+                #     from pywfn.atomprop import direction
+                #     print(chrgTip)
+                #     copt=input('请输入电荷类型: ')
+                #     if copt not in ctypes.keys():continue
+                #     dirCaler=direction.Calculator(mol)
+                #     molN,molP=self.shell.input.Moles(tip='分别输入N+1和N-1个电子的分子',num=2)
+                #     atms=[]
+                #     dirs=[]
+                #     print(f"\natm:{'dx':>10}{'dy':>10}{'dz':>10}")
+                #     for atom in mol.atoms:
+                #         atmDirs=dirCaler.normal(atom.idx)
+                #         if atmDirs is None:continue
+                #         x,y,z=atmDirs
+                #         print(f'{atom.idx:>3d}:{x:>10.4f}{y:>10.4f}{z:>10.4f}')
+                #         dirs.append(atmDirs.reshape(1,3))
+                #         atms.append(atom.idx)
+                #     dirs=np.concat(dirs,axis=0)
+                #     vals=caler.dirFukui(atms,dirs,molN,molP,ctypes[copt])
+                #     print(f'\nidx:{"q(N)":>10}{"q(N+1)":>10}{"q(N-1)":>10}{"f-":>10}{"f+":>10}{"f0":>10}{"df":>10}')
+                #     for i,(e0,en,ep,fn,fp,f0,df) in enumerate(vals):
+                #         print(f'{i+1:>3d}:{e0:>10.4f}{en:>10.4f}{ep:>10.4f}{fn:>10.4f}{fp:>10.4f}{f0:>10.4f}{df:>10.4f}')
+                #     print("pi电子福井函数计算完成")
                 case _:
                     break
 
@@ -457,7 +457,7 @@ class GridPage:
         caler=density.Calculator(mol)
         atms=self.shell.input.Integ(tip='?输入要计算的原子: ')
         if not atms:atms=mol.atoms.atms
-        dens=caler.atmDens(obje.grid,atms)
+        dens=caler.fragDens(obje.grid,atms)
         dens=dens.reshape(1,-1)
         save_file(caler,obje,dens)
     

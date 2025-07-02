@@ -11,8 +11,8 @@ import sys
 class Calculator:
     def __init__(self,mol:Mole) -> None:
         self.mol=mol
-        self.nrad=74 # 径向格点数量
-        self.nsph=86 # 球面格点数量
+        self.nrad=99 # 径向格点数量
+        self.nsph=74 # 球面格点数量
 
     def radGrid(self,atmic:int):
         pi=np.pi
@@ -127,3 +127,15 @@ class Calculator:
         molPos=np.vstack(molGrid)
         molWei=np.concatenate(molWeit)
         return molPos,molWei
+    
+    def fragGrid(self,frag:list[int]):
+        """分子中某个片段的格点"""
+        grids=[]
+        weits=[]
+        for atm in frag:
+            a2mGrid,a2mWeit=self.a2mGrid(atm)
+            grids.append(a2mGrid)
+            weits.append(a2mWeit)
+        grids=np.vstack(grids)
+        weits=np.concatenate(weits)
+        return grids,weits

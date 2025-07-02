@@ -298,11 +298,11 @@ class LogReader(reader.Reader):
                 # assert atomic is not None,'atomic is None'
                 if len(angs)==1:
                     alp,coe=nums
-                    basisDatas.append(BasisData(atm,shl,angs[0],coe,alp))
+                    basisDatas.append(BasisData(atm,shl,angs[0],alp,coe))
                 if len(angs)==2:
                     alp,coe1,coe2=nums
-                    basisDatas.append(BasisData(atm,shl,angs[0],coe1,alp))
-                    basisDatas.append(BasisData(atm,shl,angs[1],coe2,alp))
+                    basisDatas.append(BasisData(atm,shl,angs[0],alp,coe1))
+                    basisDatas.append(BasisData(atm,shl,angs[1],alp,coe2))
             elif line==s4 is not None:
                 shl=0
                 continue
