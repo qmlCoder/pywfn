@@ -1,7 +1,8 @@
 """
 公用的函数可以移到此处，以较少代码量
 """
-from pywfn.base import Atom,Mole
+from pywfn.base.atom import Atom
+from pywfn.base.mole import Mole
 import numpy as np
 from pywfn import maths
 

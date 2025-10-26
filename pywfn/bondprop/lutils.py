@@ -3,7 +3,8 @@
 """
 import numpy as np
 
-from pywfn.base import Atom,Mole
+from pywfn.base.atom import Atom
+from pywfn.base.mole import Mole
 from pywfn.maths import vector_angle
 from pywfn.utils import printer
 from pywfn.maths.atom import get_sCont
@@ -27,7 +28,7 @@ def CM2PMs(CM,orbital:list[int],oe:int):
     B=(CM[:,orbital].T)[:,np.newaxis,:]
     return A@B*oe #用矩阵乘法的形式直接构建矩阵可比逐元素计算快多了
 
-def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator,densCaler:density.Calculator)->int:
+def judgeOrbital(mole:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculator,densCaler:density.Calculator)->int:
     """
     判断一个轨道是否为π轨道，几何方法
     centerAtom,aroundAtom:原子对象
@@ -36,8 +37,8 @@ def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculato
     """
     
     # print('判断pi轨道:',atm1,atm2)
-    atom1=mol.atom(atm1)
-    atom2=mol.atom(atm2)
+    atom1=mole.atom(atm1)
+    atom2=mole.atom(atm2)
     if atom1.symbol=='H' or atom2.symbol=='H':
         # print(obt+1,'轨道是H原子轨道,无法判断')
         return 0
@@ -47,8 +48,8 @@ def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculato
     dens=densCaler.molDens(np.array([RA,RB]),0)[0]
     if np.max(dens)<0.01:return 0
     # 1. 根据s轨道和p轨道的贡献
-    sContCenter=get_sCont(mol,atm1,obt)
-    sContAround=get_sCont(mol,atm1,obt)
+    sContCenter=get_sCont(mole,atm1,obt)
+    sContAround=get_sCont(mole,atm2,obt)
     # print('s轨道贡献:',sContCenter,sContAround)
     if sContCenter>0.01 or sContAround>0.01:
         # print(obt+1,'s轨道贡献:',sContCenter,sContAround)
@@ -62,7 +63,7 @@ def judgeOrbital(mol:Mole,atm1:int,atm2:int,obt:int,dirCaler:direction.Calculato
     if cenDir is None and aroDir is None:
         # print(obt+1,'p轨道方向:',cenDir,aroDir)
         return 0
-    normal=dirCaler.normal(atm1)
+    normal=dirCaler.normal_vector(atm1)
     if cenDir is None: cenDir=normal
     if aroDir is None: aroDir=normal
     centerAngle=vector_angle(cenDir,normal) # type: ignore # 计算分子平面和p轨道方向的夹角

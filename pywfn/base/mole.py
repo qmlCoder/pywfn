@@ -18,44 +18,22 @@
 读取器
 """
 
-from typing import Any
 from pywfn import maths
 from pywfn.base.geome import Geome
-# from pywfn.base import coefs
 from pywfn.base.coefs import Coefs
 from pywfn.base.basis import Basis
 from pywfn.base.atom import Atom,Atoms
 from pywfn.base.bond import Bond,Bonds
 from pywfn import reader
-from pywfn import data
-from pywfn.data.elements import elements
-from pywfn import config
-from pywfn import utils
-from pywfn import reader
-from pywfn.utils import printer
+from pywfn import core
+
 
 import numpy as np
 import numpy.typing as npt
 from functools import cached_property, lru_cache
-import multiprocessing as mp
-from multiprocessing.pool import AsyncResult
-import threading
 from typing import Callable
 import collections
-import re
 import copy
-
-class Props(dict):
-    def __init__(self) -> None:
-        super().__init__({})
-
-    def get(self,key:str,fun:Callable):
-        if key not in self.keys():
-            self.set(key,fun())
-        return self[key]
-
-    def set(self,key:str,value):
-        self[key]=value
 
 class Mole:
     """基础的分子对象"""
@@ -64,34 +42,19 @@ class Mole:
         分子实例化
         `reader:Reader`，分子读取器
         """
-        self._props:Props=Props()
+        
+        self.geome=reader.get_geome()
+        self.basis=reader.get_basis()
+        self.coefs=reader.get_coefs()
+        self.mole=core.base.Mole(self.geome.core,self.basis.core,self.coefs.core) # type: ignore
         self.reader:"reader.Reader"=reader
         
         self.bohr:bool=False # 是否使用波尔坐标
     
-    @cached_property
-    def basis(self)->Basis: # 设为属性，可以保证用不到的时候不被实例化
-        basis=self.reader.get_basis()
-        basis.mol=self
-        return basis
-    
-    @cached_property
-    def coefs(self)->Coefs: # 将读取到的相关信息封装到一个类中
-        coefs=self.reader.get_coefs()
-        coefs.mol=self
-        return coefs
-    
-    @cached_property
-    def geome(self)->Geome:
-        geome=self.reader.get_geome()
-        geome.mol=self
-        return geome
-    
     @property
     def nele(self)->tuple[int,int]:
-        elea,eleb=self._props.get('nele',self.reader.get_nele)
+        elea,eleb=self.reader.get_nele()
         return elea,eleb
-
 
     @property    
     def multi(self) -> tuple[int, int]: # 电荷、自旋多重性
@@ -100,15 +63,14 @@ class Mole:
         return total-nela-nelb,nela-nelb+1
 
     @property
-    def open(self)->bool:
+    def is_open(self)->bool:
         """是否为开壳层"""
-        m,n=self.CM.shape
-        return m<n
+        return self.mole.is_open() # type: ignore
     
     @property
     def energy(self)->float:
         """获取分子能量"""
-        return self._props.get('energy',self.reader.get_energy)
+        return self.reader.get_energy()
 
     @property
     def obtOccs(self)->list[bool]:
@@ -131,13 +93,13 @@ class Mole:
         nobt=len(occs)
         for i,s in enumerate(occs):
             s='O' if s else 'U'
-            if self.open:
+            if self.is_open:
                 if i<nobt//2:
                     s=f'A {s}'
                 else:
                     s=f'B {s}'
             idx=i
-            if self.open and i>=nobt//2:
+            if self.is_open and i>=nobt//2:
                 idx=i-nobt//2
             strs.append(f'{idx+1} {s}')
         return strs
@@ -198,12 +160,16 @@ class Mole:
         return self.bonds.get(idx1,idx2)
 
     @property
-    def coords(self)->np.ndarray:
+    def xyzs(self)->np.ndarray:
         """返回原子坐标矩阵[n,3]"""
-        coords=[atom.coord for atom in self.atoms]
-        coords=np.array(coords)
-        coords.setflags(write=False)
-        return coords
+        xyzs=self.mole.xyzs(False)
+        return np.array(xyzs)
+    
+    @property
+    def syms(self)->list[str]:
+        """返回原子坐标矩阵[n,3]"""
+        syms=self.mole.syms()
+        return syms
 
     @property
     def O_obts(self)->list[int]:
@@ -237,7 +203,7 @@ class Mole:
     @property
     def oE(self):
         """轨道电子数"""
-        return 1 if self.open else 2
+        return 1 if self.is_open else 2
     
     @property
     def formula(self)->str:
@@ -251,8 +217,8 @@ class Mole:
     @property
     def spaceBorder(self)->tuple[np.ndarray,np.ndarray]:
         """获取分子空间边界"""
-        p0=self.coords.min(axis=0)
-        p1=self.coords.max(axis=0)
+        p0=self.xyzs.min(axis=0)
+        p1=self.xyzs.max(axis=0)
         return p0,p1
     
 
@@ -286,18 +252,6 @@ class Mole:
             return float(angle*np.pi*nm)
         else:
             raise ValueError("参数数量错误")
-    
-    # @property
-    # def eleNum(self)->tuple[int,int]:
-    #     """获取alpha,beta电子数"""
-    #     obts=self.O_obts
-    #     if self.open:
-    #         nbas=self.CM.shape[0]
-    #         na=sum([1 for o in obts if o<nbas])
-    #         nb=len(obts)-na
-    #         return na,nb
-    #     else:
-    #         return len(obts),len(obts)
     
     @cached_property
     def DM(self):

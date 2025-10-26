@@ -1,13 +1,10 @@
 
 
 from collections.abc import Iterator
-from pywfn.base.atom import Atom
 from pywfn import base
 import numpy as np
-# 如何获取一个键？
-# Mole.getBond(a1,a2)
-# Mol应该有bonds属性，是一个字典，索引是'a1-a2'和'a2-a1'都指向该键
 from functools import cached_property
+
 class Bond:
     """
     键对象
@@ -21,17 +18,17 @@ class Bond:
         self.ats:tuple[int,int]=(atm1,atm2)
     
     @property
-    def mol(self):
-        assert self.geome.mol is not None,"未绑定分子"
-        return self.geome.mol
+    def mole(self):
+        assert self.geome.mole is not None,"未绑定分子"
+        return self.geome.mole
     
     @property
     def a1(self):
-        return self.mol.atom(self.atm1)
-    
+        return self.mole.atom(self.atm1)
+
     @property
     def a2(self):
-        return self.mol.atom(self.atm2)
+        return self.mole.atom(self.atm2)
 
     @cached_property
     def length(self):

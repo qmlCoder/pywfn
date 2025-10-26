@@ -1,11 +1,11 @@
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 
 import numpy as np
 
-def get_molBorder(mol:Mole):
-    coords=mol.coords
-    p0=coords.min(axis=0)
-    p1=coords.max(axis=0)
+def get_molBorder(mole:Mole):
+    xyzs=mole.xyzs
+    p0=xyzs.min(axis=0)
+    p1=xyzs.max(axis=0)
     p0-=0.1
     p1+=0.1
     return p0,p1
@@ -29,7 +29,7 @@ def vdeFace(mol:Mole): # 计算范德华表面
         sphps=sphArea(atom.radius)
         print(atom,atom.radius)
         for eac in sphps+atom.coord:
-            dists=np.linalg.norm(mol.coords-eac,axis=1) # 原子周围每个点到所有原子的距离
+            dists=np.linalg.norm(mol.xyzs-eac,axis=1) # 原子周围每个点到所有原子的距离
             inside=True
             for j,atomj in enumerate(mol.atoms):
                 dist=dists[j]

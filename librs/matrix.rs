@@ -1,22 +1,13 @@
 use pyo3::prelude::*;
-
-pub fn ele_mat(matc:&Vec<Vec<f64>>,mats:&Vec<Vec<f64>>)->Vec<Vec<f64>>{
-    let nato=matc.len();
-    let nobt=matc[0].len();
-    let mut matn=vec![vec![0.0; nobt]; nato];
-    for a in 0..nato{
-        for o in 0..nobt{
-            for i in 0..nato{
-                matn[a][o] += matc[a][o]*matc[i][o]*mats[i][a];
-            }
-        }
-    }
-    println!("nato:{nato},nobt:{nobt}");
-    matn
-}
-
+use rswfn;
 
 #[pyfunction]
-pub fn ele_mat_rs(matc:Vec<Vec<f64>>,mats:Vec<Vec<f64>>)->Vec<Vec<f64>>{
-    ele_mat(&matc,&mats)
+pub fn ele_mat(matc: Vec<Vec<f64>>, mats: Vec<Vec<f64>>) -> PyResult<Vec<Vec<f64>>> {
+    Ok(rswfn::matrix::ele_mat(&matc, &mats))
+}
+
+pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(parent_module.py(), "matrix")?; // 为当前的rs文件创建一个子模块
+    m.add_function(wrap_pyfunction!(ele_mat, &m)?)?; // 添加这个rs文件中的函数到子模块中
+    parent_module.add_submodule(&m) // 将子模块添加到父模块中
 }

@@ -120,6 +120,13 @@ def normalize(vector):
         raise
     return vector/length
 
+def show_matrix(mat:np.ndarray):
+    nrow,ncol=mat.shape
+    for i in range(nrow):
+        for j in range(ncol):
+            print(f'{mat[i,j]:>10.4f}',end='')
+        print("")
+
 from rich.console import Console
 from rich .table import Table,box
 from pywfn import config

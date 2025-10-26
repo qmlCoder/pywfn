@@ -20,6 +20,7 @@ printer = utils.Printer()
 from functools import lru_cache
 from collections import defaultdict
 from pywfn import base
+from pywfn import core
 
 ANG2LMN = {
     0: [[0, 0, 0]],
@@ -76,7 +77,7 @@ class BasisData:
     def __repr__(self) -> str:
         resStr=''
         # resStr+=f'{"atm":>5}{"shl":>5}{"ang":>5}{"coe":>12}{"alp":>12}\n'
-        resStr+=f'{self.atm:>5}{self.shl:>5}{self.ang:>5}{self.coe:>12.4e}{self.alp:>12.4e}'
+        resStr+=f'{self.atm:>5}{self.shl:>5}{self.ang:>5}{self.alp:>12.4e}{self.coe:>12.4e}'
         return resStr
 
 
@@ -87,9 +88,10 @@ class Basis:
 
     def __init__(self) -> None:
         """根据基组名实例化基组信息"""
-        self.mol:"base.Mole|None"  = None
+        self.mole:"base.Mole|None"  = None
         self.name = ''
         self.data: list[BasisData] = []
+        self.core=core.base.Basis() # type: ignore
     
     @property
     def dict(self):
@@ -98,10 +100,9 @@ class Basis:
             key=f'{each.atm}-{each.shl}-{each.ang}'
             basDict[key].append([each.alp,each.coe])
         return basDict
-
-    # def atomics(self):
-    #     atmics = [basis.sym for basis in self.data]
-    #     return list(set(atmics))
+    
+    def build(self,data:list[tuple[int,int,int,float,float]]):
+        self.core.build(data)
 
     def setData(self, data: list[BasisData]):
         """设置数据
@@ -113,10 +114,10 @@ class Basis:
     @lru_cache
     def get(self, sym: str, shl: int|None = None, ang: int|None = None) -> list[BasisData]:
         """根据原子序号获得基组"""
-        assert self.mol is not None, "请先设置分子信息"
+        assert self.mole is not None, "请先设置分子信息"
         basis=[]
         for each in self.data:
-            s1 = self.mol.atom(each.atm).sym == sym # 第一个条件
+            s1 = self.mole.atom(each.atm).sym == sym # 第一个条件
             s2 = shl is None or shl == each.shl # 第二个条件
             s3 = ang is None or ang == each.ang # 第三个条件
             if s1 and s2 and s3:
@@ -135,12 +136,12 @@ class Basis:
         return SYM2LMN[sym]
 
     def basMap(self): # 映射到系数矩阵的数据类型
-        assert self.mol is not None, "请先设置分子信息"
+        assert self.mole is not None, "请先设置分子信息"
         atos=[]
         coes=[]
         alps=[]
         lmns=[]
-        atoKeys=self.mol.coefs.atoKeys('car')
+        atoKeys=self.mole.coefs.atoKeys('car')
         # print(atoKeys)
         for each in self.data:
             # print(each)
@@ -172,8 +173,8 @@ class Basis:
         return atos,coes,alps,lmns
     
     def atoMap(self):
-        assert self.mol is not None, "请先设置分子信息"
-        nato=self.mol.coefs.get_CM('car').shape[0]
+        assert self.mole is not None, "请先设置分子信息"
+        nato=self.mole.coefs.get_CM('car').shape[0]
         lmns=[[] for i in range(nato)]
         coes=[[] for i in range(nato)]
         alps=[[] for i in range(nato)]
@@ -188,21 +189,15 @@ class Basis:
             for i,lmn in enumerate(ANG2LMN[ang]):
                 sym=self.lmn2sym(lmn)
                 key=f'{atm}-{shl}{sym}'
-                ato=self.mol.atoKeys.index(key)
+                ato=self.mole.atoKeys.index(key)
                 coes[ato].append(coe)
                 alps[ato].append(alp)
                 lmns[ato]=lmn
-                x,y,z=self.mol.atom(atm).xyz.tolist()
+                x,y,z=self.mole.atom(atm).xyz.tolist()
                 xyzs[ato]=[x,y,z]
         return xyzs,lmns,coes,alps
 
     def __repr__(self) -> str:
-        resStr=f'{"idx":>4}{"atm":>5}{"shl":>5}{"ang":>5}{"alp":>12}{"coe":>12}\n'
-        
-        for i,each in enumerate(self.data):
-            if i>4 and i<len(self.data)-4:continue
-            resStr+=f'{i+1:>5}{each.atm:>5}{each.shl:>5}{each.ang:>5}{each.coe:>12.4e}{each.alp:>12.4e}\n'
-            if len(self.data)>10 and i==4:resStr+=(' ...'*4+'       .....'*2+'\n')
-        return resStr
+        return f"{self.core}"
             
         

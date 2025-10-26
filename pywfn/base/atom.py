@@ -1,13 +1,10 @@
-
 from collections.abc import Iterator
 import numpy as np
 from functools import cached_property,lru_cache
-from pywfn import config
 from pywfn import base
-from pywfn import maths
 from pywfn.maths import vector_angle
-from pywfn.utils import printer
 from pywfn.data.elements import elements
+
 class Atom:
     """
     原子对象
@@ -26,9 +23,9 @@ class Atom:
         self._props:dict={}
     
     @property
-    def mol(self):
-        assert self.geome.mol is not None,"未绑定分子"
-        return self.geome.mol
+    def mole(self):
+        assert self.geome.mole is not None,"未绑定分子"
+        return self.geome.mole
     
     @property
     def symbol(self)->str:
@@ -48,14 +45,14 @@ class Atom:
 
     @cached_property
     def obtBorder(self): # 获取元素上下界
-        idxs=[i for i,idx in enumerate(self.mol.atoAtms) if idx==self.idx]
+        idxs=[i for i,idx in enumerate(self.mole.atoAtms) if idx==self.idx]
         return idxs[0],idxs[-1]+1 #因为最后一个元素不包含
     
     @cached_property
     def obtCoeffs(self):
         """获取该原子对应的系数"""
         u,l=self.obtBorder
-        return self.mol.CM[u:l,:]
+        return self.mole.CM[u:l,:]
     
     @cached_property
     def OC(self):
@@ -65,7 +62,7 @@ class Atom:
     def neighbors(self)->tuple[int,...]:
         """每个原子相邻的原子有哪些，根据分子的键来判断"""
         idxs=[]
-        bonds=self.mol.bonds
+        bonds=self.mole.bonds
         for bond in bonds:
             idx1,idx2=bond.ats
             if idx1==self.idx:
@@ -78,7 +75,7 @@ class Atom:
     def pLayersCs(self,obt:int):
         '''获取原子某一轨道的p层数据'''
         u,l=self.obtBorder
-        layers=self.mol.atoSyms[u:l]
+        layers=self.mole.atoSyms[u:l]
         pIndex=[i for i,l in enumerate(layers) if 'P' in l]
         return self.obtCoeffs[pIndex,obt]
     
@@ -102,7 +99,7 @@ class Atom:
         assert np.linalg.norm(direct)!=0,"方向向量长度不能为0"
         direct/=np.linalg.norm(direct) # 投影向量归一化
         u,l=self.obtBorder
-        syms=self.mol.atoSyms[u:l]
+        syms=self.mole.atoSyms[u:l]
         sidx=[i for i,l in enumerate(syms) if 'S' in l]
         return self.obtCoeffs[sidx,obt]
     
@@ -111,8 +108,8 @@ class Atom:
         """判断原子是否是线性的"""
         if len(self.neighbors)!=2:return False
         a1,a2=list(self.neighbors)
-        v1=self.mol.atom(a1).coord-self.coord
-        v2=self.mol.atom(a2).coord-self.coord
+        v1=self.mole.atom(a1).coord-self.coord
+        v2=self.mole.atom(a2).coord-self.coord
         angle=vector_angle(v1,v2)
         return abs(1-angle)<1e-1
 

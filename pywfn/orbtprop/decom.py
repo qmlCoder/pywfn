@@ -5,38 +5,38 @@ from collections import defaultdict
 import numpy as np
 from pprint import pprint
 
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.atomprop import direction
 
 class Calculator:
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
 
     def pi_decom(self,dtype:str)->np.ndarray: # 分解出pi分子轨道
-        dirCaler=direction.Calculator(self.mol)
-        CMt=self.mol.CM.copy()
-        nmat=self.mol.CM.shape[0]
+        dirCaler=direction.Calculator(self.mole)
+        CMt=self.mole.CM.copy()
+        nmat=self.mole.CM.shape[0]
         # Ts=[]
 
         keeps=[[0],[0,0,1],[0,0,0,1,1,1]]
         bases=dirCaler.bases()
         # print('bases',bases)
-        nobt=self.mol.CM.shape[1]
+        nobt=self.mole.CM.shape[1]
         for o in range(nobt): # 遍历轨道
             coefDict=defaultdict(list) # 系数字典
             for i in range(nmat):
-                iatm=self.mol.atoAtms[i]
-                ishl=self.mol.atoShls[i]
-                iang=self.mol.atoAngs[i]
+                iatm=self.mole.atoAtms[i]
+                ishl=self.mole.atoShls[i]
+                iang=self.mole.atoAngs[i]
                 key=(iatm,ishl,iang)
-                coefDict[key].append(self.mol.CM[i,o].item())
+                coefDict[key].append(self.mole.CM[i,o].item())
             # pprint(coefDict)
             for key,val in coefDict.items():
                 iatm,ishl,iang=key
                 rcoefs=np.array(val) # 原始系数
                 if iatm in bases.keys():
                     T=bases[iatm]
-                    atom=self.mol.atom(iatm)
+                    atom=self.mole.atom(iatm)
                     if atom.is_linear:
                         tcoefs=decomOrbitals(T,rcoefs,[0,1,1],dtype)
                     else:

@@ -1,26 +1,13 @@
-use ndarray::{Array, Array2};
-use ndarray_linalg::{Eigh, UPLO};
+use pyo3::prelude::*;
+use rswfn;
 
-/// 计算(重叠)矩阵的平方根 S^{1/2}
-pub fn matrix_phalf(smat: &Array2<f64>) -> Array2<f64> {
-    let (eig_val, vec_mat) = smat.eigh(UPLO::Lower).expect("矩阵对角化失败");
-    // let inv_mat= vec_mat.inv().expect("矩阵求逆失败");
-    let nmat = smat.shape()[0];
-    let mut val_mat = Array::<f64, _>::zeros((nmat, nmat));
-
-    for i in 0..nmat {
-        val_mat[(i, i)] = eig_val[i].sqrt();
-    }
-    vec_mat.dot(&val_mat).dot(&vec_mat.t())
+#[pyfunction]
+pub fn lag_intpol(xs: Vec<f64>, ys: Vec<f64>, ts: Vec<f64>) -> Vec<f64> {
+    rswfn::maths::lag_intpol(&xs, &ys, &ts)
 }
 
-pub fn matrix_nhalf(smat: &Array2<f64>) -> Array2<f64> {
-    let (eig_val, vec_mat) = smat.eigh(UPLO::Lower).expect("矩阵对角化失败");
-    // let inv_mat= vec_mat.inv().expect("矩阵求逆失败");
-    let nmat = smat.shape()[0];
-    let mut val_mat = Array::<f64, _>::zeros((nmat, nmat));
-    for i in 0..nmat {
-        val_mat[(i, i)] = 1.0 / eig_val[i].sqrt();
-    }
-    vec_mat.dot(&val_mat).dot(&vec_mat.t())
+pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
+    let m = PyModule::new(parent_module.py(), "maths")?; // 为当前的rs文件创建一个子模块
+    m.add_function(wrap_pyfunction!(lag_intpol, &m)?)?; // 添加这个rs文件中的函数到子模块中
+    parent_module.add_submodule(&m) // 将子模块添加到父模块中
 }

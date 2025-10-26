@@ -3,35 +3,21 @@
 """
 
 import numpy as np
-
 from pywfn import base
-from pywfn.base.atom import Atoms
-from pywfn.base.bond import Bonds
-from pywfn.utils import chkArray
 from pywfn.data.elements import elements
+from pywfn import core
 
 class Geome:
     def __init__(self) -> None:
         self.edited=False # 是否被编辑过
-        self.atoms=Atoms(self)
-        self.bonds=Bonds(self)
-        self.mol:"base.Mole|None"=None # 绑定的分子对象
-    
-    def build(self,syms:list[str],xyzs:np.ndarray):
+        self.atoms=base.Atoms(self)
+        self.bonds=base.Bonds(self)
+        self.mole:base.Mole|None=None # 绑定的分子对象
+        self.core=core.base.Geome() # type: ignore
+
+    def build(self,atms:list[int],xyzs:np.ndarray):
         """构建分子结构信息"""
-        self.atoms.atoms.clear()
-        self.bonds.bonds.clear()
-        for sym,xyz in zip(syms,xyzs):
-            self.atoms.add(sym,xyz)
-        for atom1 in self.atoms:
-            for atom2 in self.atoms:
-                if atom1.idx>=atom2.idx:continue
-                r=np.linalg.norm(atom2.coord-atom1.coord)
-                r1=elements[atom1.symbol].radius
-                r2=elements[atom2.symbol].radius
-                if r>(r1+r2)*1.1:continue
-                self.bonds.add(atom1.idx,atom2.idx)
-        return self
+        self.core.build(atms,xyzs)
     
     def addAtom(self,sym:str,xyz:np.ndarray):
         """添加一个原子"""
@@ -54,10 +40,5 @@ class Geome:
         return np.array([atom.coord for atom in self.atoms])
 
     def __repr__(self) -> str:
-        text=''
-        for atom in self.atoms:
-            sym=atom.sym
-            x,y,z=atom.coord
-            text+=f'{sym:>3}{x:>10.4f}{y:>10.4f}{z:>10.4f}\n'
-        return text[:-1]
+        return f"{self.core}"
         

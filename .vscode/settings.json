@@ -1,11 +1,14 @@
 {
-    "Codegeex.RepoIndex": true,
-    "python.analysis.extraPaths": [
-        "d:/code/pywfn"
-    ],
-    "python.analysis.autoImportCompletions": false,
-    "python.analysis.diagnosticMode": "workspace",
-    "python.analysis.exclude": [
-        "**/protos/**/*.*"
-    ]
+  "Codegeex.RepoIndex": true,
+  "python.analysis.extraPaths": ["d:/code/pywfn"],
+  "python.analysis.autoImportCompletions": false,
+  "python.analysis.diagnosticMode": "workspace",
+  "python.analysis.exclude": ["**/protos/**/*.*"],
+  "rust-analyzer.linkedProjects": [
+    "d:/code/rswfn/Cargo.toml",
+    "d:/code/pywfn/Cargo.toml"
+  ],
+  "python-envs.defaultEnvManager": "ms-python.python:conda",
+  "python-envs.defaultPackageManager": "ms-python.python:conda",
+  "python-envs.pythonProjects": []
 }

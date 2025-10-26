@@ -1,33 +1,8 @@
 import numpy as np
-import math
 
 from pywfn import config
-from pywfn import base
+# from pywfn.base._mole import Mole
 from pywfn.utils import printer
-
-# 立方格点
-# def cubeGrid_(
-#     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
-# ):
-#     """生成网格数据点,range:生成数据的范围
-#     getN:是否获取每个维度的数量
-#     getR:是否获取每个维度的长度
-#     """
-#     from pywfn.maths import flib
-#     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
-#     p0 =p0.copy()- bord
-#     p1 =p1.copy()+ bord
-#     x0, y0, z0 = p0
-#     x1, y1, z1 = p1
-#     lx,ly,lz=dp=p1-p0
-#     assert dp.min() > 0 , "x输入的坐标范围错误"
-#     Nx=int((x1-x0)/step)+1
-#     Ny=int((y1-y0)/step)+1
-#     Nz=int((z1-z0)/step)+1
-#     print(Nx,Ny,Nz)
-#     grids=flib.grid_pos(Nx,Ny,Nz)
-#     grids=grids*step+p0
-#     return [Nx,Ny,Nz],grids
 
 def cubeGrid(
     p0: np.ndarray, p1: np.ndarray, step: float, bord: float = 0
@@ -36,7 +11,7 @@ def cubeGrid(
     getN:是否获取每个维度的数量
     getR:是否获取每个维度的长度
     """
-    from pywfn.maths import rlib
+    from pywfn import core
     assert isinstance(p0, np.ndarray), "必须是np.ndarray类型"
     p0 =p0.copy()- bord
     p1 =p1.copy()+ bord
@@ -47,9 +22,15 @@ def cubeGrid(
     Nx=int((x1-x0)/step)+1
     Ny=int((y1-y0)/step)+1
     Nz=int((z1-z0)/step)+1
-    print(Nx,Ny,Nz)
-    grids=rlib.get_grids_rs(Nx,Ny,Nz)
-    grids=np.array(grids)
+    xs=np.arange(Nx)
+    ys=np.arange(Ny)
+    zs=np.arange(Nz)
+    XS,YS,ZS=np.meshgrid(xs,ys,zs)
+    grids=np.array([
+        XS.flatten(),
+        YS.flatten(),
+        ZS.flatten()
+    ]).T
     grids=grids*step+p0
     return [Nx,Ny,Nz],grids
 
@@ -174,25 +155,6 @@ def vector_angle(a: np.ndarray, b: np.ndarray) -> float:  # 计算两向量之�
     return float(angle)
 
 
-# def get_normalVector(p1, p2, p3, linear=False):
-#     """
-#     获取三点确定的平面的单位法向量
-#     根据两个向量也可以确定法向量
-#     """
-#     vi = p3 - p2
-#     vj = p1 - p2
-#     n = np.cross(vi, vj)  # 法向量
-#     if (
-#         np.linalg.norm(n) == 0
-#     ):  # 此时说明三个原子在一条直线上，是标准的线型分子，所以不存在法向量
-#         return None
-#     if vector_angle(vi, vj, trans=True) < 0.02 and linear:
-#         return None
-#     if vector_angle(n, config.BASE_VECTOR) > 0.5:
-#         n *= -1
-#     return n / np.linalg.norm(n)  # 返回单位向量
-
-
 def linear_classify(points):  # 将向量分类转为表示角度的数值分类
     nv = points[-1]
     angles = np.array([vector_angle(each, nv) for each in points])
@@ -240,55 +202,26 @@ def get_aroundPoints(p, step):  #
     np.random.shuffle(arounds)
     return p + arounds * step
 
-
-# def get_extraValue(atom: "base.Atom", obt: int, valueType="max"):
+# def search_sp2(idx: int, mole: "Mole") -> int|None:
 #     """
-#     从指定位置开始,利用爬山算法寻找原子波函数极值
-#     maxPos:[3,]
+#     深度优先搜索方法寻找于指定原子相邻最近的sp2 C原子
 #     """
-#     # p0=atom.coord.copy() # 起始点,p是原子坐标不变
-#     # p=p0.copy()
-#     p0 = np.array([0.0, 0.0, 0.0]).reshape(1, 3)
-#     v0 = atom.get_wfnv(p0, obt)  # 计算原子坐标处的初始值
-#     step = 0.1
-#     while True:
-#         aroundPs = get_aroundPoints(p0, step)  # aroundPs:(n,3)
-#         aroundVs = atom.get_wfnv(aroundPs, obt)
-#         if valueType == "max" and np.max(aroundVs) > v0:
-#             maxID = np.argmax(aroundVs)  # 最大值的索引
-#             p0 = aroundPs[maxID]  # 最大值坐标
-#             v0 = aroundVs[maxID]  # 最大值
-#         elif valueType == "min" and np.min(aroundVs) < v0:
-#             minID = np.argmin(aroundVs)
-#             p0 = aroundPs[minID]
-#             v0 = aroundVs[minID]
-#         else:
-#             if step <= 1e-6:
-#                 return p0, v0  #
-#             else:
-#                 step /= 10
+#     atom = mole.atom(idx)
 
+#     searchd = [idx]  # 已经搜索过的
+#     searchs = [a for a in atom.neighbors]  # 将要搜索的
 
-def search_sp2(idx: int, mol: "base.Mole") -> int|None:
-    """
-    深度优先搜索方法寻找于指定原子相邻最近的sp2 C原子
-    """
-    atom = mol.atom(idx)
-
-    searchd = [idx]  # 已经搜索过的
-    searchs = [a for a in atom.neighbors]  # 将要搜索的
-
-    while len(searchs) > 0:
-        idx = searchs.pop(0)  # 弹出第一个
-        atom = mol.atom(idx)
-        if len(atom.neighbors) == 3:
-            return idx
-        searchn = [
-            a for a in mol.atom(idx).neighbors if a not in searchd
-        ]  # 新找到的原子的索引
-        searchs += searchn
-    printer.warn("没有找到sp2类型原子")
-    return None
+#     while len(searchs) > 0:
+#         idx = searchs.pop(0)  # 弹出第一个
+#         atom = mole.atom(idx)
+#         if len(atom.neighbors) == 3:
+#             return idx
+#         searchn = [
+#             a for a in mole.atom(idx).neighbors if a not in searchd
+#         ]  # 新找到的原子的索引
+#         searchs += searchn
+#     printer.warn("没有找到sp2类型原子")
+#     return None
 
 
 def points_rotate(

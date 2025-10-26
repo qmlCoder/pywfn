@@ -1,23 +1,25 @@
 [package]
-name = "wfn-core"
+name = "core"
 version = "0.1.0"
 edition = "2021"
 
 
 [lib]
-path = "librs/rlib.rs"
-name = "rlib"
+path = "librs/lib.rs"
+name = "core"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
 rayon = "1.5.1"
-lazy_static = "1.4.0"
+rswfn = { path = "d:/code/rswfn" }
+pyo3 = { version = "0.25.1", features = ["extension-module"] }
+ndarray = "0.16.1"
 numpy = "0.25.0"
-ndarray = "0.16"
-ndarray-linalg = { version = "0.17.0", features = ["intel-mkl-static"] }
-regex = "1.11.1"
-textwrap = "0.16.2"
+nalgebra = "0.33.2"
 
-[dependencies.pyo3]
-version = "0.25.1"
-features = ["extension-module"]
+[profile.release]
+lto = true
+opt-level = 3
+strip = true      # Ensures debug symbols are removed.
+codegen-units = 1
+panic = "abort"   # Higher performance by disabling panic handlers.

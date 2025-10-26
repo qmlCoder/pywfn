@@ -1,11 +1,12 @@
 """
 mol文件读取器
 """
-import numpy as np
-from numpy import ndarray
+
 from pywfn import reader
 from pywfn.base.geome import Geome
-from functools import lru_cache
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
+from pywfn import core
 
 
 class MolReader(reader.Reader):
@@ -15,22 +16,23 @@ class MolReader(reader.Reader):
         line3=self.getline(3)
         self.natm=int(line3[:3])
         print(self.natm)
+        self.reader=core.reader.MolReader(path) # type: ignore
 
-    def get_geome(self) -> Geome:
-        syms,xyzs=self.read_geome()
-        return Geome().build(syms,xyzs)
+    def get_geome(self) -> "Geome":
+        geome_core=self.reader.get_geome()
+        geome=Geome()
+        geome.core=geome_core
+        return geome
     
-    @lru_cache
-    def read_geome(self):
-        """读取原子坐标"""
-        xyzs=[]
-        syms:list[str]=[]
-        for i in range(4,4+self.natm):
-            line=self.getline(i)[:-1]
-            x=line[ 0:10].strip()
-            y=line[10:20].strip()
-            z=line[20:30].strip()
-            s=line[30:32].strip()
-            xyzs.append([x,y,z])
-            syms.append(s)
-        return syms,np.array(xyzs,dtype=float)*1.889
+    def get_basis(self)->"Basis":
+        basis_core=self.reader.get_basis()
+        basis=Basis()
+        basis.core=basis_core
+        return basis
+    
+    
+    def get_coefs(self)->"Coefs":
+        coefs_core=self.reader.get_coefs()
+        coefs=Coefs()
+        coefs.core=coefs_core
+        return coefs

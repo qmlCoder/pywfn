@@ -1,4 +1,4 @@
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.maths import vector_angle
 
 from pywfn.utils import chkArray
@@ -6,9 +6,9 @@ from pywfn.utils import chkArray
 import numpy as np
 import re
 
-def dihedralAngle(mol:Mole,idxs:list[int]):
+def dihedralAngle(mole:Mole,idxs:list[int]):
     """计算二面角"""
-    a,b,c,d=[mol.atom(idx) for idx in idxs]
+    a,b,c,d=[mole.atom(idx) for idx in idxs]
     vba=a.coord-b.coord
     vbc=c.coord-b.coord
     vcd=d.coord-c.coord
@@ -71,7 +71,7 @@ def projCM(
             CMp[u:l]=mol.CM[u:l].copy()
     return CMp
 
-def hmo(mol:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
+def hmo(mole:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
     """求解休克尔分子轨道法
 
     Args:
@@ -81,17 +81,17 @@ def hmo(mol:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
         tuple[np.ndarray,np.ndarray,np.ndarray]: 距离矩阵，能量，系数矩阵
     """
     from pywfn.atomprop import direction
-    dirCaler=direction.Calculator(mol)
+    dirCaler=direction.Calculator(mole)
     atomBases=dirCaler.hmoBases()
     # 1.建立键连矩阵
-    atms=mol.heavyAtoms # 重原子列表
+    atms=mole.heavyAtoms # 重原子列表
     natm=len(atms) # 重原子数量
     BM=np.zeros(shape=(natm,natm)) # 键连矩阵
     # DM=np.zeros(shape=(natm,natm)) # 距离矩阵
     for i,ai in enumerate(atms):
         for j,aj in enumerate(atms):
             if ai>=aj:continue
-            dist=mol.DM[ai-1,aj-1]
+            dist=mole.DM[ai-1,aj-1]
             if dist>1.7*1.889:continue
             BM[i,j]=1.0
             BM[j,i]=1.0
@@ -111,12 +111,12 @@ def hmo(mol:Mole)->tuple[np.ndarray,np.ndarray,np.ndarray,np.ndarray]:
 def eleMat(mol:Mole)->np.ndarray:
     """计算与分子轨道系数矩阵对应的电子分布矩阵"""
     # 使用法向量可以计算每个分子的pi电子分布
-    from pywfn.maths import rlib
+    from pywfn import core
     obts=mol.O_obts
 
     nobt=len(obts)
     CM=mol.CM.copy()
-    NM=rlib.ele_mat_rs(CM,mol.SM) # type: ignore
+    NM=core.matrix.ele_mat(CM,mol.SM) # type: ignore
     return np.array(NM)*mol.oE
 
 def engMat(mol:Mole,NM:np.ndarray)->np.ndarray:
@@ -131,13 +131,13 @@ def engMat(mol:Mole,NM:np.ndarray)->np.ndarray:
 
 def piEleMat(mol:Mole)->np.ndarray:
     """计算与分子轨道系数矩阵对应的pi电子分布矩阵"""
-    from pywfn.maths import rlib
+    from pywfn import core
     from pywfn.atomprop import direction
     dirCaler=direction.Calculator(mol)
     dirs=[]
     atms=[]
     for i in range(mol.atoms.natm):
-        normal=dirCaler.normal(i+1)
+        normal=dirCaler.normal_vector(i+1)
         if normal is None:continue
         dirs.append(normal)
         atms.append(i+1)
@@ -145,5 +145,5 @@ def piEleMat(mol:Mole)->np.ndarray:
     obts=mol.O_obts+mol.V_obts
     CMp=projCM(mol,obts,atms,dirs,False,False)
     nmat,nobt=CMp.shape
-    NM=rlib.ele_mat_rs(CMp,mol.SM) # type: ignore
+    NM=core.matrix.ele_mat(CMp,mol.SM) # type: ignore
     return np.array(NM)*mol.oE

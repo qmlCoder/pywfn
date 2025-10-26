@@ -1,11 +1,14 @@
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
 from pywfn.base.geome import Geome
 from pywfn.reader import Reader
 import re
 import numpy as np
+from pywfn import core
 
 class WfnReader(Reader):
-    def __init__(self, file: str) -> None:
-        super().__init__(file)
+    def __init__(self, path: str) -> None:
+        super().__init__(path)
         match=re.match(r'GAUSSIAN +(\d)+ +MOL ORBITALS +(\d+) PRIMITIVES +(\d+) NUCLEI',self.getline(1))
         assert match is not None, "Invalid WFN file format"
         print(match.groups())
@@ -13,21 +16,28 @@ class WfnReader(Reader):
         self.nobt=nobt
         self.nbas=nbas
         self.natm=natm
+        self.reader=core.reader.WfnReader(path) # type: ignore
 
-    def get_geome(self) -> Geome:
-        lines=self.getlines(2,2+self.natm)
-        syms=[]
-        xyzs=[]
-        for line in lines:
-            match=re.match(r'^ +([A-Za-z])+ +\d+ +\(CENTRE +\d+\) +(-?\d+.\d+) *(-?\d+.\d+) *(-?\d+.\d+) +CHARGE =  \d+.\d+',line)
-            assert match is not None, "Invalid WFN file format"
-            sym, x, y, z = match.groups()
-            # print(sym,x,y,z)
-            syms.append(sym)
-            xyzs.append([float(x),float(y),float(z)])
-        xyzs=np.array(xyzs)
-        geome=Geome().build(syms,xyzs)
+    def get_geome(self)->"Geome":
+        """获取分子几何信息"""
+        
+        geome_core=self.reader.get_geome()
+        geome=Geome()
+        geome.core=geome_core
         return geome
+    
+    def get_basis(self)->"Basis":
+        basis_core=self.reader.get_basis()
+        basis=Basis()
+        basis.core=basis_core
+        return basis
+    
+    
+    def get_coefs(self)->"Coefs":
+        coefs_core=self.reader.get_ciefs()
+        coefs=Coefs()
+        coefs.core=coefs_core
+        return coefs
     
     def read_basAtms(self):
         """读取每个高斯函数对应的原子"""

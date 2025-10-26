@@ -1,4 +1,4 @@
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.gridprop import density,dftgrid
 from pywfn import gridprop
 import numpy as np
@@ -7,12 +7,12 @@ from pathlib import Path
 
 
 class Calculator(gridprop.SpaceCaler):
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
-        gridCaler=dftgrid.Calculator(mol)
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
+        gridCaler=dftgrid.Calculator(mole)
         gridCaler.nrad=50
-        gridCaler.nsph=74
-        grids,weits=gridCaler.molGrid()
+        gridCaler.fsph=74
+        grids,weits=gridCaler.mol_grids()
         self.grids=grids
         self.weits=weits
 
@@ -27,34 +27,20 @@ class Calculator(gridprop.SpaceCaler):
             vals[i]=val
         return vals
     
-    # def nucPotential_(self,grid:np.ndarray)->np.ndarray: # 计算原子势
-    #     from pywfn.maths import flib
-    #     nucs=np.array(self.mol.atoms.atomics,dtype=np.int64)
-    #     vals=flib.nucPotential(grid,nucs,self.mol.coords)
-    #     return vals
-    
+
     def nucPotential(self,qpos:np.ndarray):
-        from pywfn.maths import rlib
-        nucs=np.array(self.mol.atoms.atomics,dtype=np.float64)
-        xyzs=self.mol.coords
-        vals=rlib.nuc_potential_rs(qpos,xyzs,nucs) # type: ignore
+        from pywfn import core
+        nucs=np.array(self.mole.atoms.atomics,dtype=np.float64)
+        xyzs=self.mole.xyzs
+        vals=core.space.nuc_potential(qpos,xyzs,nucs) # type: ignore
         vals=np.array(vals)
         return vals
     
-    # 静电式是根据电子密度计算出来的，所以控制不同原子的电子密度即可对应不同原子的静电式
-    # 但是貌似不需要计算不同原子的静电式吧？需要的时候再说吧
-    # def elePotential_(self,grid:np.ndarray)->np.ndarray: # 计算电子势
-    #     from pywfn.maths import flib
-    #     densCaler=density.Calculator(self.mol)
-    #     dens,_,_=densCaler.molDens(self.grids,level=0) # 电子密度
-    #     vals=flib.elePotential(grid,self.grids,self.weits,dens)
-    #     return vals
-    
     def elePotential(self,qpos:np.ndarray):
-        from pywfn.maths import rlib
+        from pywfn import core
         densCaler=density.Calculator(self.mol)
         dens,_,_=densCaler.molDens(self.grids,level=0) # 电子密度
-        vals=rlib.ele_potential_rs(qpos,self.grids,self.weits,dens) # type: ignore
+        vals=core.space.ele_potential(qpos,self.grids,self.weits,dens) # type: ignore
         vals=np.array(vals)
         return vals
     

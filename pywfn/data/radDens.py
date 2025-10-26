@@ -1,7 +1,7 @@
 """
 从pywfn中copy的径向坐标和密度
 """
-
+from pywfn import core
 import numpy as np
 
 radDist=[ # 200个点的半径分布，计算指定点电子密度的时候都是位置和数值的插值
@@ -2018,13 +2018,10 @@ radDens={
 
 def get_radDens(atomic:int,dists:np.ndarray):
     """计算某个原子的径向电子密度"""
-    from pywfn.maths import rlib
     rdens=radDens[atomic]
     ndens=len(rdens)
     rdist=radDist[:ndens]
-    rdist=np.array(rdist)
-    rdens=np.array(rdens)
-    fdens=rlib.lag_intpol_rs(rdist,rdens,dists) # type: ignore
+    fdens=core.maths.lag_intpol(rdist,rdens,dists) # type: ignore
     return np.array(fdens)
 
 # Atomic Density Parameters H-Ar 数据来源于  https://pubs.acs.org/doi/suppl/10.1021/ja100936w/suppl_file/ja100936w_si_001.pdf

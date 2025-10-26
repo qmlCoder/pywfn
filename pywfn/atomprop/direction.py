@@ -4,7 +4,7 @@
 - p轨道方向
 - 原子周围一圈方向
 """
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn import maths
 from pywfn.maths import vector_angle,points_rotate,cubeGrid
 from pywfn import config
@@ -12,18 +12,32 @@ import re
 import numpy as np
 from functools import lru_cache
 from collections import deque
+from pywfn import core
 
 maxWeaves={} # 记录已经计算过的原子最大值方向
 
 class Calculator:
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
         self.noNorms=[] # 已经计算过的原子法向量
         self.normals={} # 存储原子的法向量
+        self.caler=core.atomprop.direction.Calculator(mole.mole) # type: ignore # 核心计算器
 
-    def pOrbital(self)->np.ndarray|None:
-        """计算p轨道的方向向量"""
-        pass
+    def normal_vector(self,atm:int):
+        """计算原子的法向量"""
+        return self.caler.normal_vector(atm)
+    
+    def get_normal(self,atm:int):
+        """计算原子的法向量"""
+        return self.caler.get_normal(atm)
+    
+    def local_coord_system(self,atm:int,neb:int|None=None):
+        """计算原子的局部坐标系"""
+        return self.caler.local_coord_system(atm,neb)
+    
+    def reactions(self,atm:int):
+        """计算原子可能的反应方向"""
+        return self.caler.reactions(atm)
     
     @lru_cache
     def maxWeave(self,atm:int,obt:int,sym:str)->np.ndarray|None:
@@ -42,7 +56,7 @@ class Calculator:
             vals=np.zeros(6) # 只计算六个点的波函数值
             for i in idxs: # 遍历所有符合要求的轨道
                 coef=CM[i,obt]
-                wfn=wfnCaler.obtWfns(pos+delPos,[obt])[0]
+                wfn=wfnCaler.obt_wfn(pos+delPos,obt,0)[0]
                 vals+=coef*wfn # 分子轨道=组合系数*原子轨道
 
             maxIdx=np.argmax(vals) # 最大值所在的索引
@@ -50,20 +64,20 @@ class Calculator:
             maxDir=delPos[maxIdx]
             return maxVal,maxDir
         from pywfn.gridprop import wfnfunc
-        wfnCaler=wfnfunc.Calculator(self.mol) # 波函数计算器
+        wfnCaler=wfnfunc.Calculator(self.mole) # 波函数计算器
         step=0.1
-        
-        CM=self.mol.CM.copy()
+
+        CM=self.mole.CM.copy()
         nmat=CM.shape[0]
         idxs=[] # 符合要求的轨道索引
         for i in range(nmat):
-            if self.mol.atoAtms[i]!=atm:continue #不是指定的原子不算
-            obtSym=self.mol.atoSyms[i]
+            if self.mole.atoAtms[i]!=atm:continue #不是指定的原子不算
+            obtSym=self.mole.atoSyms[i]
             if re.match(sym,obtSym) is None:continue # 符号不对不算
             idxs.append(i)
-        
-            
-        pos0=self.mol.atom(atm).coord.copy()
+
+
+        pos0=self.mole.atom(atm).coord.copy()
         # print(pos0)
         val0=-np.inf #起初为负无穷
         for i in range(1000):
@@ -76,7 +90,7 @@ class Calculator:
             else:
                 break
         
-        direction=pos0-self.mol.atom(atm).coord
+        direction=pos0-self.mole.atom(atm).coord
         length=np.linalg.norm(direction)
         if length<1e-8:
             return None
@@ -89,193 +103,17 @@ class Calculator:
         from pywfn.data import lebedev
         lebedev.LD0074()
         
-    @lru_cache
-    def reactions(self,atm:int)->np.ndarray:
-        """ reaction around
-        计算原子可能的反应方向 以原子为中心的向量
-
-        - 直线sp原子，垂直于键轴
-        - 弯曲sp原子，键轴夹角垂面，且与键轴夹角小于90
-        - 平面sp2，垂直于平面的两个方向
-        - 弯曲sp2，垂直于平面，且与键轴之间夹角大于90°
-        """
-        def get_anyv(axis:np.ndarray): # 获取任意向量，但也不是真的任意
-            for i in range(3):
-                anyv=np.zeros(3)
-                anyv[i]=1.0
-                if vector_angle(anyv,axis)>1e-1:
-                    return anyv
-            raise ValueError("no anyv")
-        atom=self.mol.atom(atm)
-        nebs=atom.neighbors
-        if len(nebs)==1:
-            dirs=np.array([self.normal(atm)])
-            return dirs
-        if len(nebs)==2: # 两个原子的时候，代表卡宾C原子，在整个区域内分布
-            ia,ib=nebs
-            va=self.mol.atom(ia).coord-atom.coord
-            vb=self.mol.atom(ib).coord-atom.coord
-            va/=np.linalg.norm(va)
-            vb/=np.linalg.norm(vb)
-            vm=(va+vb)/2.0 # 中间向量
-
-            angle=vector_angle(va,vb) # 两向量之间的夹角
-            linear=abs(1-angle)<2e-2 # 是否为线性
-            cent=atom.coord # 旋转中心，原子所在坐标
-            # print('线性:',linear,abs(1-angle))
-            
-            if linear:
-                axis=va-vb # 旋转轴
-                anyv=get_anyv(axis) # 保证相同分子每次计算结果都一致
-                cros=np.cross(axis,anyv) # 计算垂直于键轴和任意向量的向量
-                cros/=np.linalg.norm(cros)
-                angs=np.linspace(0,np.pi*2,35,endpoint=False)
-                points=(cent+cros).reshape(-1,3)
-                dirs=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
-                dirs=np.concatenate(dirs,axis=0)
-            else:
-                cros=np.cross(va,vb) # 垂直于va和vb的向量
-                angs=np.linspace(0,np.pi,19,endpoint=True)
-                cros/=np.linalg.norm(cros)
-                points=(cent+cros).reshape(-1,3)
-                dirs=[]
-                for axis in (va,va-vb,-vb):
-                    dirs+=[points_rotate(points,cent,axis,ang)-cent for ang in angs]
-                dirs=np.concatenate(dirs,axis=0)
-                if vector_angle(va+vb,dirs[28])<0.5:dirs*=-1
-            return dirs
-        if len(nebs)==3:
-            pa,pb,pc=[self.mol.atom(n).coord for n in nebs]
-            va,vb,vc=[p-atom.coord for p in (pa,pb,pc)]
-            params=maths.get_plane_by_3points(pa,pb,pc)
-            distan=maths.get_distance_to_plane(params,atom.coord)
-            planer=distan<1e-1 # 是否为平面
-            a,b,c,_=params
-            normal=np.array([a,b,c])
-            normal=normal/np.linalg.norm(normal)
-            
-            if planer:
-                return np.array([normal,-normal])
-            else:
-                vmena=(va+vb+vc)/3.0
-                angle=vector_angle(vmena,normal)
-                if angle<0.5:normal*=-1
-                vects=[normal]
-                return np.array(vects)
-        
-        raise ValueError(f"原子{atm}未定义可能的反应方向!")
-    
-    def normal(self,atm:int)->np.ndarray|None:
-        """计算原子的法向量
-
-        Args:
-            atm (int): 指定原子索引
-
-        Returns:
-            np.ndarray|None: 原子法向量，可能没有(None)
-        """
-        
-        def deep_search(atm:int):
-            atom=self.mol.atom(atm)
-            searchd=[atm] # 已经搜索的原子
-            searchs=list(atom.neighbors) # 将要搜索的原子
-            while len(searchs)>0: # 遍历相邻原子
-                atm=searchs.pop(0) # 从待搜索中弹出一个
-                searchd.append(atm)
-                normal=self.get_normal(atm)
-                if normal is not None:
-                    return normal
-                else:
-                    for each in self.mol.atom(atm).neighbors:
-                        if each in searchd:continue
-                        if each in searchs:continue
-                        searchs.append(each)
-            return None
-        
-        normal=self.get_normal(atm)
-        if normal is None:
-            return deep_search(atm)
-        else:
-            return normal
-    
-    def get_normal(self,atm):
-        atom=self.mol.atom(atm)
-        nebs=atom.neighbors
-        if atm in self.normals.keys(): # 方便用户指定
-            return self.normals[atm]
-        if len(nebs)==1: # 如果只连接一个原子
-            return None
-        if len(nebs)==2:
-            ia,ib=nebs
-            va=self.mol.atom(ia).coord-atom.coord
-            vb=self.mol.atom(ib).coord-atom.coord
-            angle=vector_angle(va,vb)
-            # linear=abs(1-angle)<1e-1
-            if atom.is_linear:
-                return None
-            else:
-                va/=np.linalg.norm(va)
-                vb/=np.linalg.norm(vb)
-                normal=np.cross(va,vb)
-                normal/=np.linalg.norm(normal)
-                if vector_angle(config.BASE_VECTOR,normal)>0.5:normal*=-1
-                self.normals[atm]=normal
-                return normal
-        if len(nebs)==3:
-            pa,pb,pc=[self.mol.atom(n).coord.copy() for n in nebs]
-            vab=pb-pa
-            vac=pc-pa
-            vab/=np.linalg.norm(vab)
-            vac/=np.linalg.norm(vac)
-            normal=np.cross(vab,vac)
-            normal/=np.linalg.norm(normal)
-            A,B,C=normal
-            cx,cy,cz=(pa+pb+pc)/3 # 三个点的中心坐标
-            D=-A*cx+B*cy+C*cz # 平面方程
-            ax,ay,az=atom.coord # 原子坐标
-            dist=abs(A*ax+B*ay+C*az+D)/np.sqrt(A**2+B**2+C**2) # 原子到平面的距离
-            if(dist<1e-1): # 如果在平面上
-                angle=vector_angle(config.BASE_VECTOR,normal)
-                if angle>0.5:normal*=-1
-                self.normals[atm]=normal
-            else:
-                vect=atom.coord-np.array([cx,cy,cz])
-                angle=vector_angle(vect,normal)
-                if angle>0.5:normal*=-1 # 如果在平面上，法向量和原子到平面的向量夹角大于90°，则法向量反向
-                self.normals[atm]=normal
-            return normal
-        return None
-
-    def coordSystem(self,atm:int,neb:int)->np.ndarray:
-        """原子之上建立一组基坐标
-        - x方向: atm -> beb
-        - z方向: atm的法向量
-        - y方向: y.z叉乘方向
-
-        Args:
-            atm (int): 要计算的原子索引
-            neb (int): 相邻的原子索引
-
-        Returns:
-            np.ndarray: 坐标系,每一列代表一组基坐标
-        """
-        vx=self.mol.atom(neb).coord-self.mol.atom(atm).coord
-        vx/=np.linalg.norm(vx)
-        vz=self.normal(atm)
-        vy=np.cross(vx,vz) # type: ignore
-        return np.array([vx,vy,vz]).T
-    
     def bases(self)->dict[int,np.ndarray]:
         """
         计算每个原子的局部基坐标[natm,3,3]，每一列代表一个基向量
         """
-        atms=self.mol.heavyAtoms
+        atms=self.mole.heavyAtoms
         # base=np.zeros(shape=(natm,3,3))
         base={}
         for i,atm in enumerate(atms):
-            atom=self.mol.atom(atm)
+            atom=self.mole.atom(atm)
             nebs=atom.neighbors # 相邻的原子
-            norm=self.normal(atom.idx) # 原子法向量
+            norm=self.normal_vector(atom.idx) # 原子法向量
             if norm is None:
                 if atom.is_linear:
                     atm1,atm2=atom.neighbors
@@ -284,7 +122,7 @@ class Calculator:
                     atm2=atm
                 else:
                     raise ValueError(f"原子{atm}无法给定法向量")
-                vx=self.mol.atom(atm1).xyz-self.mol.atom(atm2).xyz
+                vx=self.mole.atom(atm1).xyz-self.mole.atom(atm2).xyz
                 vx/=np.linalg.norm(vx)
                 randVect=np.random.rand(3)
                 randVect/=np.linalg.norm(randVect)
@@ -292,7 +130,7 @@ class Calculator:
                 norm/=np.linalg.norm(norm)
                 self.normals[atm]=norm
             # print(atm,norm)
-            cent=self.mol.coords[[e-1 for e in nebs],:].copy().mean(axis=0) # 邻居原子坐标的平均值
+            cent=self.mole.xyzs[[e-1 for e in nebs],:].copy().mean(axis=0) # 邻居原子坐标的平均值
             vect=atom.coord-cent # 原子到邻居原子的向量
             
             vz=norm/np.linalg.norm(norm) # 单位法向量
@@ -300,7 +138,7 @@ class Calculator:
             if atom.is_linear:
                 # print(f'原子{atom.idx}是线性的')
                 idx1,idx2=nebs
-                vx=self.mol.atom(idx1).coord-self.mol.atom(idx2).coord
+                vx=self.mole.atom(idx1).coord-self.mole.atom(idx2).coord
                 vx/=np.linalg.norm(vx)
             else:
                 dist=np.linalg.norm(vect)
@@ -320,7 +158,7 @@ class Calculator:
     def hmoBases(self)->dict[int,np.ndarray]:
         """休克尔分子轨道法原子的方向"""
         from pywfn.orbtprop import popul
-        NM=popul.Calculator(self.mol).piEleMatDecom('atom',False)
+        NM=popul.Calculator(self.mole).piEleMatDecom('atom',False)
         eles=np.sum(NM,axis=0)
         piIdx=0 # 第一个pi分子轨道的索引
         for i,each in enumerate(eles):
@@ -328,15 +166,15 @@ class Calculator:
             piIdx=i
             break
 
-        atms=self.mol.heavyAtoms
+        atms=self.mole.heavyAtoms
         base={}
         for i,atm in enumerate(atms):
-            atom=self.mol.atom(atm)
-            norm=self.normal(atom.idx) # 原子法向量
+            atom=self.mole.atom(atm)
+            norm=self.normal_vector(atom.idx) # 原子法向量
             if norm is None:continue
             u,l=atom.obtBorder
-            coefs=self.mol.CM[u:l,piIdx]
-            syms=self.mol.atoSyms[u:l]
+            coefs=self.mole.CM[u:l,piIdx]
+            syms=self.mole.atoSyms[u:l]
             piCoefs=[]
             for s,c in zip(syms,coefs):
                 if 'P' not in s:continue
@@ -352,38 +190,22 @@ class Calculator:
             base[atm]=np.array([vx,vy,vz]).T # 原子局部坐标系的基坐标向量
         return base
 
-
-# def search_sp2Dir(v0,v1,v2,v3):
-#     """找到与va夹角为90°，且与vb,vc夹角相同的向量
-#     """
-#     def loss_fn(v):
-#         a1=vector_angle(v,v1)
-#         a2=vector_angle(v,v2)
-#         a3=vector_angle(v,v3)
-#         return (a1-0.5)**2+(a2-a3)**2
-#     def grad_fn(v):
-#         loss=loss_fn(v)
-#         grad=np.zeros(3)
-#         for i in range(3):
-#             dv=np.zeros(3)
-#             dv[i]=1e-3
-#             grad[i]=(loss_fn(v+dv)-loss)/1e-3
-#         return grad
-
-#     step=1.0
-#     loss0=np.inf
-#     for i in range(1000):
-#         grad=grad_fn(v0)
-#         vn=v0-step*grad
-#         vn/=np.linalg.norm(vn)
-#         loss=loss_fn(vn)
-#         # print(i,loss,step,grad)
-#         if loss<loss0:
-#             loss0=loss
-#             v0=vn
-#         else:
-#             if step<1e-6:
-#                 break
-#             else:
-#                 step/=10
-#     return v0
+    # 线性原子环轴一圈的方向
+    def linearAtomCircle(self,atm:int):
+        from pywfn.maths import points_rotate
+        atom=self.mole.atom(atm)
+        if not atom.is_linear:return None
+        a1,a2=atom.neighbors
+        bondDir=self.mole.atom(a1).coord-self.mole.atom(a2).coord
+        bondDir/=np.linalg.norm(bondDir)
+        anyDir=np.random.rand(3)
+        anyDir/=np.linalg.norm(anyDir)
+        vertDir=np.cross(bondDir,anyDir)
+        vertDir/=np.linalg.norm(vertDir)
+        points=(atom.coord+vertDir).reshape(1,3)
+        center=atom.coord.copy().reshape(1,3)
+        dirs=[]
+        for i in range(36):
+            rotated_point=points_rotate(points,center,bondDir,np.pi*2/36*i)
+            dirs.append(rotated_point.flatten()-atom.coord)
+        return np.array(dirs)

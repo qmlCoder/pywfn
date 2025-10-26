@@ -1,12 +1,11 @@
 """
 键级也不止一种，都在这里实现吧
 """
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.atomprop import direction
 from pywfn.maths import CM2PM
 from pywfn.maths.mol import hmo,projCM
 from pywfn.utils import printer
-from pywfn.cli import Shell
 from pywfn.bondprop import lutils
 
 import numpy as np
@@ -15,10 +14,13 @@ from pywfn import config
 from collections import defaultdict
 from itertools import product
 from pywfn.utils import chkArray
+from pywfn import core
+from pywfn.moleprop.orbital import Deco
 
 class Calculator:
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
+        self.caler=core.bondprop.order.Calculator(mol.mole) # type: ignore # 核心计算器
 
     # mayer键级
     def mayer(self)->tuple[list[tuple[int,int]],np.ndarray]:
@@ -31,19 +33,12 @@ class Calculator:
         Returns:
             np.ndarray: 所有键的键级，形状为:[d,3](a1,a2,order)
         """
-        # 获取密度矩阵 P
-        PM=self.mol.PM
-        # 获取重叠矩阵 S
-        SM=self.mol.SM
-        atmuls=self.mol.atoms.atmuls
-        bonds=self.mol.bonds.ats
-        orders=lutils.mayer(PM,SM,atmuls,bonds)
-        return bonds,orders
+        return self.caler.mayer()
     
     def MCBO(self,atms:list[int])->float:
         """计算多中心键级"""
-        PS=self.mol.PM@self.mol.SM
-        uls=[range(*self.mol.atom(atm).obtBorder)for atm in atms]
+        PS=self.mole.PM@self.mole.SM
+        uls=[range(*self.mole.atom(atm).obtBorder)for atm in atms]
         result=0.0
         for each in product(*uls):
             val=1.0
@@ -57,7 +52,7 @@ class Calculator:
         result=unit*abs(result)**(1/len(atms))
         return result.item()
     
-    def dirOrder(self,bond:tuple[int,int],dir_:np.ndarray,aleep=False,lkeep=False)->float:
+    def pocv(self,dirs:dict[int,list[float]],keep_other_atm:bool,keep_other_sym:bool)->float:
         """计算带有方向的Mayer键级，指定一个键的多个方向
 
         Args:
@@ -66,71 +61,33 @@ class Calculator:
         Returns:
             np.ndarray: 返回数组形状为:[d,6](a1,a2,x,y,z,v),其中d为键级方向数量
         """
-        obts=self.mol.O_obts
-        a1,a2=bond
-        CMp=projCM(self.mol,obts,[a1,a2],np.array([dir_,dir_]),False,False)
-        PMp=CM2PM(CMp,self.mol.O_obts,self.mol.oE)
-        orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
-        for (a1_,a2_),order in zip(self.mol.bonds.ats,orders):
-            if a1!=a1_ or a2!=a2_:continue
-            return order.item()**0.5
-        raise ValueError(f"没有找到键级，bond={bond},dir={dir_}")
+        return self.caler.pocv(dirs,keep_other_atm,keep_other_sym,"mayer") # type: ignore
     
-    def boundOrder(self,atm:int,dir_:np.ndarray)->tuple[list[tuple[int,int]],np.ndarray]:
+    def deco(self,decos:dict[int,Deco],ctype:str='mulliken'):
+        """分解键级"""
+        return self.caler.deco(decos,ctype)
+    
+    def bound(self,atm:int,dir:list[float])->tuple[list[tuple[int,int]],np.ndarray]:
         """计算与指定原子相邻的键的束缚键级，束缚键级投影指定原子，保留邻接原子，清除其它原子
 
         Args:
             atm (int): 指定原子编号
-            dir_ (np.ndarray): 指定原子投影的方向，形状为[3,](x,y,z)
+            dir (list[float]): 指定原子投影的方向，形状为[3,](x,y,z)
 
         Returns:
             np.ndarray: 束缚键级`[a1,a2,x,y,z,val]`
         """
-        chkArray(dir_,shape=[3,])
-        if config.SHOW_LEVEL>=1:
-            printer.info(f'计算原子{atm}的束缚键级')
-        nebs=list(self.mol.atom(atm).neighbors)
-        obts=self.mol.O_obts
-        result=[]
-        bonds=[]
-        CMp=projCM(self.mol,obts,[atm],dir_.reshape(1,3),True,True,akeeps=nebs)
-        PMp=CM2PM(CMp,obts,self.mol.oE)
-        orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
-        for (a1,a2),val in zip(self.mol.bonds.ats,orders):
-            if int(a1) not in nebs+[atm]:continue
-            if int(a2) not in nebs+[atm]:continue
-            bonds.append((a1,a2))
-            result.append(val)
-            if config.SHOW_LEVEL>=1:
-                print(f"{a1}{a2}{val}")
-        result=np.array(result)
-        return bonds,result
+        return self.caler.bound(atm,dir)
     
-    def piOrder_pocv(self)->tuple[list[tuple[int,int]],np.ndarray]:
+    def pi_pocv(self):
         """计算分子的所有pi键键级，每个可能的pi键计算出一个键级
-
-        Returns:
-            np.ndarray: 返回ndarray数组
         """
-        dirCaler=direction.Calculator(self.mol)
-        atms=[]
-        dirs=[]
-        for atom in self.mol.atoms:
-            normal=dirCaler.normal(atom.idx) # 原子的法向量
-            if normal is None:continue
-            atms.append(atom.idx)
-            dirs.append(normal)
-        dirs=np.array(dirs)
-        PMp=projCM(self.mol,self.mol.O_obts,atms,dirs,False,False)
-        PMp=CM2PM(PMp,self.mol.O_obts,self.mol.oE)
-        
-        bonds=self.mol.bonds.ats
-        orders=lutils.mayer(PMp,self.mol.SM,self.mol.atoms.uls,self.mol.bonds.ats)
-        orders[orders<0]=0
-        orders=np.sqrt(orders)
-        return bonds,orders
+        return self.caler.pi_pocv() # type: ignore
+    
+    def pi_deco(self):
+        return self.caler.pi_deco() # type: ignore
 
-    def piOrder_smo(self,bond:tuple[int,int])->float:
+    def pi_smo(self,bond:tuple[int,int])->float:
         """根据分子轨道挑选法计算pi键级
 
         Args:
@@ -143,11 +100,11 @@ class Calculator:
         from pywfn.maths.atom import get_sCont
         from pywfn.maths import vector_angle
         from pywfn.gridprop import density
-        dirCaler=direction.Calculator(self.mol)
-        densCaler=density.Calculator(self.mol)
+        dirCaler=direction.Calculator(self.mole)
+        densCaler=density.Calculator(self.mole)
         atm1,atm2=bond
-        atom1=self.mol.atom(atm1)
-        atom2=self.mol.atom(atm2)
+        atom1=self.mole.atom(atm1)
+        atom2=self.mole.atom(atm2)
         if atom1.symbol=='H' or atom2.symbol=='H':
             return 0
         # 根据键轴上的电子密度判断
@@ -156,8 +113,8 @@ class Calculator:
         dens=densCaler.molDens(np.array([RA,RB]),0)[0]
         if np.max(dens)<0.01:
             return 0
-        obts=self.mol.O_obts
-        CMs=np.zeros_like(self.mol.CM) # 拷贝一份，然后将不是π轨道的那些变成0
+        obts=self.mole.O_obts
+        CMs=np.zeros_like(self.mole.CM) # 拷贝一份，然后将不是π轨道的那些变成0
 
         piObts=[]
         for atom in [atom1,atom2]: # 修改每个原子对应的系数矩阵
@@ -168,8 +125,8 @@ class Calculator:
                 # judgeRes=lutils.judgeOrbital(self.mol,atm1,atm2,obt,dirCaler,densCaler)
                 
                 # 1. 根据s轨道和p轨道的贡献
-                sContCenter=get_sCont(self.mol,atm1,obt)
-                sContAround=get_sCont(self.mol,atm1,obt)
+                sContCenter=get_sCont(self.mole,atm1,obt)
+                sContAround=get_sCont(self.mole,atm1,obt)
                 # print('s轨道贡献:',sContCenter,sContAround)
                 if sContCenter>0.01 or sContAround>0.01:
                     continue
@@ -181,7 +138,7 @@ class Calculator:
                 
                 if cenDir is None and aroDir is None:
                     continue
-                normal=dirCaler.normal(atm1)
+                normal=dirCaler.normal_vector(atm1)
                 if cenDir is None: cenDir=normal
                 if aroDir is None: aroDir=normal
                 centerAngle=vector_angle(cenDir,normal) # type: ignore # 计算分子平面和p轨道方向的夹角
@@ -199,13 +156,13 @@ class Calculator:
 
                 # CMs[u1:l1,obt]=self.mol.CM[u1:l1,obt]
                 # CMs[u2:l2,obt]=self.mol.CM[u2:l2,obt]
-                CMs[u:l,obt]=self.mol.CM[u:l,obt].copy()
+                CMs[u:l,obt]=self.mole.CM[u:l,obt].copy()
                 piObts.append(obt)
         print(f'挑选的pi轨道有：{set(piObts)}')
-        oe=self.mol.oE
+        oe=self.mole.oE
         PMs=lutils.CM2PM(CMs,obts,oe)
-        SM=self.mol.SM
-        result=lutils.mayer(PMs,SM,self.mol.atoms.atmuls,[bond])
+        SM=self.mole.SM
+        result=lutils.mayer(PMs,SM,self.mole.atoms.atmuls,[bond])
         return result[0].item()
 
     def HMO(self)->tuple[list[tuple[int,int]],np.ndarray]:
@@ -214,9 +171,9 @@ class Calculator:
         Returns:
             np.ndarray: HMO键级
         """
-        atms=self.mol.heavyAtoms
+        atms=self.mole.heavyAtoms
         natm=len(atms)
-        BM,es,CM,occs=hmo(self.mol)
+        BM,es,CM,occs=hmo(self.mole)
         nmat=CM.shape[0]
         CM[:,nmat//2:]=0 
         orders=[]
@@ -225,94 +182,10 @@ class Calculator:
             for j,aj in enumerate(atms):
                 if i>=j:continue
                 if BM[i,j]==0:continue
-                dist=self.mol.DM[ai-1,aj-1]
+                dist=self.mole.DM[ai-1,aj-1]
                 if dist>1.7*1.8897:continue
                 order=np.sum(CM[i,:]*CM[j,:])*2
                 bonds.append((ai,aj))
                 orders.append(order)
         orders=np.array(orders)
         return bonds,np.abs(orders)
-
-    
-    
-    # 分解键级
-    def decompose(self,bond:tuple[int,int],dobt:int=-1):
-        """
-        键级分解，将两个原子的轨道分解到指定的局部坐标系中，然后根据每种键的重叠模式计算键级
-        将原子轨道基函数的系数按照角动量进行分组
-        atm1,atm2:组成键的两个原子
-        keeps:每个角动量保留第几个系数，例如{1:[2]}代表p轨道只保留pz
-        """
-        from pywfn.orbtprop.decom import decomOrbitals
-        from pywfn.atomprop import direction
-        dirCaler=direction.Calculator(self.mol) # 方向计算器
-        # 计算出两个坐标系
-        atm1,atm2=bond
-        T1=dirCaler.coordSystem(atm1,atm2) # 两个原子的局部坐标系
-        T2=dirCaler.coordSystem(atm2,atm1)
-        Ts=[T1,T2]
-        
-        nmat=self.mol.CM.shape[0]
-        if dobt==-1:
-            keepList=[
-                [[1],[1,0,0],[1,1,1,0,0,0]],
-                [[0],[0,0,1],[0,0,0,0,1,0]],
-                [[0],[0,1,0],[0,0,0,1,0,0]],
-                [[0],[0,0,0],[0,0,0,0,0,1]],
-            ]
-            
-        elif dobt==0:
-            keepList=[
-                [[1],[1,0,0],[0,0,0,0,0,0]],
-                [[0],[0,0,1],[0,0,0,0,0,0]],
-                [[0],[0,1,0],[0,0,0,0,0,0]],
-                [[0],[0,0,0],[0,0,0,0,0,0]],
-            ]
-        elif dobt==1:
-            keepList=[
-                [[1],[1,0,0],[1,1,1,1,1,1]],
-                [[0],[0,0,1],[1,1,1,1,1,1]],
-                [[0],[0,1,0],[1,1,1,1,1,1]],
-                [[0],[0,0,0],[1,1,1,1,1,1]],
-            ]
-        else:
-            raise ValueError("dobt must be 0 or 1 or -1")
-        CMs=[]
-        result=[]
-        for k,keeps in enumerate(keepList):
-            CMt=np.zeros_like(self.mol.CM) # 变换矩阵初始化
-            for o in self.mol.O_obts:
-                coefDict=defaultdict(list) # 系数字典
-                for i in range(nmat):
-                    iatm=self.mol.atoAtms[i]
-                    ishl=self.mol.atoShls[i]
-                    iang=self.mol.atoAngs[i]
-                    key=(iatm,ishl,iang)
-                    coefDict[key].append(self.mol.CM[i,o])
-
-                for key,val in coefDict.items():
-                    iatm,ishl,iang=key
-                    rcoefs=np.array(val) # 原始系数
-                    if iatm in bond:
-                        T=Ts[bond.index(iatm)]
-                        tcoefs=decomOrbitals(T,rcoefs,keeps[iang],dtype='bond')
-                    else:
-                        tcoefs=rcoefs
-                    assert len(rcoefs)==len(tcoefs),"长度对不上"
-                    
-                    coefDict[key]=tcoefs.tolist() # type: ignore
-                values=list(coefDict.values())
-                CMt[:,o]=np.concatenate(values)
-            CMs.append(CMt)
-            PMt=CM2PM(CMt,self.mol.O_obts,self.mol.oE) # 变换的密度矩阵
-            bonds=self.mol.bonds.ats
-            orders=lutils.mayer(PMt,self.mol.SM,self.mol.atoms.uls,bonds)
-            orders[orders<0]=0
-            orders=orders**0.5
-            for (a1,a2),val in zip(bonds,orders):
-                if a1 not in bond:continue
-                if a2 not in bond:continue
-                result.append(val)
-                break
-        # print(np.array(CMs).sum(axis=0)-self.mol.CM)
-        return np.array(result)

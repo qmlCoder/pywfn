@@ -12,9 +12,8 @@
 """
 import numpy as np
 from functools import lru_cache,cached_property
-
+from pywfn import core
 from pywfn import base
-
 from pywfn.data import bastrans as bt
 
 
@@ -116,6 +115,7 @@ class Coefs:
         self.obtOccs:None|list[bool]  = None # 根据α和β电子数计算得到
         self._CM:np.ndarray|None = None # 原始的系数
         self.name='Canonical'
+        self.core=core.base.Coefs() # type: ignore
         
         # raw:原始系数，car:笛卡尔系数，sph:球谐系数
 
@@ -287,7 +287,6 @@ class Coefs:
     
     @property
     def SM_car(self):
-        from pywfn.maths import rlib
         assert self.mol is not None,"未初始化分子"
         atos,coes,alps,lmns=self.mol.basis.basMap()
         xyzs=self.atoXyzs('car')
@@ -299,7 +298,11 @@ class Coefs:
             alp=alps[i]
             Nm=(2.*alp/np.pi)**0.75*np.sqrt((4.*alp)**ang/fac)
             coes[i]=Nm*coes[i]
-        SM=rlib.mat_integ_rs(atos,coes,alps,lmns,xyzs) # type: ignore
+        for i in range(len(coes)):
+            print(f"{atos[i]:>5}{alps[i]:>10.4f}{coes[i]:>10.4f}{lmns[i]}")
+        for xyz in xyzs:
+            print(xyz)
+        SM=core.integ.mat_integ(atos,coes,alps,lmns,xyzs) # type: ignore
         SM=np.array(SM)
         return SM
 
@@ -388,37 +391,4 @@ class Coefs:
         return X.T@CM
     
     def __repr__(self) -> str:
-        nato,nobt=self.get_CM('raw').shape
-        assert self.obtEngs is not None,"未初始化obtEngs"
-        assert self.obtOccs is not None,"未初始化obtOccs"
-        assert self._atoAtms is not None,"未初始化_atoAtms"
-        assert self._atoShls is not None,"未初始化_atoShls"
-        assert self._atoSyms is not None,"未初始化_atoSyms"
-        engs=self.obtEngs
-        occs=['O' if e else 'V' for e in self.obtOccs]
-        atms=self._atoAtms
-        shls=self._atoShls
-        syms=self._atoSyms
-        
-        obtIdxs=[0,1,2,3,4]+[nobt-(5-e) for e in range(5)]
-        atoIdxs=[0,1,2,3,4]+[nato-(5-e) for e in range(5)]
-        text=' '*14
-        for i,obt in enumerate(obtIdxs):
-            text+=f'{occs[obt]:>10}'
-            if i==4:text+=f"{'.....':>10}"
-        text+='\n'
-        text+=' '*15
-        for i,obt in enumerate(obtIdxs):
-            text+=f'{engs[obt]:>10.4f}'
-            if i==4:text+=f"{'.....':>10}"
-        text+='\n'
-        CM=self.get_CM('raw')
-        for j,ato in enumerate(atoIdxs):
-            if j==4:text+=(" "*15+"     ....."*11+'\n')
-            text+=f"{atms[ato]:>5}{shls[ato]:>5}{syms[ato]:>5}"
-            for i,obt in enumerate(obtIdxs):
-                text+=f'{CM[ato,obt]:>10.4f}'
-                if i==4:text+=f"{'.....':>10}"
-            text+='\n'
-
-        return text
+        return f"{self.core}"

@@ -6,9 +6,9 @@
 from pathlib import Path
 import numpy as np
 
-from pywfn.base import Mole
-from pywfn.reader import GjfReader
-from pywfn.writer import GjfWriter
+from pywfn.base.mole import Mole
+from pywfn.reader.gjf import GjfReader
+from pywfn.writer.gjf import GjfWriter
 from pywfn.editor import Editor
 from pywfn.data import temps
 from pywfn.data.elements import elements
@@ -32,7 +32,7 @@ class Tool:
         mol=Mole(GjfReader(path))
         for ring in rings:
             idxs=[atm-1 for atm in ring]
-            x,y,z=np.mean(mol.coords[idxs,:],axis=0)
+            x,y,z=np.mean(mol.xyzs[idxs,:],axis=0)
             mol.geome.addAtom('Bq',np.array([x,y,z]))
         writer=GjfWriter().fromMol(mol)
         writer.title=title
@@ -40,18 +40,18 @@ class Tool:
         text=writer.build()
         return text
     
-    def scan_bond(self,path:str,atm1:int,atm2:int,step:int,size:float):
-        reader=GjfReader(path)
-        mol=Mole(reader)
-        editor=Editor(mol)
-        writer=GjfWriter().fromMol(mol)
-        gjfs=[]
-        for i in range(step):
-            rmol=editor.rotate_bond(atm1,atm2,i*size)
-            writer=GjfWriter().fromMol(rmol)
-            gjfs.append(writer.build())
-        text='--Link1--\n\n'.join(gjfs)
-        return text
+    # def scan_bond(self,path:str,atm1:int,atm2:int,step:int,size:float):
+    #     reader=GjfReader(path)
+    #     mole=Mole(reader)
+    #     editor=Editor(mole)
+    #     writer=GjfWriter().fromMol(mole)
+    #     gjfs=[]
+    #     for i in range(step):
+    #         rmol=editor.rotate_bond(atm1,atm2,i*size)
+    #         writer=GjfWriter().fromMol(rmol)
+    #         gjfs.append(writer.build())
+    #     text='--Link1--\n\n'.join(gjfs)
+    #     return text
     
     def addElec(self,path:str,delta:int):
         """分子加减电子，影响电荷，加一个电子电荷变为-1

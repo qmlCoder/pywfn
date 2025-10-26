@@ -1,13 +1,11 @@
 [build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
+requires = ["maturin>=1.0,<2.0"]
+build-backend = "maturin"
 
 [project]
 name = "pywfn"
 version = "1.0.8"
-authors = [
-  { name="shixiaofei", email="1103275712@qq.com" },
-]
+authors = [{ name = "shixiaofei", email = "1103275712@qq.com" }]
 description = "A python package for wave function analysis"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -21,11 +19,7 @@ classifiers = [
 license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["chemistry", "wave function"]
-dependencies = [
-    "numpy>=2.2.3",
-    "rich>=13.9.4",
-    "matplotlib>=3.10.1"
-]
+dependencies = ["numpy>=2.2.3", "rich>=13.9.4", "matplotlib>=3.10.1"]
 [project.scripts]
 pywfn = "pywfn:main"
 
@@ -33,20 +27,6 @@ pywfn = "pywfn:main"
 Homepage = "https://github.com/qmlCoder/pywfn"
 Issues = "https://github.com/qmlCoder/pywfn/issues"
 
-[tool.hatch.build.targets.sdist]
-include = [
-    "pywfn/**/*.py",      # 包含所有 Python 文件
-]
-artifacts = [
-    "pywfn/maths/*.pyd",
-    "pywfn/maths/*.so",
-    "pywfn/maths/*.dll"
-]
-
-[tool.hatch.build.targets.wheel]
-packages=["pywfn"]
-artifacts = [
-    "pywfn/maths/*.pyd",
-    "pywfn/maths/*.so",
-    "pywfn/maths/*.dll"
-]
+[tool.maturin]
+# python-source = "pywfn"
+module-name = "pywfn.core"

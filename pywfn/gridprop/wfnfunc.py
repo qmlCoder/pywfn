@@ -5,108 +5,23 @@
 原子的波函数
 """
 from pywfn.base import Mole
-from pywfn import maths
 import numpy as np
-from pywfn.maths import cubeGrid
-from pywfn.gridprop import lutils
 from pywfn import gridprop
+from pywfn import core
 
 Array=np.ndarray
 
 class Calculator(gridprop.SpaceCaler):
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
-        self.molPos=np.zeros((1,3)) # 初始坐标设为原点
-        self.wfns:np.ndarray|None=None
-        self.CM=self.mol.coefs.get_CM('car').copy()
-        self.atms=self.mol.atoms.atms
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
+        self.caler=core.gridprop.wfnfunc.Calculator(mole.mole) # type: ignore # 核心计算器
+
+    def obt_wfn(self,grids:np.ndarray,obt:int,level:int,atms:list[int]|None=None):
+        return self.caler.obt_wfn(grids,obt,level,atms)
     
-    def obtWfns(self,grids:np.ndarray,obts:list[int])->np.ndarray:
-        from pywfn.maths import rlib
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        wfns0=[]
-        for obt in obts:
-            coefs=self.CM[:,obt].tolist() # 轨道系数
-            # print('coes',coes)
-            # print('alps',alps)
-            wfn0,wfn1,wfn2=rlib.obt_wfns_rs(grids.tolist(),xyzs,lmns,coes,alps,coefs,0) # type: ignore
-            # print(wfn0)
-            wfns0.append(wfn0)
-        return np.array(wfns0)
-    
-    def atoWfns(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
+    def ato_wfn(self,grids:np.ndarray,level:int,atms:list[int]|None=None): # 所有原子轨道的波函数
         """计算所有原子轨道"""
-        from pywfn.maths import rlib
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        wfns0,wfns1,wfns2=rlib.ato_wfns_rs(grids,xyzs,lmns,coes,alps,level) # type: ignore
-        wfns0=np.array(wfns0).swapaxes(0,1)
-        wfns1=np.array(wfns1).swapaxes(0,1)
-        wfns2=np.array(wfns2).swapaxes(0,1)
-        return wfns0,wfns1,wfns2
-
-
-    # def atoWfns_(self,grids:np.ndarray,level:int): # 所有原子轨道的波函数
-    #     """计算所有原子轨道"""
-    #     from pywfn.maths import flib
-    #     ngrid=grids.shape[0]
-    #     nmat=self.mol.coefs.CM('car').shape[0]
-    #     # cords=self.mol.coords.copy()
-    #     atms = self.mol.atoAtms
-    #     shls = self.mol.atoShls
-    #     syms = self.mol.atoSyms
-    #     angs = self.mol.atoAngs
-    #     basDict = self.mol.basis.dict
-    #     coords=[]
-    #     expl=[]
-    #     coel=[]
-    #     ncgs=[]
-    #     cmax=0
-    #     for i in range(nmat):
-    #         atm=atms[i]
-    #         atom=self.mol.atom(atm)
-    #         # atomic=atom.atomic
-    #         coords.append(atom.coord)
-    #         shl=shls[i]
-    #         ang=angs[i]
-    #         key=f'{atom.idx}-{shl}-{ang}'
-    #         assert key in basDict.keys(),"不存在的key"
-    #         dat=np.array(basDict[key])
-    #         exps=dat[:,0]
-    #         coes=dat[:,1]
-    #         expl.append(exps)
-    #         coel.append(coes)
-    #         if len(coes)>cmax:cmax=len(coes)
-    #         ncgs.append(len(coes))
-        
-    #     coords=np.array(coords)
-    #     expa=np.zeros(shape=(nmat,cmax))
-    #     coea=np.zeros(shape=(nmat,cmax))
-    #     for i,ncg in enumerate(ncgs):
-    #         expa[i,:ncg]=expl[i]
-    #         coea[i,:ncg]=coel[i]
-
-    #     lmns = [self.mol.basis.sym2lmn(sym) for sym in syms]
-    #     lmns=np.array(lmns)
-    #     ncgs=np.array(ncgs)
-        
-    #     wfns0,wfns1,wfns2=flib.atoWfns(ngrid,grids,nmat,coords,cmax,ncgs,expa,coea,lmns,level)
-    #     return wfns0,wfns1,wfns2
-
-    def atmWfns(self,grid:np.ndarray,atms:list[int],obts:list[int])->np.ndarray: #一次计算多个是最省性能的，而且多个也包含单个
-        """计算几个原子的波函数"""
-        CM=self.mol.coefs.get_CM('car')
-        nbas=CM.shape[0] # 基函数的数量
-        obtAtms=self.mol.atoAtms
-        atowfns,_,_=self.atoWfns(grid,level=0)
-        nobt=len(obts)
-        wfns=np.zeros(shape=(nobt,len(grid)))
-        for o,obt in enumerate(obts):
-            for i in range(nbas):
-                if obtAtms[i] not in atms:continue
-                coef=CM[i,obt]
-                wfn=coef*atowfns[i]
-                wfns[o]+=wfn
-        return wfns
+        return self.caler.ato_wfn(grids,level,atms)
     
     def fragOverlap(self,mols:list[Mole],obts:list[int]):
         """
@@ -115,9 +30,13 @@ class Calculator(gridprop.SpaceCaler):
         指定这两个分子的分子轨道索引
         """
         from pywfn.gridprop import dftgrid
-        grids,weits=dftgrid.Calculator(self.mol).molGrid()
+        grids,weits=dftgrid.Calculator(self.mole).mol_grids()
         mol0,mol1=mols
         obt0,obt1=obts
-        wfn0=Calculator(mol0).obtWfns(grids,[obt0]).flatten()
-        wfn1=Calculator(mol1).obtWfns(grids,[obt1]).flatten()
+        wfn0=Calculator(mol0).obt_wfn(grids,obt0,0)
+        wfn1=Calculator(mol1).obt_wfn(grids,obt1,0)
         return np.sum(wfn0*wfn1*weits)
+    
+def gtf(xyzs:np.ndarray,lmn:list[int],alp:float,level:int):
+    vals=core.gridprop.wfnfunc.gtf(xyzs,lmn,alp,level) # type: ignore
+    return vals

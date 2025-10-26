@@ -1,4 +1,4 @@
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 
 
 class Calculator:

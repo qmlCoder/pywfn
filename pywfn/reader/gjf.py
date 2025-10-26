@@ -13,16 +13,37 @@ from pywfn.data import consts
 import re
 import numpy as np
 from functools import lru_cache
+from pywfn import core
 
 
 class GjfReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
         self.type='gjf'
+        self.reader=core.reader.GjfReader(path) # type: ignore
 
     def get_geome(self) -> Geome:
-        syms,xyzs=self.read_coord()
-        return Geome().build(syms,xyzs)
+        geome_core=self.reader.get_geome()
+        geome=Geome()
+        geome.core=geome_core
+        return geome
+    
+    def get_basis(self)->"Basis":
+        basis_core=self.reader.get_basis()
+        basis=Basis()
+        basis.core=basis_core
+        return basis
+    
+    
+    def get_coefs(self)->"Coefs":
+        coefs_core=self.reader.get_coefs()
+        coefs=Coefs()
+        coefs.core=coefs_core
+        return coefs
+    
+    def get_nele(self) -> tuple[int, int]:
+        charge,multi=self.read_multi()
+        return charge,multi
     
     def get_charge(self) -> int:
         charge,multi=self.read_multi()

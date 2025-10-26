@@ -3,47 +3,35 @@
 xyz文件只包含原子坐标,所以很好读
 一个xyz文件可以包含多个分子的坐标，但只生成最后一个坐标的分子对象
 """
-from typing import List
-import re
-import numpy as np
-from pywfn import base
+
 from pywfn.base.geome import Geome
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
 from pywfn import reader
-from pywfn.data import consts
+from pywfn import core
 
 class XyzReader(reader.Reader):
     def __init__(self,path) -> None:
         super().__init__(path)
         self.type='xyz'
         self.path=path
-        with open(path,'r',encoding='utf-8') as f:
-            self.content=f.read()
-        self.logLines=self.content.splitlines(keepends=False)
-        self.geoms=self.read_geoms()
+        self.reader=core.reader.XyzReader(path) # type: ignore
     
-    def get_geome(self)->Geome:
-        syms=[sym for (sym,x,y,z) in self.geoms[-1]]
-        xyzs=[(x,y,z) for (sym,x,y,z) in self.geoms[-1]]
-        xyzs=np.array(xyzs)/consts.Bohr
-        return Geome().build(syms,xyzs)
+    def get_geome(self) -> "Geome":
+        geome_core=self.reader.get_geome()
+        geome=Geome()
+        geome.core=geome_core
+        return geome
     
-    def read_geoms(self):
-        """
-        有三种情况,原子数量,标题,原子坐标
-        """
-        
-        p1=r'^ *\d+$'
-        # 不满足第一种和第二种情况就是第三种情况
-        p3=r'^ *([A-Za-z])+ +(-?\d+.\d+) +(-?\d+.\d+) +(-?\d+.\d+)$'
-        geoms:list[list[tuple[str,float,float,float]]]=[]
-        for line in self.logLines:
-            if s1:=re.search(p1,line):
-                geoms.append([])
-            elif s3:=re.search(p3,line):
-                sym,x,y,z=s3.groups()
-                x,y,z=[float(x),float(y),float(z)]
-                geoms[-1].append((sym,x,y,z))
-                # print(sym,x,y,z)
-            else:
-                continue
-        return geoms
+    def get_basis(self)->"Basis":
+        basis_core=self.reader.get_basis()
+        basis=Basis()
+        basis.core=basis_core
+        return basis
+    
+    
+    def get_coefs(self)->"Coefs":
+        coefs_core=self.reader.get_coefs()
+        coefs=Coefs()
+        coefs.core=coefs_core
+        return coefs

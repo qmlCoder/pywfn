@@ -1,27 +1,31 @@
 from pywfn.reader import Reader
-from pywfn.data import consts
 from pywfn.base.geome import Geome
-
-import numpy as np
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
+from pywfn import core
 
 class SdfReader(Reader):
     def __init__(self, path: str, cache: bool = False) -> None:
         super().__init__(path, cache)
         self.type='sdf'
+        self.reader=core.reader.SdfReader(path) # type: ignore
 
-    def get_geome(self) -> Geome:
-        syms,xyzs=self.read_geom()
-        return Geome().build(syms,xyzs)
-
-    def read_geom(self):
-        finds=self.getline(3).split()
-        natm=int(finds[0])
-        lines=self.getlines(4,4+natm)
-        xyzs=[]
-        syms=[]
-        for line in lines:
-            x,y,z,s=line.split()[:4]
-            xyzs.append([float(x),float(y),float(z)])
-            syms.append(s)
-        return syms,np.array(xyzs)/consts.Bohr
+    def get_geome(self) -> "Geome":
+        geome_core=self.reader.get_geome()
+        geome=Geome()
+        geome.core=geome_core
+        return geome
+    
+    def get_basis(self)->"Basis":
+        basis_core=self.reader.get_basis()
+        basis=Basis()
+        basis.core=basis_core
+        return basis
+    
+    
+    def get_coefs(self)->"Coefs":
+        coefs_core=self.reader.get_coefs()
+        coefs=Coefs()
+        coefs.core=coefs_core
+        return coefs
 

@@ -4,7 +4,7 @@
 将空间格点转换为原子局部坐标系的点，计算这些点上的波函数值
 """
 
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.reader import LogReader
 from pywfn.atomprop import direction
 from pywfn.maths import vector_angle
@@ -21,22 +21,22 @@ def hmoWfn(Z:int,grid:np.ndarray):
 
 
 class Calculator:
-    def __init__(self,mol:Mole):
-        self.mol=mol
-        BM,es,CM,occs=hmo(self.mol)
+    def __init__(self,mole:Mole):
+        self.mole=mole
+        BM,es,CM,occs=hmo(self.mole)
         self.CM=CM
 
     def ato_wfns(self,grids:np.ndarray):
         """计算所有的原子轨道波函数
         """
         from pywfn.atomprop import direction
-        dirCaler=direction.Calculator(self.mol)
+        dirCaler=direction.Calculator(self.mole)
         base=dirCaler.hmoBases()
-        atms=self.mol.heavyAtoms
+        atms=self.mole.heavyAtoms
         natm=len(atms)
         wfns=np.zeros(shape=(natm,len(grids)))
         for i,atm in enumerate(atms):
-            atom=self.mol.atom(atm)
+            atom=self.mole.atom(atm)
             grid=(grids-atom.coord)@base[atm] # 将空间格点转为以原子为中心的坐标
             wfn=hmoWfn(atom.atomic,grid)
             wfns[i]=wfn
@@ -44,9 +44,9 @@ class Calculator:
     
     def ato_wfn(self,grids,atm:int):
         from pywfn.atomprop import direction
-        dirCaler=direction.Calculator(self.mol)
+        dirCaler=direction.Calculator(self.mole)
         base=dirCaler.hmoBases()
-        atom=self.mol.atom(atm)
+        atom=self.mole.atom(atm)
         grid=(grids-atom.coord)@base[atm] # 将空间格点转为以原子为中心的坐标
         wfn=hmoWfn(atom.atomic,grid)
         return wfn
@@ -54,7 +54,7 @@ class Calculator:
     
     def obtWfn(self,grids:np.ndarray,obt:int)->np.ndarray:
         wfns=self.ato_wfns(grids)
-        atms=self.mol.heavyAtoms
+        atms=self.mole.heavyAtoms
         natm=len(atms)
         wfn=np.zeros(len(grids))
         for i,atm in enumerate(atms):

@@ -1,8 +1,8 @@
 """
 将分子导出为xyz文件
 """
-from pywfn import base
-from pywfn.base import Mole
+
+from pywfn.base.mole import Mole
 from pathlib import Path
 from pywfn.data.elements import elements
 from pywfn.utils import printer

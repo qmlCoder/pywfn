@@ -3,14 +3,8 @@
 """
 
 import numpy as np
-from numpy.typing import NDArray
 from pywfn.maths import lineGrid,rectGrid,cubeGrid
-from pywfn.utils import printer
-from pywfn.maths import march
-from pywfn.base import Mole
-from pathlib import Path
-
-import time
+from pywfn.base.mole import Mole
 
 class Grid:
     def __init__(self):
@@ -162,7 +156,7 @@ class SpaceCaler:
         from pywfn.writer import CubWriter
         size,grid=cube.get()
         syms=self.mol.atoms.syms
-        xyzs=self.mol.coords
+        xyzs=self.mol.xyzs
         pos0=grid[0]
         step=cube.step
         writer=CubWriter()
@@ -185,75 +179,15 @@ class SpaceCaler:
     
     @staticmethod
     def isoSurf(shape:list[int],grids:np.ndarray,vals:np.ndarray,isov:float,limit:tuple[float,float]|None=None,gt:bool=True):
-        from pywfn.maths import rlib
-        # faces=[]
-        # voxelData  =march.grids2voxel(shape,grids,vals)
-        # verts=march.voxel2verts(voxelData,isov,limit,gt) # 顶点坐标，每三个点代表一个面，包含很多重复的点
+        from pywfn import core
+
         print('提取等值面',limit,gt,grids.shape,vals.shape,isov) 
-        # verts:np.ndarray=flib.marchCube(grids,vals,shape,isov)[1] # type: ignore 
-        pverts,pfaces,nverts,nfaces=rlib.march_cube_rs(shape,grids,vals,isov) # type: ignore
+        pverts,pfaces,nverts,nfaces=core.march.march_cube(shape,grids,vals,isov) # type: ignore
         pverts=np.array(pverts)
         pfaces=np.array(pfaces)
         nverts=np.array(nverts)
         nfaces=np.array(nfaces)
         return pverts,pfaces,nverts,nfaces
-        # print(verts)
-        if verts is not None:
-            print('vert.shape',verts.shape)
-            # verts,faces=flib.vertsMerge(verts,0.1) # 合并顶点
-            # faces=faces.reshape(-1,3)
-            # faces=np.arange(verts.shape[0]).reshape(-1,3)
-            # print(faces)
-            # if not gt:
-            #     faces[:,0],faces[:,2]=faces[:,2],faces[:,0]
-            return verts,faces
-        
-        else:
-            return None,None
-
-from pywfn.cli import Shell
-
-# 根据用户输入获取格点
-def read_grid(shell:Shell,gidx:str,mol:Mole|None=None)->LineGrid|RectGrid|CubeGrid|EarthGrid:
-    match gidx:
-        case '1': # 直线采点
-            p0  =shell.input.Float(tip='输入起点: ',count=3)
-            p1  =shell.input.Float(tip='输入终点: ',count=3)
-            step=shell.input.Float(tip='输入步长: ',count=1)[0] # type: ignore
-            p0=np.array(p0)
-            p1=np.array(p1)
-            line=LineGrid().set(p0,p1,step)
-            return line
-        case '2': # 平面采点
-            cent=shell.input.Float(tip='输入中心: ',count=3)
-            norm=shell.input.Float(tip='输入法线: ',count=3)
-            vx  =shell.input.Float(tip='输入 x轴: ',count=3)
-            side=shell.input.Float(tip='输入边长: ',count=1)[0] # type: ignore
-            cent=np.array(cent)
-            norm=np.array(norm)
-            vx=np.array(vx)
-            rect=RectGrid().set_v1(cent,norm,vx,side)
-            return rect
-        case '3': # 空间采点
-            p0  =shell.input.Float(tip='输入起点: ',count=3)
-            p1  =shell.input.Float(tip='输入终点: ',count=3)
-            step=shell.input.Float(tip='输入步长: ',count=1)[0] # type: ignore
-            p0=np.array(p0)
-            p1=np.array(p1)
-            cube=CubeGrid().set_v1(p0,p1,step)
-            return cube
-        case '4': # 分子格点
-            assert mol is not None,"没有提供分子"
-            p0,p1=mol.spaceBorder
-            cube=CubeGrid().set_v1(p0,p1,0.2,5)
-            return cube
-        case '5': # 地图
-            from pywfn.gridprop import EarthGrid
-            r=shell.input.Float(tip='输入半径: ',count=1)[0] # type: ignore
-            map=EarthGrid().set(r,100)
-            return map
-        case _:
-            assert False,"无效的格点类型"
 
 
 def show_dict(dict:dict):

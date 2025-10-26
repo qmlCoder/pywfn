@@ -6,43 +6,42 @@
 
 空间中一个格点的权重是否应该对所有分子都一致？
 """
-from pywfn.base import Mole
+from pywfn.base.mole import Mole
 from pywfn.gridprop import wfnfunc
-from functools import cached_property,lru_cache
-from pywfn.gridprop import dftgrid
-from pywfn.gridprop import LineGrid,RectGrid,CubeGrid,EarthGrid
 from pywfn import gridprop
 from pywfn.data import radDens
 from pywfn import utils
 import numpy as np
-import time
+from pywfn import core
 
 class Calculator(gridprop.SpaceCaler):
-    def __init__(self,mol:Mole) -> None:
-        self.mol=mol
-        self.wfnCaler=wfnfunc.Calculator(mol)
-        self.PM=self.mol.PM.copy()
-        
-    def obtDensAll(self,grids:np.ndarray): # 以分子轨道的方式计算电子密度，可以计算每个分子轨道的电子密度
-        """根据分子轨道电子密度计算分子电子密度"""
-        obts=self.mol.O_obts
-        dens=np.zeros((len(obts),len(grids)))
-        wfns=self.wfnCaler.obtWfns(grids,obts) #分子轨道波函数
-        for o,obt in enumerate(obts):
-            wfn=wfns[o]
-            dens[o]+=wfn**2*self.mol.oE
-        return dens
+    def __init__(self,mole:Mole) -> None:
+        self.mole=mole
+        self.wfnCaler=wfnfunc.Calculator(mole)
+        self.caler=core.gridprop.density.Calculator(mole.mole) # type: ignore # 核心计算器
+
+    def mol_rho(self,grids:np.ndarray,level:int): # 以分子轨道的方式计算电子密度，可以计算每个分子轨道的电子密度
+        """计算分子电子密度"""
+        return self.caler.mol_rho(grids,level)
+    
+    def pi_rho(self,grids:np.ndarray):
+        return self.caler.pi_rho(grids)
+    
+    def ato_rho(self,grids:np.ndarray,level:int):
+        """计算所有原子轨道的电子密度"""
+        return self.caler.ato_rho(grids,level)
     
     def fragDens(self,grids:np.ndarray,atms:list[int]|None=None):
         """计算指定原子的电子密度加和，使用分子空间坐标"""
-        from pywfn.maths import rlib
-        if atms is None:atms=self.mol.atoms.atms
+        from pywfn import core
+        if atms is None:atms=self.mole.atoms.atms
         dens=np.zeros(shape=(len(atms),len(grids)),dtype=float)
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        atoDens=rlib.ato_rhos_rs(grids,xyzs,lmns,coes,alps,self.mol.PM,0)[0] # type: ignore
+        xyzs,lmns,coes,alps=self.mole.basis.atoMap()
+        atoDens=core.space.ato_rhos(grids,xyzs,lmns,coes,alps,self.mole.PM,0)[0] # type: ignore
+
         atoDens=np.array(atoDens)
         for a,atm in enumerate(atms):
-            atom=self.mol.atom(atm)
+            atom=self.mole.atom(atm)
             u,l = atom.obtBorder
             dens[a,:]=atoDens[:,u:l].sum(axis=1)
         return dens
@@ -57,45 +56,45 @@ class Calculator(gridprop.SpaceCaler):
         Returns:
             tuple[np.ndarray,np.ndarray,np.ndarray]: 电子密度、电子密度导数、电子密度Hessian
         """
-        from pywfn.maths import rlib
-        CM=self.mol.coefs.get_CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        dens0,dens1,dens2=rlib.mol_rhos_rs(grids,xyzs,lmns,coes,alps,CM,level) # type: ignore
-        dens0=np.array(dens0)*self.mol.oE
-        dens1=np.array(dens1)*self.mol.oE
-        dens2=np.array(dens2)*self.mol.oE
+        from pywfn import core
+        CM=self.mole.coefs.get_CM('car')[:,self.mole.O_obts].copy() # 占据轨道的系数矩阵
+        xyzs,lmns,coes,alps=self.mole.basis.atoMap()
+        dens0,dens1,dens2=core.space.mol_rhos(grids,xyzs,lmns,coes,alps,CM,level) # type: ignore
+        dens0=np.array(dens0)*self.mole.oE
+        dens1=np.array(dens1)*self.mole.oE
+        dens2=np.array(dens2)*self.mole.oE
         return dens0,dens1,dens2
     
     def obtDens(self,grids:np.ndarray,level:int,obt:int):
         """计算指定分子轨道的电子密度"""
-        from pywfn.maths import rlib
-        oldCM=self.mol.coefs.get_CM('car')[:,self.mol.O_obts].copy() # 占据轨道的系数矩阵
+        from pywfn import core
+        oldCM=self.mole.coefs.get_CM('car')[:,self.mole.O_obts].copy() # 占据轨道的系数矩阵
         newCM=np.zeros_like(oldCM)
         newCM[:,obt]=oldCM[:,obt]
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        
-        dens0,dens1,dens2=rlib.mol_rhos_rs(grids,xyzs,lmns,coes,alps,newCM,level) # type: ignore
-        dens0=np.array(dens0)*self.mol.oE
-        dens1=np.array(dens1)*self.mol.oE
-        dens2=np.array(dens2)*self.mol.oE
+        xyzs,lmns,coes,alps=self.mole.basis.atoMap()
+
+        dens0,dens1,dens2=core.space.mol_rhos(grids,xyzs,lmns,coes,alps,newCM,level) # type: ignore
+        dens0=np.array(dens0)*self.mole.oE
+        dens1=np.array(dens1)*self.mole.oE
+        dens2=np.array(dens2)*self.mole.oE
         return dens0,dens1,dens2
     
     def piDens(self,grids:np.ndarray,level:int):
-        from pywfn.maths import rlib
+        from pywfn import core
         from pywfn.orbtprop import piobt
-        obtCaler=piobt.Calculator(self.mol)
+        obtCaler=piobt.Calculator(self.mole)
         CMp=obtCaler.project()
-        xyzs,lmns,coes,alps=self.mol.basis.atoMap()
-        dens0,dens1,dens2=rlib.mol_rhos_rs(grids,xyzs,lmns,coes,alps,CMp,level) # type: ignore
-        dens0=np.array(dens0)*self.mol.oE
-        dens1=np.array(dens1)*self.mol.oE
-        dens2=np.array(dens2)*self.mol.oE
+        xyzs,lmns,coes,alps=self.mole.basis.atoMap()
+        dens0,dens1,dens2=core.space.mol_rhos(grids,xyzs,lmns,coes,alps,CMp,level) # type: ignore
+        dens0=np.array(dens0)*self.mole.oE
+        dens1=np.array(dens1)*self.mole.oE
+        dens2=np.array(dens2)*self.mole.oE
         return dens0,dens1,dens2
     
     def proDens(self,grids:np.ndarray): # 第一种方式，使用插值计算
         """计算前体分子电子密度 promol"""
         dens=np.zeros((len(grids)))
-        for atom in self.mol.atoms:
+        for atom in self.mole.atoms:
             radius=np.linalg.norm(grids-atom.coord,axis=1)
             dens+=radDens.get_radDens(atom.atomic,radius)
         return dens
@@ -105,7 +104,7 @@ class Calculator(gridprop.SpaceCaler):
         dens0=np.zeros((len(grid),))
         dens1=np.zeros((len(grid),3))
         dens2=np.zeros((len(grid),3,3))
-        for atom in self.mol.atoms:
+        for atom in self.mole.atoms:
             rho0,rho1,rho2=radDens.get_radDens_v2(atom.atomic,grid,level)
             dens0+=rho0
             dens1+=rho1
@@ -176,7 +175,7 @@ class Calculator(gridprop.SpaceCaler):
 
     def vandSurf(self):
         """返回分子的范德华表面"""
-        p0,p1=self.mol.spaceBorder
+        p0,p1=self.mole.spaceBorder
         shape,grids=gridprop.CubeGrid().set_v1(p0,p1,0.3,4).get()
         vals=self.molDens(grids,0)[0]
         verts,faces,_,_=self.isoSurf(shape,grids,vals,0.04)
@@ -193,9 +192,9 @@ class Calculator(gridprop.SpaceCaler):
             # print(sum(rank),sum(syms))
             return sum(rank),sum(syms)
         crits=[]
-        for bond in self.mol.bonds:
+        for bond in self.mole.bonds:
             a1,a2=bond.ats
-            pos0=(self.mol.atom(a1).coord+self.mol.atom(a2).coord)/2.0
+            pos0=(self.mole.atom(a1).coord+self.mole.atom(a2).coord)/2.0
             # print(pos0)
             for i in range(100):
                 dens0,dens1,dens2=self.molDens(pos0.reshape(1,3),level=2) #计算电子密度，电子密度梯度和电子密度Hessian矩阵

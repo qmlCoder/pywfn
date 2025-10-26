@@ -3,7 +3,7 @@ import shutil
 
 root='D:/code/pywfn'
 
-release=True
+release=False
 
 if release:
     result = subprocess.run(
@@ -12,7 +12,7 @@ if release:
         capture_output=True,
         text=True
     )
-    shutil.copy(f'{root}/target/release/rlib.dll',f'{root}/pywfn/maths/rlib.pyd')
+    shutil.copy(f'{root}/target/release/core.dll',f'{root}/pywfn/core.pyd')
 else:
     result = subprocess.run(
         ["cargo", "build"],
@@ -20,5 +20,5 @@ else:
         capture_output=True,
         text=True
     )
-    shutil.copy(f'{root}/target/debug/rlib.dll',f'{root}/pywfn/maths/rlib.pyd')
+    shutil.copy(f'{root}/target/debug/core.dll',f'{root}/pywfn/core.pyd')
 print(result)

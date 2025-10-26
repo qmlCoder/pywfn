@@ -11,6 +11,9 @@
 
 
 from pathlib import Path
+from pywfn.base.geome import Geome
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
 
 
 # 定义所有reader的基类
@@ -37,7 +40,7 @@ from pathlib import Path
 - 重叠矩阵
 - 波函数类型 开壳层/闭壳层
 """
-from pywfn import base
+
 from pywfn import data
 from pywfn import config
 import numpy as np
@@ -111,18 +114,18 @@ class Reader:
     def get_nele(self)->tuple[int,int]:
         """获取分子电子数"""
         raise ValueError("未继承的函数")
-    
-    def get_geome(self)->"base.Geome":
+
+    def get_geome(self)->"Geome":
         """获取分子几何信息"""
         raise ValueError("未继承的函数")
     
-    def get_basis(self)->"base.Basis":
+    def get_basis(self)->"Basis":
         """获取每个原子的基组数据
         原子：壳层，角动量，系数，指数
         """
         raise ValueError("未继承的函数")
     
-    def get_coefs(self)->"base.Coefs":
+    def get_coefs(self)->"Coefs":
         """获取轨道系数"""
         raise ValueError("未继承的函数")
     
@@ -142,8 +145,8 @@ from pywfn.reader.fch import FchReader
 from pywfn.reader.log import LogReader
 from pywfn.reader.gjf import GjfReader
 from pywfn.reader.mol import MolReader
-from pywfn.reader.any import AnyReader
-from pywfn.reader.mod import ModReader
+from pywfn.reader.non import NonReader
+from pywfn.reader.mde import MdeReader
 from pywfn.reader.sdf import SdfReader
 from pywfn.reader.xyz import XyzReader
 from pywfn.reader.wfn import WfnReader
@@ -161,7 +164,7 @@ def get_reader(path:str):
         '.mol':MolReader,
         '.sdf':SdfReader,
         '.xyz':XyzReader,
-        '.molden':ModReader,
+        '.molden':MdeReader,
     }
     assert suffix in readers.keys(),f'不支持的文件类型{suffix}'
     return readers[suffix](path)

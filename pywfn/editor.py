@@ -31,23 +31,23 @@ class Editor:
                 group.append(neb)
         return group
     
-    def rotate_bond(self,atm1:int,atm2:int,angle:float):
-        """
-        旋转两个原子之间的键
-        """
-        # 搜索原子组
-        group=self.search_group(atm1,excludes=[atm2])
-        coords=self.mol.coords.copy()
-        gidxs=[e-1 for e in group]
-        points=coords[gidxs,:]
-        center=self.mol.atom(atm1).coord
-        axis=self.mol.atom(atm2).coord-center
-        result=points_rotate(points,center,axis,angle)
-        coords[gidxs,:]=result
-        syms=self.mol.geome.syms.copy()
-        self.mol.geome.build(syms,coords)
-        return self.mol
+    # def rotate_bond(self,atm1:int,atm2:int,angle:float):
+    #     """
+    #     旋转两个原子之间的键
+    #     """
+    #     # 搜索原子组
+    #     group=self.search_group(atm1,excludes=[atm2])
+    #     coords=self.mol.xyzs.copy()
+    #     gidxs=[e-1 for e in group]
+    #     points=coords[gidxs,:]
+    #     center=self.mol.atom(atm1).coord
+    #     axis=self.mol.atom(atm2).coord-center
+    #     result=points_rotate(points,center,axis,angle)
+    #     coords[gidxs,:]=result
+    #     syms=self.mol.geome.syms.copy()
+    #     self.mol.geome.build(syms,coords)
+    #     return self.mol
     
-    def add_ringBq(self): # 在环中心添加Bq原子
-        pass
+    # def add_ringBq(self): # 在环中心添加Bq原子
+    #     pass
         
