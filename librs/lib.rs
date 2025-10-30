@@ -36,5 +36,6 @@ fn core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     fragprop::register_module(m)?;
     gridprop::register_module(m)?;
     moleprop::register_module(m)?;
+    orbtprop::register_module(m)?;
     Ok(())
 }

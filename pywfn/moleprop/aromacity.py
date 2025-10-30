@@ -20,35 +20,35 @@ class Calculator:
         print(self.caler.PISD.__doc__)
         return self.caler.PISD(rings)
     
-    def PIMSD(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
-        caler=orderProp.Calculator(self.mole)
-        bonds,orders=caler.pi_pocv()
-        forders=[] # 过滤掉C-H键
-        for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
-            if self.mole.atom(a1).atomic==1:continue
-            if self.mole.atom(a2).atomic==1:continue
-            if ring is None:
-                print(f'{a1:>2}-{a2:>2}:{order:>10.4f}')
-                forders.append(order)
-            elif (a1 in ring and a2 in ring):
-                print(f'{a1:>2}-{a2:>2}:{order:>10.4f}')
-                forders.append(order)
-        mean=np.mean(forders)
-        stds=np.std(forders)
-        return (ratio*mean-(1-ratio)*stds).item()
+    # def PIMSD(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
+    #     caler=orderProp.Calculator(self.mole)
+    #     bonds,orders=caler.pi_pocv()
+    #     forders=[] # 过滤掉C-H键
+    #     for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
+    #         if self.mole.atom(a1).atomic==1:continue
+    #         if self.mole.atom(a2).atomic==1:continue
+    #         if ring is None:
+    #             print(f'{a1:>2}-{a2:>2}:{order:>10.4f}')
+    #             forders.append(order)
+    #         elif (a1 in ring and a2 in ring):
+    #             print(f'{a1:>2}-{a2:>2}:{order:>10.4f}')
+    #             forders.append(order)
+    #     mean=np.mean(forders)
+    #     stds=np.std(forders)
+    #     return (ratio*mean-(1-ratio)*stds).item()
 
-    def PIMED(self) -> float: # 使用键级类比于HOMED方法
-        D=0.2
-        caler=orderProp.Calculator(self.mole)
-        bonds,orders=caler.pi_pocv()
-        forders=[] # 过滤掉C-H键
-        for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
-            if self.mole.atom(a1).atomic==1:continue
-            if self.mole.atom(a2).atomic==1:continue
-            forders.append((order-0.66)**2)
-        nbond=self.mole.bonds.num
-        result=1-sum(forders)/(nbond*D)
-        return result
+    # def PIMED(self) -> float: # 使用键级类比于HOMED方法
+    #     D=0.2
+    #     caler=orderProp.Calculator(self.mole)
+    #     bonds,orders=caler.pi_pocv()
+    #     forders=[] # 过滤掉C-H键
+    #     for i,((a1,a2),order) in enumerate(zip(bonds,orders)):
+    #         if self.mole.atom(a1).atomic==1:continue
+    #         if self.mole.atom(a2).atomic==1:continue
+    #         forders.append((order-0.66)**2)
+    #     nbond=self.mole.bonds.num
+    #     result=1-sum(forders)/(nbond*D)
+    #     return result
     
     def HOMED(self) -> float:
         D=0.2

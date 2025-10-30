@@ -110,7 +110,7 @@ impl Deco {
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
-    let m = PyModule::new(parent_module.py(), "orbital")?;
+    let m = PyModule::new(parent_module.py(), "obtmat")?;
     m.add_class::<Calculator>()?;
     m.add_class::<Deco>()?;
     parent_module.add_submodule(&m)
