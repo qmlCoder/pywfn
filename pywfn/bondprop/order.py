@@ -20,7 +20,7 @@ from pywfn.moleprop.orbital import Deco
 class Calculator:
     def __init__(self,mole:Mole) -> None:
         self.mole=mole
-        self.caler=core.bondprop.order.Calculator(mol.mole) # type: ignore # 核心计算器
+        self.caler=core.bondprop.order.Calculator(mole.mole) # type: ignore # 核心计算器
 
     # mayer键级
     def mayer(self)->tuple[list[tuple[int,int]],np.ndarray]:
@@ -79,10 +79,11 @@ class Calculator:
         """
         return self.caler.bound(atm,dir)
     
-    def pi_pocv(self):
+    def pi_pocv(self) -> tuple[dict[int,list[float]], np.ndarray]:
         """计算分子的所有pi键键级，每个可能的pi键计算出一个键级
         """
-        return self.caler.pi_pocv() # type: ignore
+        dirs,vals=self.caler.pi_pocv()
+        return  dirs,np.array(vals)
     
     def pi_deco(self):
         return self.caler.pi_deco() # type: ignore
