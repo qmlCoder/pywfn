@@ -11,7 +11,8 @@ crate-type = ["cdylib", "lib"]
 
 [dependencies]
 rayon = "1.5.1"
-rswfn = { path = "d:/code/rswfn" }
+rswfn = { path = "d:/code/rswfn" } # for Windows
+# rswfn = { path = "/mnt/d/code/rswfn" }                         # for WSL
 pyo3 = { version = "0.25.1", features = ["extension-module"] }
 ndarray = "0.16.1"
 numpy = "0.25.0"
