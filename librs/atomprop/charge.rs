@@ -74,10 +74,9 @@ impl Calculator {
     pub fn pi_pocv(
         &self,
         ctype: &str,
-        atms: Option<Vec<u32>>,
+        atms: Vec<u32>,
     ) -> PyResult<(HashMap<u32, [f64; 3]>, Vec<f64>)> {
-        let atms = atms.as_ref();
-        let (dirs, eles) = self.caler().pi_pocv(ctype, atms);
+        let (dirs, eles) = self.caler().pi_pocv(ctype, &atms);
         let dirs = dirs
             .iter()
             .map(|(key, dir)| (*key, [dir.x, dir.y, dir.z]))

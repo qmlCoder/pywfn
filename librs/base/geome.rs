@@ -17,8 +17,8 @@ impl Geome {
         })
     }
 
-    pub fn build(&mut self, atms: Vec<u32>, xyzs: Vec<[f64; 3]>) {
-        self.inner.build(&atms, &xyzs);
+    pub fn build(&mut self, atms: Vec<u32>, xyzs: Vec<[f64; 3]>, crgs: Vec<f64>) {
+        self.inner.build(&atms, &xyzs, &crgs);
     }
 
     pub fn __repr__(&self) -> String {

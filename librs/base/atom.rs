@@ -34,8 +34,8 @@ impl Atoms {
         })
     }
 
-    pub fn add(&mut self, atm: u32, xyz: [f64; 3]) {
-        self.inner.add(atm, xyz);
+    pub fn add(&mut self, atm: u32, xyz: [f64; 3], crg: f64) {
+        self.inner.add(atm, xyz, crg);
     }
 
     pub fn get(&self, idx: u32) -> PyResult<Atom> {

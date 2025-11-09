@@ -47,8 +47,7 @@ impl Calculator {
         py: Python,
         atms: Vec<u32>,
     ) -> (HashMap<u32, [f64; 3]>, Py<PyArray2<f64>>) {
-        let atms = if atms.len() == 0 { None } else { Some(&atms) };
-        let (dirs, cmat) = self.caler().pi_pocv(atms);
+        let (dirs, cmat) = self.caler().pi_pocv(&atms);
         let dirs = dirs
             .into_iter()
             .map(|(key, dir)| (key, [dir.x, dir.y, dir.z]))
@@ -88,15 +87,15 @@ impl Deco {
     #[new]
     pub fn new(
         _py: Python,
-        base: PyReadonlyArray2<f64>,
+        stm: PyReadonlyArray2<f64>,
         skeep: [u32; 1],
         pkeep: [u32; 3],
         dkeep: [u32; 6],
     ) -> Self {
-        let base = base.to_owned_array();
+        let stm = stm.to_owned_array();
         Self {
             inner: rswfn::orbtprop::obtmat::Deco {
-                base,
+                stm,
                 skeep,
                 pkeep,
                 dkeep,

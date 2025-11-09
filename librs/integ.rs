@@ -27,13 +27,12 @@ pub fn local_gtf_integ(
 #[pyfunction]
 pub fn calc_smat(
     py: Python,
-    atos: Vec<u32>,
-    alps: Vec<f64>,
-    coes: Vec<f64>,
+    alps: Vec<Vec<f64>>,
+    coes: Vec<Vec<f64>>,
     lmns: Vec<[u32; 3]>,
     xyzs: Vec<[f64; 3]>,
 ) -> Py<PyArray2<f64>> {
-    let smat = rswfn::integ::calc_smat(&atos, &alps, &coes, &lmns, &xyzs);
+    let smat = rswfn::integ::calc_smat(&alps, &coes, &lmns, &xyzs);
     smat.into_pyarray(py).unbind()
 }
 

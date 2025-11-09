@@ -26,11 +26,12 @@ impl Calculator {
         &self,
         grids: Vec<[f64; 3]>,
         level: u32,
+        atms: Vec<u32>,
     ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>) {
         let caler = self.caler();
         let vals: Vec<(f64, [f64; 3], [[f64; 3]; 3])> = grids
             .into_par_iter()
-            .map(|grid| caler.mol_rho_dm(&grid, level, None))
+            .map(|grid| caler.mol_rho_dm(&grid, level, &atms))
             .collect();
         let rho0: Vec<f64> = vals.iter().map(|val| val.0).collect();
         let rho1 = if level > 0 {

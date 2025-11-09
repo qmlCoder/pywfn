@@ -44,10 +44,9 @@ impl Calculator {
         atms: Vec<u32>,
     ) -> Vec<(Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>)> {
         let caler = self.caler();
-        let atms = if atms.len() == 0 { None } else { Some(&atms) };
         grids
             .into_par_iter()
-            .map(|grid| caler.ato_wfn(&grid, level, atms))
+            .map(|grid| caler.ato_wfn(&grid, level, &atms))
             .collect()
     }
 
@@ -60,11 +59,10 @@ impl Calculator {
         atms: Vec<u32>,
     ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
         let caler = self.caler();
-        let atms = if atms.len() == 0 { None } else { Some(&atms) };
         grids
             .into_par_iter()
             .map(|grid| {
-                let wfns = caler.ato_wfn(&grid, level, atms);
+                let wfns = caler.ato_wfn(&grid, level, &atms);
                 caler.obt_wfn(obt, level, &wfns)
             })
             .collect()
