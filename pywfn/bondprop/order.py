@@ -86,7 +86,8 @@ class Calculator:
         return  dirs,np.array(vals)
     
     def pi_deco(self):
-        return self.caler.pi_deco() # type: ignore
+        deco,vals=self.caler.pi_deco()
+        return  deco,np.array(vals) # type: ignore
 
     def pi_smo(self,bond:tuple[int,int])->float:
         """根据分子轨道挑选法计算pi键级

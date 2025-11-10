@@ -34,7 +34,7 @@ def parse_obtList(string:str,nbas:int):
 def get_vertical(v1,v2):
     '''获得垂直于两向量的单位向量'''
     v=np.cross(v1,v2)
-    return v/np.linalg.norm(v)
+    return v/np.linalg.norm(v) # type: ignore
 
 def get_points_between_two_pos(pos1,pos2,n):
     '''计算两点之间的点的坐标'''
