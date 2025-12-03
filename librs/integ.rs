@@ -36,10 +36,16 @@ pub fn calc_smat(
     smat.into_pyarray(py).unbind()
 }
 
+#[pyfunction]
+pub fn rys_roots(n: usize, alp: f64) -> Vec<[f64; 2]> {
+    rswfn::integ::ry::rys_roots(n, alp)
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "integ")?; // 为当前的rs文件创建一个子模块
     m.add_function(wrap_pyfunction!(gtf_integ, &m)?)?;
     m.add_function(wrap_pyfunction!(calc_smat, &m)?)?;
     m.add_function(wrap_pyfunction!(local_gtf_integ, &m)?)?;
+    m.add_function(wrap_pyfunction!(rys_roots, &m)?)?;
     parent_module.add_submodule(&m) // 将子模块添加到父模块中
 }

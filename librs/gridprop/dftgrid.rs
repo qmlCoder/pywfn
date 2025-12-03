@@ -48,8 +48,9 @@ impl Calculator {
         self.caler().a2m_weits(iatm, &atm_grids, &atm_weits)
     }
 
-    pub fn mol_grids(&self, nrad: usize, fsph: usize) -> (Vec<[f64; 3]>, Vec<f64>) {
-        self.caler().mol_grids(nrad, fsph)
+    pub fn mol_grids(&self, nrad: usize, fsph: usize) -> PyResult<(Vec<[f64; 3]>, Vec<f64>)> {
+        let res = self.caler().mol_grids(nrad, fsph);
+        Ok(res)
     }
 
     pub fn frag_grids(&self, frag: Vec<u32>) -> (Vec<[f64; 3]>, Vec<f64>) {

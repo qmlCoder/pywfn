@@ -67,6 +67,19 @@ impl Calculator {
 
     pub fn pi_pocv(&self, py: Python) -> (HashMap<u32, [f64; 3]>, Py<PyArray2<f64>>) {
         let (dirs, omat) = self.caler().pi_pocv();
+        // let nrow = omat.nrows();
+        // let ncol = omat.ncols();
+        // for i in 0..nrow {
+        //     for j in 0..ncol {
+        //         if i == j {
+        //             continue;
+        //         }
+        //         if omat[(i, j)] < 1e-3 {
+        //             continue;
+        //         }
+        //         println!("{:>2}-{:>2}:{:>10.3}", i + 1, j + 1, omat[(i, j)]);
+        //     }
+        // }
         let dirs = dirs
             .into_iter()
             .map(|(key, dir)| (key, [dir.x, dir.y, dir.z]))

@@ -3,7 +3,9 @@ use rswfn;
 
 #[pyfunction]
 pub fn lag_intpol(xs: Vec<f64>, ys: Vec<f64>, ts: Vec<f64>) -> Vec<f64> {
-    rswfn::maths::lag_intpol(&xs, &ys, &ts)
+    ts.iter()
+        .map(|t| rswfn::maths::lag_intpol(&xs, &ys, *t))
+        .collect()
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -22,21 +22,6 @@ impl Calculator {
         Self { mole }
     }
 
-    // 计算收缩基函数（原子轨道），基函数的线性组合
-    pub fn cgf(
-        &self,
-        xyzs: Vec<[f64; 3]>,
-        lmn: [u32; 3],
-        coes: Vec<f64>,
-        alps: Vec<f64>,
-        level: u32,
-    ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
-        let caler = self.caler();
-        xyzs.into_par_iter()
-            .map(|xyz| caler.cgf(&xyz, &lmn, &coes, &alps, level))
-            .collect()
-    }
-
     pub fn ato_wfn(
         &self,
         grids: Vec<[f64; 3]>, // 空间中任意一点的坐标
@@ -90,6 +75,20 @@ pub fn gtf(
         val2 = vals.iter().map(|val| val.2).collect();
     }
     (val0, val1, val2)
+}
+
+#[pyfunction]
+// 计算收缩基函数（原子轨道），基函数的线性组合
+pub fn cgf(
+    xyzs: Vec<[f64; 3]>,
+    lmn: [u32; 3],
+    coes: Vec<f64>,
+    alps: Vec<f64>,
+    level: u32,
+) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
+    xyzs.into_par_iter()
+        .map(|xyz| rswfn::gridprop::wfnfunc::cgf(&xyz, &lmn, &coes, &alps, level))
+        .collect()
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {

@@ -17,7 +17,6 @@ class Calculator:
         self.caler=core.moleprop.aromacity.Calculator(mole.mole)  # type: ignore
     
     def PISD(self,rings:list[list[int]]|None=None): # 版本1 直接用键级标准差
-        print(self.caler.PISD.__doc__)
         return self.caler.PISD(rings)
     
     # def PIMSD(self,ring:list[int]|None=None,ratio=0.5) -> float: # 版本2 使用键级均值和标准差
