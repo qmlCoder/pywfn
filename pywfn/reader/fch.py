@@ -8,13 +8,13 @@ import numpy as np
 from pywfn.base.basis import BasisData,Basis
 from pywfn.base.coefs import Coefs
 from pywfn.base.geome import Geome
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
 from pywfn import reader
 from pywfn.reader.utils import toCart
 from collections import defaultdict
 import math
 from functools import lru_cache
-from pywfn.data import consts
+from pywfn.datas import consts
 from pywfn import core
 
 
@@ -44,6 +44,9 @@ class FchReader(reader.Reader):
         coefs=Coefs()
         coefs.core=coefs_core
         return coefs
+    
+    def get_neles(self):
+        return self.reader.get_neles()
     
     # def get_energy(self) -> float:
     #     lineNum=self.titles['Total Energy']

@@ -6,30 +6,30 @@ def toCart(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数
     shlList=[]
     symList=[]
     i=0
-    from pywfn.data import bastrans as bt
+    from pywfn.datas import btrans as bt
     while i<CM.shape[0]:
         sym=syms[i]
         match sym:
             case 'D 0':
-                CMlist.append(bt.DMat@CM[i:i+5])
+                CMlist.append(bt.DMAT@CM[i:i+5])
                 atmList+=[atms[i]]*6
                 shlList+=[shls[i]]*6
                 symList+=bt.carDsyms
                 i+=5
             case 'F 0':
-                CMlist.append(bt.FMat@CM[i:i+7])
+                CMlist.append(bt.FMAT@CM[i:i+7])
                 atmList+=[atms[i]]*10
                 shlList+=[shls[i]]*10
                 symList+=bt.carFsyms
                 i+=7
             case 'G 0':
-                CMlist.append(bt.GMat@CM[i:i+9])
+                CMlist.append(bt.GMAT@CM[i:i+9])
                 atmList+=[atms[i]]*15
                 shlList+=[shls[i]]*15
                 symList+=bt.carGsyms
                 i+=9
             case 'H 0':
-                CMlist.append(bt.HMat@CM[i:i+11])
+                CMlist.append(bt.HMAT@CM[i:i+11])
                 atmList+=[atms[i]]*21
                 shlList+=[shls[i]]*21
                 symList+=bt.carHsyms

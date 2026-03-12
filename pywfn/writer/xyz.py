@@ -4,9 +4,9 @@
 
 from pywfn.base.mole import Mole
 from pathlib import Path
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
 from pywfn.utils import printer
-from pywfn.data import temps
+from pywfn.datas import temps
 from pywfn import config
 import numpy as np
 

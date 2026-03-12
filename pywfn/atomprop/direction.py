@@ -13,6 +13,7 @@ import numpy as np
 from functools import lru_cache
 from collections import deque
 from pywfn import core
+from pywfn.base import Stm
 
 maxWeaves={} # 记录已经计算过的原子最大值方向
 
@@ -31,9 +32,10 @@ class Calculator:
         """计算原子的法向量"""
         return self.caler.get_normal(atm)
     
-    def local_coord_system(self,atm:int,neb:int|None=None):
+    def LCS(self,atm:int,neb:int|None=None):
         """计算原子的局部坐标系"""
-        return self.caler.local_coord_system(atm,neb)
+        ex,ey,ez=self.caler.LCS(atm,neb)
+        return Stm(ex,ey,ez)
     
     def reactions(self,atm:int):
         """计算原子可能的反应方向"""
@@ -100,7 +102,7 @@ class Calculator:
     
     def sphAround(self)->np.ndarray|None: # 直接用dft的角度网格算了
         """计算周围一圈的球形范围"""
-        from pywfn.data import lebedev
+        from pywfn.datas import lebedev
         lebedev.LD0074()
         
     def bases(self)->dict[int,np.ndarray]:

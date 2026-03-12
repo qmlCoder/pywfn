@@ -3,7 +3,7 @@
 """
 import sys
 sys.path.append('d:/code/pywfn')
-from pywfn.data import lebedev
+from pywfn.datas import lebedev
 import re
 from pathlib import Path
 import numpy as np

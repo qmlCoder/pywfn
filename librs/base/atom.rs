@@ -5,6 +5,22 @@ use rswfn;
 use crate::base::Mole;
 
 #[pyclass]
+#[derive(Clone)]
+pub struct Stm {
+    pub inner: rswfn::base::Stm,
+}
+
+#[pymethods]
+impl Stm {
+    #[new]
+    pub fn new(ex: [f64; 3], ey: [f64; 3], ez: [f64; 3]) -> PyResult<Self> {
+        Ok(Self {
+            inner: rswfn::base::Stm::new(ex, ey, ez),
+        })
+    }
+}
+
+#[pyclass]
 pub struct Atom {
     inner: rswfn::base::Atom,
 }
@@ -34,11 +50,11 @@ impl Atoms {
         })
     }
 
-    pub fn add(&mut self, atm: u32, xyz: [f64; 3], crg: f64) {
-        self.inner.add(atm, xyz, crg);
+    pub fn add(&mut self, atm: usize, xyz: [f64; 3], crg: f64, stm: Stm) {
+        self.inner.add(atm, xyz, crg, stm.inner);
     }
 
-    pub fn get(&self, idx: u32) -> PyResult<Atom> {
+    pub fn get(&self, idx: usize) -> PyResult<Atom> {
         let atom = self.inner.get(idx).clone();
         Ok(Atom { inner: atom })
     }
@@ -47,11 +63,11 @@ impl Atoms {
         self.inner.len()
     }
 
-    pub fn dist(&self, i: u32, j: u32) -> f64 {
+    pub fn dist(&self, i: usize, j: usize) -> f64 {
         self.inner.dist(i, j)
     }
 
-    pub fn ato_nums(&self, form: &str, mole: &Mole) -> Vec<u32> {
+    pub fn ato_nums(&self, form: &str, mole: &Mole) -> Vec<usize> {
         self.inner.ato_nums(form, &mole.inner)
     }
 }

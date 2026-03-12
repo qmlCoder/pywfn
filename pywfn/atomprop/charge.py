@@ -6,29 +6,27 @@ from pywfn.moleprop.orbital import Deco
 Chrgs=Literal['mulliken','lowdin','space','hirshfeld']
 
 class Calculator():
-    def __init__(self,mole:"Mole"):
-        self.logTip:str=''
+    def __init__(self,mole:"Mole",atms:list[int]|None=None):
         self.mole=mole
-        self.form:str='charge' # 输出格式，电子数或电荷数 number|charge
-        self.caler=core.atomprop.charge.Calculator(mole.mole) # type: ignore # 核心计算器
+        self.caler=core.atomprop.charge.Calculator(mole.mole,atms) # type: ignore # 核心计算器
 
     def spin(self,ctype:str='mulliken'):
         """计算所有原子的自旋"""
         return self.caler.spin()
     
-    def mulliken(self,form:str='charge'):
+    def mulliken(self):
         """
         计算mulliken电荷
         """
         return self.caler.mulliken()
     
-    def lowdin(self,form:str='charge'):
+    def lowdin(self):
         """
         计算每个原子的lowdin电荷
         """
         return self.caler.lowdin()
     
-    def hirshfeld(self,form:str='charge'):
+    def hirshfeld(self):
         """计算原子的Hirshfeld电荷"""
         return self.caler.hirshfeld()
 
@@ -39,12 +37,12 @@ class Calculator():
     def deco(self,decos:dict[int,Deco],ctype:str='mulliken'):
         return self.caler.deco(decos,ctype)
     
-    def pi_pocv(self,ctype:str='mulliken',atms:list[int]|None=None):
+    def pi_pocv(self,ctype:str='mulliken'):
         """
         计算π电子数
         每个原子的方向为`法向量`的`方向电子数`即为`π电子数`
         """
-        return self.caler.pi_pocv(ctype,atms)
+        return self.caler.pi_pocv(ctype)
     
     def pi_deco(self,ctype='mulliken'): # 使用轨道分解方法计算pi电子分布，可以包含D轨道
         return self.caler.pi_deco(ctype)

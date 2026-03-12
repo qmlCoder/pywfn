@@ -17,8 +17,12 @@ impl Basis {
         }
     }
 
-    fn build(&mut self, data: Vec<(u32, u32, u32, f64, f64)>) {
-        self.inner.build(data);
+    fn build(&mut self, data: Vec<(usize, usize, usize, f64, f64, (usize, usize, isize))>) {
+        let mut basis_datas = vec![];
+        for (atm, shl, ang, alp, coe, nlm) in data {
+            basis_datas.push(rswfn::base::BasisData::new(atm, shl, ang, alp, coe, nlm));
+        }
+        self.inner.build(basis_datas);
     }
 
     pub fn __repr__(&self) -> String {

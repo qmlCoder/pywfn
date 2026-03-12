@@ -10,8 +10,8 @@ from pywfn.base.mole import Mole
 from pywfn.reader.gjf import GjfReader
 from pywfn.writer.gjf import GjfWriter
 from pywfn.editor import Editor
-from pywfn.data import temps
-from pywfn.data.elements import elements
+from pywfn.datas import temps
+from pywfn.datas.elements import elements
 
 class Tool:
     def __init__(self) -> None:

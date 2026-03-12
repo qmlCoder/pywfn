@@ -14,7 +14,7 @@ import numpy as np
 from functools import lru_cache,cached_property
 from pywfn import core
 from pywfn import base
-from pywfn.data import bastrans as bt
+from pywfn.datas import btrans as bt
 
 
 def toCar(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数据转为笛卡尔类型的
@@ -28,25 +28,25 @@ def toCar(atms:list[int],shls:list[int],syms:list[str],CM:np.ndarray): # 将数�
         sym=syms[i]
         match sym:
             case 'D 0':
-                CMlist.append(bt.DMat@CM[i:i+5])
+                CMlist.append(bt.DMAT@CM[i:i+5])
                 atmList+=[atms[i]]*6
                 shlList+=[shls[i]]*6
                 symList+=bt.carDsyms
                 i+=5
             case 'F 0':
-                CMlist.append(bt.FMat@CM[i:i+7])
+                CMlist.append(bt.FMAT@CM[i:i+7])
                 atmList+=[atms[i]]*10
                 shlList+=[shls[i]]*10
                 symList+=bt.carFsyms
                 i+=7
             case 'G 0':
-                CMlist.append(bt.GMat@CM[i:i+9])
+                CMlist.append(bt.GMAT@CM[i:i+9])
                 atmList+=[atms[i]]*15
                 shlList+=[shls[i]]*15
                 symList+=bt.carGsyms
                 i+=9
             case 'H 0':
-                CMlist.append(bt.HMat@CM[i:i+11])
+                CMlist.append(bt.HMAT@CM[i:i+11])
                 atmList+=[atms[i]]*21
                 shlList+=[shls[i]]*21
                 symList+=bt.carHsyms
@@ -347,7 +347,7 @@ class Coefs:
                 case 'd':
                     vals=SM_car[:,start:end] # [n,6]
                     if rawTypes[key]=='sph':
-                        SM_mid.append(vals@bt.DMat)
+                        SM_mid.append(vals@bt.DMAT)
                     else:
                         SM_mid.append(vals)
                 case _:
@@ -364,7 +364,7 @@ class Coefs:
                     
                     vals=SM_mid[start:end,:] # [6,n]
                     if rawTypes[key]=='sph':
-                        SM_raw.append(bt.DMat.T@vals)
+                        SM_raw.append(bt.DMAT.T@vals)
                     else:
                         SM_raw.append(vals)
                 case _:

@@ -8,7 +8,7 @@ from pywfn.bondprop import order as orderProp
 import numpy as np
 from pywfn import core
 from pywfn.utils import printer
-from pywfn.data import consts
+from pywfn.datas import consts
 
 class Calculator:
     def __init__(self, mole:Mole):

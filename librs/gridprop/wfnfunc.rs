@@ -6,6 +6,7 @@ use rswfn;
 #[pyclass]
 pub struct Calculator {
     pub mole: Mole,
+    pub atms: Vec<usize>,
 }
 
 impl Calculator {
@@ -19,37 +20,35 @@ impl Calculator {
 impl Calculator {
     #[new]
     pub fn new(mole: Mole) -> Self {
-        Self { mole }
+        let atms = mole.inner.atoms().idxs().to_owned();
+        Self { mole, atms }
     }
 
     pub fn ato_wfn(
         &self,
         grids: Vec<[f64; 3]>, // 空间中任意一点的坐标
-        level: u32,
-        atms: Vec<u32>,
+        level: usize,
     ) -> Vec<(Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>)> {
-        let caler = self.caler();
+        let mut caler = self.caler();
+        caler.atms = &self.atms;
         grids
             .into_par_iter()
-            .map(|grid| caler.ato_wfn(&grid, level, &atms))
+            .map(|grid| caler.ato_wfn(&grid, level))
             .collect()
     }
 
     // 计算一个点处的所有一个分子轨道波函数
     pub fn obt_wfn(
         &self,
+        obt: usize,           // 分子轨道索引
         grids: Vec<[f64; 3]>, // 该点的坐标
-        obt: u32,             // 分子轨道索引
-        level: u32,
-        atms: Vec<u32>,
+        level: usize,
     ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
-        let caler = self.caler();
+        let mut caler = self.caler();
+        caler.atms = &self.atms;
         grids
             .into_par_iter()
-            .map(|grid| {
-                let wfns = caler.ato_wfn(&grid, level, &atms);
-                caler.obt_wfn(obt, level, &wfns)
-            })
+            .map(|grid| caler.obt_wfn(obt, &grid, level))
             .collect()
     }
 }
@@ -57,9 +56,9 @@ impl Calculator {
 #[pyfunction]
 pub fn gtf(
     xyzs: Vec<[f64; 3]>, // 以原子为中心的格点坐标
-    lmn: [u32; 3],
+    lmn: [usize; 3],
     alp: f64,
-    level: u32,
+    level: usize,
 ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>) {
     let vals: Vec<(f64, [f64; 3], [[f64; 3]; 3])> = xyzs
         .into_par_iter()
@@ -81,10 +80,10 @@ pub fn gtf(
 // 计算收缩基函数（原子轨道），基函数的线性组合
 pub fn cgf(
     xyzs: Vec<[f64; 3]>,
-    lmn: [u32; 3],
+    lmn: [usize; 3],
     coes: Vec<f64>,
     alps: Vec<f64>,
-    level: u32,
+    level: usize,
 ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
     xyzs.into_par_iter()
         .map(|xyz| rswfn::gridprop::wfnfunc::cgf(&xyz, &lmn, &coes, &alps, level))

@@ -1,6 +1,6 @@
 use pyo3::prelude::*;
 
-use numpy::{PyArray2, PyReadonlyArray2};
+use numpy::PyReadonlyArray2;
 use rswfn;
 
 #[derive(Clone)]
@@ -20,11 +20,11 @@ impl Coefs {
 
     pub fn build(
         &mut self,
-        ato_atms: Vec<u32>,
-        ato_shls: Vec<u32>,
+        ato_atms: Vec<usize>,
+        ato_shls: Vec<usize>,
         ato_syms: Vec<String>,
         obt_engs: Vec<f64>,
-        obt_occs: Vec<u32>,
+        obt_occs: Vec<usize>,
         cmat: PyReadonlyArray2<f64>,
     ) {
         let cmat = cmat.as_array().to_owned();

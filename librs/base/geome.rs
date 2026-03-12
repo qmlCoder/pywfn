@@ -2,6 +2,8 @@ use pyo3::prelude::*;
 
 use rswfn;
 
+use crate::base::Stm;
+
 #[derive(Clone)]
 #[pyclass]
 pub struct Geome {
@@ -17,8 +19,9 @@ impl Geome {
         })
     }
 
-    pub fn build(&mut self, atms: Vec<u32>, xyzs: Vec<[f64; 3]>, crgs: Vec<f64>) {
-        self.inner.build(&atms, &xyzs, &crgs);
+    pub fn build(&mut self, atms: Vec<usize>, xyzs: Vec<[f64; 3]>, crgs: Vec<f64>, stms: Vec<Stm>) {
+        let stms = stms.into_iter().map(|stm| stm.inner).collect();
+        self.inner.build(&atms, &xyzs, &crgs, &stms);
     }
 
     pub fn __repr__(&self) -> String {

@@ -10,7 +10,7 @@ from pywfn import core
 class Calculator:
     def __init__(self,mole:Mole) -> None:
         self.mole=mole
-        self.caler=core.atomprop.activity.Calculator(mole.mole) # type: ignore # 核心计算器
+        self.core=core.atomprop.activity.Calculator(mole.mole) # type: ignore # 核心计算器
 
     # 福井函数
     def fukui(self,mole_n:Mole,mole_p:Mole,ctype:str="mulliken"):
@@ -24,7 +24,7 @@ class Calculator:
         Returns:
             np.ndarray: 福井函数[n,7](N,N+1,N-1,f-,f+,f0,df)
         """
-        vals=self.caler.fukui(mole_n.mole,mole_p.mole,ctype)
+        vals=self.core.fukui(mole_n.mole,mole_p.mole,ctype)
         return np.array(vals)
 
     # 活性矢量
@@ -37,7 +37,7 @@ class Calculator:
         Returns:
             np.ndarray: 自由价[d](val)
         """
-        return self.caler.vector(atm,dir)
+        return self.core.vector(atm,dir)
 
     # 某个原子的方向福井函数
     def fukui_dir(self,atm:int,dir:list[float],mole_n:Mole,mole_p:Mole,ctype:str="mulliken"):
@@ -53,13 +53,13 @@ class Calculator:
         Returns:
             np.ndarray: 指定方向的福井函数[n,6](N,N+1,N-1,f-,f+,f0,df)
         """
-        vals=self.caler.fukui_dir(atm,dir,mole_n.mole,mole_p.mole,ctype)
+        vals=self.core.fukui_dir(atm,dir,mole_n.mole,mole_p.mole,ctype)
         return np.array(vals)
         
     
     def fukui_pi(self,mole_n:Mole,mole_p:Mole,ctype:str='mulliken'):
         """基于pi电子数的福井函数"""
-        dirs,vals=self.caler.fukui_pi(mole_n.mole,mole_p.mole,ctype)
+        dirs,vals=self.core.fukui_pi(mole_n.mole,mole_p.mole,ctype)
         return dirs, np.array(vals)
 
     # parr函数
@@ -75,7 +75,7 @@ class Calculator:
     
     def mayerTotalValence(self):
         natm=self.mole.atoms.natm
-        vals=np.zeros(natm)
+        vals=np.zeros(natm) # type: ignore
         PS=self.mole.PM@self.mole.SM
         OM=PS*PS.T
         diag=np.diag(PS)
@@ -124,3 +124,6 @@ class Calculator:
                 if config.SHOW_LEVEL>=1:
                     print(f'{atomi.idx:>3}{atomj.idx:>3}{vals[ai]:>10.4f}')
         return vals
+    
+    def free_valence(self):
+        return self.core.free_valence()

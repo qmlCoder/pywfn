@@ -33,7 +33,7 @@ impl Calculator {
         mole_n: Mole,
         mole_p: Mole,
         ctype: &str,
-    ) -> PyResult<(HashMap<u32, [f64; 3]>, Vec<[f64; 7]>)> {
+    ) -> PyResult<(HashMap<usize, [f64; 3]>, Vec<[f64; 7]>)> {
         let (dirs, vals) = self.caler().fukui_pi(&mole_n.inner, &mole_p.inner, ctype);
         let dirs = dirs
             .iter()
@@ -44,7 +44,7 @@ impl Calculator {
 
     pub fn fukui_dir(
         &self,
-        atm: u32,
+        atm: usize,
         dir: [f64; 3],
         mole_n: Mole,
         mole_p: Mole,
@@ -57,9 +57,13 @@ impl Calculator {
         vals
     }
 
-    pub fn vector(&self, atm: u32, dir: [f64; 3], otype: &str) -> (Vec<u32>, Vec<f64>, f64) {
+    pub fn vector(&self, atm: usize, dir: [f64; 3], otype: &str) -> (Vec<usize>, Vec<f64>, f64) {
         let dir = Vector3::new(dir[0], dir[1], dir[2]);
         self.caler().vector(atm, &dir, otype)
+    }
+
+    pub fn free_valence(&self) -> Vec<f64> {
+        self.caler().free_valence()
     }
 }
 

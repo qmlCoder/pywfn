@@ -22,7 +22,7 @@ impl Calculator {
     }
 
     /// 使用pi键级标准差计算芳香性
-    pub fn PISD(&self, rings: Option<Vec<Vec<u32>>>) -> Vec<f64> {
+    pub fn PISD(&self, rings: Option<Vec<Vec<usize>>>) -> Vec<f64> {
         self.caler().PISD(rings.as_ref())
     }
 }

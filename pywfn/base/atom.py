@@ -3,7 +3,13 @@ import numpy as np
 from functools import cached_property,lru_cache
 from pywfn import base
 from pywfn.maths import vector_angle
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
+from pywfn import core
+
+class Stm:
+    """原子局部坐标系"""
+    def __init__(self,ex:list[float],ey:list[float],ez:list[float]) -> None:
+        self.core=core.base.Stm(ex,ey,ez) # type: ignore
 
 class Atom:
     """

@@ -20,7 +20,7 @@ impl Tool {
         self.inner.get_SI(&paths)
     }
 
-    pub fn split_opt(&self, path: String) -> Vec<(Vec<u32>, Vec<[f64; 3]>, f64)> {
+    pub fn split_opt(&self, path: String) -> Vec<(Vec<usize>, Vec<[f64; 3]>, f64)> {
         self.inner.split_opt(path)
     }
 }

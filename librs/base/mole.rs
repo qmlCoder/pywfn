@@ -13,12 +13,12 @@ pub struct Mole {
 #[pymethods]
 impl Mole {
     #[new]
-    pub fn new(geome: Geome, basis: Basis, coefs: Coefs) -> PyResult<Mole> {
-        let geome = Some(geome.inner);
-        let basis = Some(basis.inner);
-        let coefs = Some(coefs.inner);
+    pub fn new(geome: Geome, basis: Basis, coefs: Coefs, neles: [usize; 2]) -> PyResult<Mole> {
+        let geome = geome.inner;
+        let basis = basis.inner;
+        let coefs = coefs.inner;
         let mole = Mole {
-            inner: rswfn::base::Mole::new(geome, basis, coefs),
+            inner: rswfn::base::Mole::new(geome, basis, coefs, neles),
         };
         Ok(mole)
     }
@@ -32,8 +32,8 @@ impl Mole {
         self.inner.atoms().syms()
     }
 
-    pub fn xyzs(&self, angstrom: bool) -> Vec<[f64; 3]> {
-        self.inner.atoms().xyzs(angstrom)
+    pub fn xyzs(&self) -> Vec<[f64; 3]> {
+        self.inner.atoms().xyzs().clone()
     }
 
     pub fn get_cmat(&self, py: Python, form: &str) -> Py<PyArray2<f64>> {

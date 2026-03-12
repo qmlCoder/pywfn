@@ -24,11 +24,6 @@ impl Calculator {
     pub fn new(mole: Mole) -> Self {
         Self { mole }
     }
-
-    pub fn pi_pocv(&self) {
-        let qmat = self.caler().pi_pocv();
-        
-    }
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {

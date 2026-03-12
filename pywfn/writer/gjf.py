@@ -5,7 +5,7 @@ from pathlib import Path
 import numpy as np
 from pywfn.base.mole import Mole
 from pywfn import config
-from pywfn.data import temps
+from pywfn.datas import temps
 
 class GjfWriter:
     def __init__(self):

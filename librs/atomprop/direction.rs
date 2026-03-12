@@ -1,5 +1,4 @@
 use pyo3::prelude::*;
-use std::collections::HashMap;
 
 use rswfn;
 
@@ -24,7 +23,7 @@ impl Calculator {
         Self { mole }
     }
 
-    pub fn normal_vector(&self, atm: u32) -> Option<[f64; 3]> {
+    pub fn normal_vector(&self, atm: usize) -> Option<[f64; 3]> {
         let dir = self.caler().normal_vector(atm);
         match dir {
             Some(dir) => Some([dir.x, dir.y, dir.z]),
@@ -32,7 +31,7 @@ impl Calculator {
         }
     }
 
-    pub fn get_normal(&self, atm: u32) -> Option<[f64; 3]> {
+    pub fn get_normal(&self, atm: usize) -> Option<[f64; 3]> {
         let dir = self.caler().get_normal(atm);
         match dir {
             Some(dir) => Some([dir.x, dir.y, dir.z]),
@@ -40,28 +39,20 @@ impl Calculator {
         }
     }
 
-    pub fn local_coord_system(&mut self, atm: u32, neb: Option<u32>) -> Option<[[f64; 3]; 3]> {
-        let lcs = self.caler().local_coord_system(atm, neb);
-        match lcs {
-            Some(lcs) => {
-                let xx = lcs[(0, 0)];
-                let xy = lcs[(1, 0)];
-                let xz = lcs[(2, 0)];
-
-                let yx = lcs[(0, 1)];
-                let yy = lcs[(1, 1)];
-                let yz = lcs[(2, 1)];
-
-                let zx = lcs[(0, 2)];
-                let zy = lcs[(1, 2)];
-                let zz = lcs[(2, 2)];
+    pub fn LCS(&mut self, atm: usize, neb: Option<usize>) -> Option<[[f64; 3]; 3]> {
+        let stm = self.caler().LCS(atm, neb);
+        match stm {
+            Some(stm) => {
+                let [xx, xy, xz] = stm.ex;
+                let [yx, yy, yz] = stm.ey;
+                let [zx, zy, zz] = stm.ez;
                 Some([[xx, xy, xz], [yx, yy, yz], [zx, zy, zz]])
             }
             None => None,
         }
     }
 
-    pub fn reactions(&self, atm: u32) -> Vec<[f64; 3]> {
+    pub fn reactions(&self, atm: usize) -> Vec<[f64; 3]> {
         let dirs = self.caler().reactions(atm);
         let dirs: Vec<[f64; 3]> = dirs.iter().map(|dir| [dir.x, dir.y, dir.z]).collect();
         dirs

@@ -23,7 +23,7 @@ impl Calculator {
         Self { mole }
     }
 
-    pub fn verts(&self, ai: u32, aj: u32) -> Vec<[f64; 3]> {
+    pub fn verts(&self, ai: usize, aj: usize) -> Vec<[f64; 3]> {
         let dirs = self.caler().verts(ai, aj);
         dirs.into_iter().map(|dir| [dir.x, dir.y, dir.z]).collect()
     }

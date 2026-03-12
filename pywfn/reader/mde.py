@@ -6,7 +6,7 @@ from pywfn.base.basis import BasisData,Basis
 from pywfn.base.coefs import Coefs
 from pywfn.base.geome import Geome
 from pywfn.reader.utils import toCart
-from pywfn.data import bastrans
+from pywfn.datas import btrans
 import numpy as np
 import re
 from functools import lru_cache

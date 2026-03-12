@@ -2,8 +2,8 @@
 计算DFT格点
 """
 from pywfn.base.mole import Mole
-from pywfn.data.elements import elements
-from pywfn.data import lebedev
+from pywfn.datas.elements import elements
+from pywfn.datas import lebedev
 
 import numpy as np
 import sys

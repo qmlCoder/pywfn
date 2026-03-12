@@ -25,8 +25,8 @@ impl Calculator {
     pub fn mol_rho(
         &self,
         grids: Vec<[f64; 3]>,
-        level: u32,
-        atms: Vec<u32>,
+        level: usize,
+        atms: Vec<usize>,
     ) -> (Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>) {
         let caler = self.caler();
         let vals: Vec<(f64, [f64; 3], [[f64; 3]; 3])> = grids
@@ -58,7 +58,7 @@ impl Calculator {
     pub fn ato_rho(
         &self,
         grids: Vec<[f64; 3]>,
-        level: u32,
+        level: usize,
     ) -> Vec<(Vec<f64>, Vec<[f64; 3]>, Vec<[[f64; 3]; 3]>)> {
         let caler = self.caler();
         grids
@@ -78,8 +78,8 @@ impl Calculator {
     pub fn obt_rho(
         &self,
         grids: Vec<[f64; 3]>,
-        obt: u32,
-        level: u32,
+        obt: usize,
+        level: usize,
     ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
         let caler = self.caler();
         grids

@@ -2,7 +2,7 @@
 定义mol文件的写出器
 """
 from pywfn.base.mole import Mole
-from pywfn.data import temps
+from pywfn.datas import temps
 from pathlib import Path
 import numpy as np
 

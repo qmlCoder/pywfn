@@ -2,7 +2,7 @@
 计算一些简单的物理化学性质，不需要输入文件
 """
 import numpy as np
-from pywfn.data import consts as cs
+from pywfn.datas import consts as cs
 from pywfn.utils import printer
 # 计算反应活化能 reaction activation energy
 def reaActEne(K:float,T:float)->float:

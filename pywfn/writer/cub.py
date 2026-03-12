@@ -15,7 +15,7 @@ from pywfn.base.mole import Mole
 from pywfn import maths,base,config
 from pywfn.utils import printer
 from pywfn.gridprop import wfnfunc,density
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
 from pywfn import utils
 
 class CubWriter:

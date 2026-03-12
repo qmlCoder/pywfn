@@ -46,14 +46,15 @@ class Mole:
         self.geome=reader.get_geome()
         self.basis=reader.get_basis()
         self.coefs=reader.get_coefs()
-        self.mole=core.base.Mole(self.geome.core,self.basis.core,self.coefs.core) # type: ignore
+        self.neles=reader.get_neles()
+        self.mole=core.base.Mole(self.geome.core,self.basis.core,self.coefs.core,self.neles) # type: ignore
         self.reader:"reader.Reader"=reader
         
         self.bohr:bool=False # 是否使用波尔坐标
     
     @property
     def nele(self)->tuple[int,int]:
-        elea,eleb=self.reader.get_nele()
+        elea,eleb=self.reader.get_neles()
         return elea,eleb
 
     @property    
@@ -186,8 +187,7 @@ class Mole:
     @property
     def CM(self)->npt.NDArray[np.float64]:
         """分子轨道系数矩阵"""
-        return self.coefs.get_CM('raw')
-        # return self.coefs.CM('car')
+        return self.mole.get_cmat("raw")
     
     @property
     def SM(self)->np.ndarray: # 新代码，直接计算重叠矩阵

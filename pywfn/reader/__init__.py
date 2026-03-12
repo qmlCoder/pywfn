@@ -40,8 +40,6 @@ from pywfn.base.coefs import Coefs
 - 重叠矩阵
 - 波函数类型 开壳层/闭壳层
 """
-
-from pywfn import data
 from pywfn import config
 import numpy as np
 from pathlib import Path
@@ -111,7 +109,7 @@ class Reader:
         """获取分子能量"""
         raise ValueError("未继承的函数")
 
-    def get_nele(self)->tuple[int,int]:
+    def get_neles(self)->tuple[int,int]:
         """获取分子电子数"""
         raise ValueError("未继承的函数")
 

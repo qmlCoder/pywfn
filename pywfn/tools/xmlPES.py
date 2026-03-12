@@ -3,7 +3,7 @@
 """
 from pathlib import Path
 from pywfn.reader import get_reader,LogReader
-from pywfn.data import temps
+from pywfn.datas import temps
 from collections import namedtuple
 from dataclasses import dataclass
 from typing import Union

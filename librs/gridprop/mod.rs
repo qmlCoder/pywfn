@@ -27,7 +27,7 @@ impl LineGrid {
         self.inner.set(p0, p1, step);
     }
 
-    pub fn get(&self) -> ([u32; 1], Vec<[f64; 3]>) {
+    pub fn get(&self) -> ([usize; 1], Vec<[f64; 3]>) {
         let (shape, grids) = self.inner.get();
         (shape, grids.clone())
     }
@@ -68,7 +68,7 @@ impl RectGrid {
         self.inner.set_v2(&p0, &p1, &p2, step);
     }
 
-    pub fn get(&self) -> ([u32; 2], Vec<[f64; 3]>) {
+    pub fn get(&self) -> ([usize; 2], Vec<[f64; 3]>) {
         let (shape, grids) = self.inner.get();
         (shape, grids.clone())
     }
@@ -92,7 +92,7 @@ impl CubeGrid {
         self.inner.set_v1(&p0, &p1, step, bord);
     }
 
-    pub fn get(&self) -> ([u32; 3], Vec<[f64; 3]>) {
+    pub fn get(&self) -> ([usize; 3], Vec<[f64; 3]>) {
         let (shape, grids) = self.inner.get();
         (shape, grids.clone())
     }

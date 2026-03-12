@@ -8,8 +8,8 @@ from pywfn.base.geome import Geome
 from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
 
-from pywfn.data.elements import elements
-from pywfn.data import consts
+from pywfn.datas.elements import elements
+from pywfn.datas import consts
 import re
 import numpy as np
 from functools import lru_cache

@@ -21,7 +21,7 @@ impl Calculator {
     pub fn new(mole: Mole) -> Self {
         Self { mole }
     }
-    pub fn EIEBA(&self, fragA: Vec<u32>, fragB: Vec<u32>) -> (f64, f64, f64) {
+    pub fn EIEBA(&self, fragA: Vec<usize>, fragB: Vec<usize>) -> (f64, f64, f64) {
         self.caler().EIEBA(&fragA, &fragB)
     }
 }

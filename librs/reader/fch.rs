@@ -35,4 +35,8 @@ impl FchReader {
         let coefs = self.inner.get_coefs();
         Coefs { inner: coefs }
     }
+
+    pub fn get_neles(&self) -> [usize; 2] {
+        self.inner.get_neles()
+    }
 }

@@ -22,8 +22,8 @@ impl Calculator {
         Self { mole }
     }
 
-    pub fn pi_ele(&self) -> Vec<f64> {
-        self.caler().pi_ele()
+    pub fn pi_eles_pocv(&self) -> Vec<f64> {
+        self.caler().pi_eles_pocv()
     }
 }
 

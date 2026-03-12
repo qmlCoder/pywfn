@@ -3,6 +3,7 @@
 use pyo3::prelude::*;
 
 pub mod base;
+pub mod datas;
 pub mod integ;
 pub mod march;
 pub mod maths;
@@ -30,6 +31,7 @@ fn core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     integ::register_module(m)?;
     matrix::register_module(m)?;
     tools::register_module(m)?;
+    datas::register_module(m)?;
 
     atomprop::register_module(m)?;
     bondprop::register_module(m)?;

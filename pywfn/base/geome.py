@@ -4,7 +4,7 @@
 
 import numpy as np
 from pywfn import base
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
 from pywfn import core
 
 class Geome:

@@ -11,7 +11,7 @@ from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
 from pywfn.base.geome import Geome
 from pywfn.utils import printer
-from pywfn.data.elements import elements
+from pywfn.datas.elements import elements
 from pywfn import reader
 from pywfn import core
 import textwrap
@@ -48,6 +48,9 @@ class LogReader(reader.Reader):
         coefs=Coefs()
         coefs.core=coefs_core
         return coefs
+    
+    def get_neles(self):
+        return self.reader.get_neles()
     
     # def get_nele(self)->tuple[int,int]: # 根据总核电荷数和电荷、自旋计算α、β电子数，不可行的
     #     lineNum=self.titles['nele'].line

@@ -5,11 +5,11 @@ use rswfn;
 
 #[pyfunction]
 pub fn march_cube_v1(
-    shape: [u32; 3],
+    shape: [usize; 3],
     grids: Vec<[f64; 3]>,
     values: Vec<f64>,
     isov: f64,
-) -> PyResult<(Vec<[f64; 3]>, Vec<i32>)> {
+) -> PyResult<(Vec<[f64; 3]>, Vec<isize>)> {
     let res = rswfn::march::march_cube_v1(&shape, &grids, &values, isov);
     Ok(res)
 }

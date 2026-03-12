@@ -5,8 +5,8 @@
   "python.analysis.diagnosticMode": "workspace",
   "python.analysis.exclude": ["**/protos/**/*.*"],
   "rust-analyzer.linkedProjects": [
-    "d:/code/rswfn/Cargo.toml",
-    "d:/code/pywfn/Cargo.toml"
+    "e:/code/rswfn/Cargo.toml",
+    "e:/code/pywfn/Cargo.toml"
   ],
   "python-envs.defaultEnvManager": "ms-python.python:conda",
   "python-envs.defaultPackageManager": "ms-python.python:conda",

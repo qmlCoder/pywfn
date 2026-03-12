@@ -21,7 +21,7 @@ impl NonReader {
         Ok(result)
     }
 
-    pub fn set_geome(&mut self, atms: Vec<u32>, xyzs: Vec<[f64; 3]>) {
+    pub fn set_geome(&mut self, atms: Vec<usize>, xyzs: Vec<[f64; 3]>) {
         self.inner.set_geome(&atms, &xyzs);
     }
 }

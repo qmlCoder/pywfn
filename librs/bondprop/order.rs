@@ -36,7 +36,7 @@ impl Calculator {
     pub fn pocv(
         &self,
         py: Python,
-        dirs: HashMap<u32, [f64; 3]>,
+        dirs: HashMap<usize, [f64; 3]>,
         keep_other_atm: bool,
         keep_other_sym: bool,
         otype: &str,
@@ -54,7 +54,7 @@ impl Calculator {
     pub fn deco(
         &self,
         py: Python,
-        decos: HashMap<u32, Deco>, // 每个原子的保留信息
+        decos: HashMap<usize, Deco>, // 每个原子的保留信息
         otype: &str,
     ) -> Py<PyArray2<f64>> {
         let decos = decos
@@ -65,7 +65,7 @@ impl Calculator {
         orders.into_pyarray(py).unbind()
     }
 
-    pub fn pi_pocv(&self, py: Python) -> (HashMap<u32, [f64; 3]>, Py<PyArray2<f64>>) {
+    pub fn pi_pocv(&self, py: Python) -> (HashMap<usize, [f64; 3]>, Py<PyArray2<f64>>) {
         let (dirs, omat) = self.caler().pi_pocv();
         // let nrow = omat.nrows();
         // let ncol = omat.ncols();
@@ -88,7 +88,7 @@ impl Calculator {
         (dirs, omat)
     }
 
-    pub fn pi_deco(&self, py: Python) -> (HashMap<u32, Deco>, Py<PyArray2<f64>>) {
+    pub fn pi_deco(&self, py: Python) -> (HashMap<usize, Deco>, Py<PyArray2<f64>>) {
         let (decos, omat) = self.caler().pi_deco();
         let decos = decos
             .into_iter()
@@ -98,7 +98,7 @@ impl Calculator {
         (decos, omat)
     }
 
-    pub fn bound(&self, atm: u32, dir: [f64; 3], otype: &str) -> (Vec<u32>, Vec<f64>) {
+    pub fn bound(&self, atm: usize, dir: [f64; 3], otype: &str) -> (Vec<usize>, Vec<f64>) {
         let dir = Vector3::new(dir[0], dir[1], dir[2]);
         self.caler().bound(atm, &dir, otype)
     }

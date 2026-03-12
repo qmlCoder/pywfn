@@ -10,24 +10,31 @@ use crate::orbtprop::obtmat::Deco;
 #[pyclass]
 pub struct Calculator {
     pub mole: Mole,
+    pub atms: Vec<usize>,
 }
 
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::atomprop::charge::Calculator<'_> {
-        rswfn::atomprop::charge::Calculator::new(&self.mole.inner)
+        let mut caler = rswfn::atomprop::charge::Calculator::new(&self.mole.inner);
+        caler.atms = &self.atms;
+        caler
     }
 }
 
 #[pymethods]
 impl Calculator {
     #[new]
-    pub fn new(mole: Mole) -> Self {
-        Self { mole }
+    pub fn new(mole: Mole, atms: Option<Vec<usize>>) -> Self {
+        let atms = match atms {
+            Some(atms) => atms,
+            None => mole.inner.atoms().idxs().clone(),
+        };
+        Self { mole, atms }
     }
 
-    pub fn spin(&self) -> Vec<f64> {
-        self.caler().spin()
+    pub fn spin(&self, ctype: &str) -> Vec<[f64; 3]> {
+        self.caler().spin(ctype)
     }
 
     pub fn mulliken(&self) -> Vec<f64> {
@@ -44,12 +51,12 @@ impl Calculator {
 
     pub fn pocv(
         &self,
-        dirs: HashMap<u32, [f64; 3]>,
+        dirs: HashMap<usize, [f64; 3]>,
         keep_other_atm: bool,
         keep_other_sym: bool,
         ctype: &str,
     ) -> PyResult<Vec<f64>> {
-        let dirs: HashMap<u32, Vector3<f64>> = dirs
+        let dirs: HashMap<usize, Vector3<f64>> = dirs
             .into_iter()
             .map(|(atm, dir)| {
                 let [x, y, z] = dir;
@@ -62,7 +69,7 @@ impl Calculator {
         Ok(vals)
     }
 
-    pub fn deco(&self, decos: HashMap<u32, Deco>, ctype: &str) -> PyResult<Vec<f64>> {
+    pub fn deco(&self, decos: HashMap<usize, Deco>, ctype: &str) -> PyResult<Vec<f64>> {
         let decos = decos
             .into_iter()
             .map(|(atm, deco)| (atm, deco.inner.clone()))
@@ -74,8 +81,8 @@ impl Calculator {
     pub fn pi_pocv(
         &self,
         ctype: &str,
-        atms: Vec<u32>,
-    ) -> PyResult<(HashMap<u32, [f64; 3]>, Vec<f64>)> {
+        atms: Vec<usize>,
+    ) -> PyResult<(HashMap<usize, [f64; 3]>, Vec<f64>)> {
         let (dirs, eles) = self.caler().pi_pocv(ctype, &atms);
         let dirs = dirs
             .iter()
@@ -84,7 +91,7 @@ impl Calculator {
         Ok((dirs, eles))
     }
 
-    pub fn pi_deco(&self, ctype: &str) -> PyResult<(HashMap<u32, Deco>, Vec<f64>)> {
+    pub fn pi_deco(&self, ctype: &str) -> PyResult<(HashMap<usize, Deco>, Vec<f64>)> {
         let (decos, eles) = self.caler().pi_deco(ctype);
         let decos = decos
             .iter()

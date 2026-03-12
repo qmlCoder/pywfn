@@ -32,7 +32,7 @@ impl Calculator {
 
     pub fn atm_grids(
         &self,
-        iatm: u32,
+        iatm: usize,
         nrad: usize, // 径向格点数量
         fsph: usize, // 球面格点函数
     ) -> (Vec<[f64; 3]>, Vec<f64>) {
@@ -41,7 +41,7 @@ impl Calculator {
 
     pub fn a2m_weits(
         &self,
-        iatm: u32,                // 第多少个原子
+        iatm: usize,              // 第多少个原子
         atm_grids: Vec<[f64; 3]>, // 原子格点
         atm_weits: Vec<f64>,      // 原子格点权重
     ) -> Vec<f64> {
@@ -53,7 +53,7 @@ impl Calculator {
         Ok(res)
     }
 
-    pub fn frag_grids(&self, frag: Vec<u32>) -> (Vec<[f64; 3]>, Vec<f64>) {
+    pub fn frag_grids(&self, frag: Vec<usize>) -> (Vec<[f64; 3]>, Vec<f64>) {
         self.caler().frag_grids(&frag)
     }
 }
