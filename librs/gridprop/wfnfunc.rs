@@ -12,7 +12,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::gridprop::wfnfunc::Calculator<'_> {
-        rswfn::gridprop::wfnfunc::Calculator::new(&self.mole.inner)
+        rswfn::gridprop::wfnfunc::Calculator::new(&self.mole.core)
     }
 }
 
@@ -20,7 +20,7 @@ impl Calculator {
 impl Calculator {
     #[new]
     pub fn new(mole: Mole) -> Self {
-        let atms = mole.inner.atoms().idxs().to_owned();
+        let atms = mole.core.atoms().idxs().to_owned();
         Self { mole, atms }
     }
 

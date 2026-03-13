@@ -13,10 +13,10 @@ crate-type = ["cdylib", "lib"]
 rayon = "1.5.1"
 rswfn = { path = "e:/code/rswfn" } # for Windows
 # rswfn = { path = "/mnt/d/code/rswfn" }                         # for WSL
-pyo3 = { version = "0.25.1", features = ["extension-module"] }
+pyo3 = { version = "0.25.1", features = ["extension-module", "abi3-py310"] }
 ndarray = "0.16.1"
 numpy = "0.25.0"
-nalgebra = "0.34.1"                                            # 线性代数库
+nalgebra = "0.34.1"                                                          # 线性代数库
 
 [profile.release]
 lto = true

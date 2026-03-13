@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use rswfn;
 
 use crate::base::Mole;
-use crate::orbtprop::obtmat::Deco;
+use crate::orbtprop::obtmat::Mocv;
 use numpy::{IntoPyArray, PyArray2};
 
 #[pyclass]
@@ -16,7 +16,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::bondprop::order::Calculator<'_> {
-        rswfn::bondprop::order::Calculator::new(&self.mole.inner)
+        rswfn::bondprop::order::Calculator::new(&self.mole.core)
     }
 }
 
@@ -28,7 +28,7 @@ impl Calculator {
     }
 
     pub fn mayer(&self, py: Python) -> Py<PyArray2<f64>> {
-        let orders = self.caler().mayer();
+        let orders = self.caler().order("mayer");
         let orders = orders.into_pyarray(py).unbind();
         orders
     }
@@ -54,32 +54,19 @@ impl Calculator {
     pub fn deco(
         &self,
         py: Python,
-        decos: HashMap<usize, Deco>, // 每个原子的保留信息
+        mocvs: HashMap<usize, Mocv>, // 每个原子的保留信息
         otype: &str,
     ) -> Py<PyArray2<f64>> {
-        let decos = decos
+        let mocvs = mocvs
             .into_iter()
-            .map(|(key, deco)| (key, deco.inner))
+            .map(|(key, mocv)| (key, mocv.core))
             .collect();
-        let orders = self.caler().deco(&decos, otype);
+        let orders = self.caler().mocv(&mocvs, otype);
         orders.into_pyarray(py).unbind()
     }
 
     pub fn pi_pocv(&self, py: Python) -> (HashMap<usize, [f64; 3]>, Py<PyArray2<f64>>) {
         let (dirs, omat) = self.caler().pi_pocv();
-        // let nrow = omat.nrows();
-        // let ncol = omat.ncols();
-        // for i in 0..nrow {
-        //     for j in 0..ncol {
-        //         if i == j {
-        //             continue;
-        //         }
-        //         if omat[(i, j)] < 1e-3 {
-        //             continue;
-        //         }
-        //         println!("{:>2}-{:>2}:{:>10.3}", i + 1, j + 1, omat[(i, j)]);
-        //     }
-        // }
         let dirs = dirs
             .into_iter()
             .map(|(key, dir)| (key, [dir.x, dir.y, dir.z]))
@@ -88,14 +75,14 @@ impl Calculator {
         (dirs, omat)
     }
 
-    pub fn pi_deco(&self, py: Python) -> (HashMap<usize, Deco>, Py<PyArray2<f64>>) {
-        let (decos, omat) = self.caler().pi_deco();
-        let decos = decos
+    pub fn pi_mocv(&self, py: Python) -> (HashMap<usize, Mocv>, Py<PyArray2<f64>>) {
+        let (mocvs, omat) = self.caler().pi_mocv();
+        let mocvs = mocvs
             .into_iter()
-            .map(|(key, deco)| (key, Deco { inner: deco }))
+            .map(|(key, mocv)| (key, Mocv { core: mocv }))
             .collect();
         let omat = omat.into_pyarray(py).unbind();
-        (decos, omat)
+        (mocvs, omat)
     }
 
     pub fn bound(&self, atm: usize, dir: [f64; 3], otype: &str) -> (Vec<usize>, Vec<f64>) {

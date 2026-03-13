@@ -16,7 +16,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::moleprop::orbital::Calculator<'_> {
-        rswfn::moleprop::orbital::Calculator::new(&self.mole.inner)
+        rswfn::moleprop::orbital::Calculator::new(&self.mole.core)
     }
 }
 
@@ -60,7 +60,7 @@ impl Calculator {
     pub fn deco(&self, py: Python, decos: HashMap<u32, Deco>) -> Py<PyArray2<f64>> {
         let decos = decos
             .into_iter()
-            .map(|(key, deco)| (key, deco.inner))
+            .map(|(key, deco)| (key, deco.core))
             .collect();
         let cmat_deco = self.caler().deco(&decos);
         cmat_deco.into_pyarray(py).unbind()
@@ -70,7 +70,7 @@ impl Calculator {
         let (decos, cmat) = self.caler().pi_deco();
         let decos = decos
             .into_iter()
-            .map(|(key, deco)| (key, Deco { inner: deco }))
+            .map(|(key, deco)| (key, Deco { core: deco }))
             .collect();
         let cmat = cmat.into_pyarray(py).unbind();
         (decos, cmat)
@@ -80,7 +80,7 @@ impl Calculator {
 #[pyclass]
 #[derive(Clone)]
 pub struct Deco {
-    pub inner: rswfn::moleprop::orbital::Deco,
+    pub core: rswfn::moleprop::orbital::Deco,
 }
 
 #[pymethods]
@@ -95,7 +95,7 @@ impl Deco {
     ) -> Self {
         let base = base.to_owned_array();
         Self {
-            inner: rswfn::moleprop::orbital::Deco {
+            core: rswfn::moleprop::orbital::Deco {
                 base,
                 skeep,
                 pkeep,
@@ -105,7 +105,7 @@ impl Deco {
     }
 
     pub fn __repr__(&self) -> String {
-        format!("{}", self.inner)
+        format!("{}", self.core)
     }
 }
 

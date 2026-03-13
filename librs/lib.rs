@@ -12,6 +12,7 @@ pub mod reader;
 pub mod space;
 pub mod tools;
 pub mod utils;
+pub mod writer;
 
 pub mod atomprop;
 pub mod bondprop;
@@ -25,6 +26,7 @@ fn core(m: &Bound<'_, PyModule>) -> PyResult<()> {
     base::register_module(m)?;
     space::register_module(m)?;
     reader::register_module(m)?;
+    writer::register_module(m)?;
     utils::register_module(m)?;
     march::register_module(m)?;
     maths::register_module(m)?;

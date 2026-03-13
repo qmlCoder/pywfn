@@ -8,7 +8,7 @@ use rswfn::reader::Reader;
 
 #[pyclass]
 pub struct NonReader {
-    inner: rswfn::reader::NonReader,
+    core: rswfn::reader::NonReader,
 }
 
 #[pymethods]
@@ -16,12 +16,12 @@ impl NonReader {
     #[new]
     pub fn new(path: String) -> PyResult<Self> {
         let result = Self {
-            inner: rswfn::reader::NonReader::new(&path),
+            core: rswfn::reader::NonReader::new(&path),
         };
         Ok(result)
     }
 
     pub fn set_geome(&mut self, atms: Vec<usize>, xyzs: Vec<[f64; 3]>) {
-        self.inner.set_geome(&atms, &xyzs);
+        self.core.set_geome(&atms, &xyzs);
     }
 }

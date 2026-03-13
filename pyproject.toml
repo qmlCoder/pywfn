@@ -12,6 +12,8 @@ requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
     "Programming Language :: Rust",
     "Operating System :: OS Independent",
 ]
@@ -19,6 +21,7 @@ license = "MIT"
 license-files = ["LICENSE"]
 keywords = ["chemistry", "wave function"]
 dependencies = ["numpy>=2.2.3"]
+
 [project.scripts]
 pywfn = "pywfn:main"
 
@@ -27,5 +30,6 @@ Homepage = "https://github.com/qmlCoder/pywfn"
 Issues = "https://github.com/qmlCoder/pywfn/issues"
 
 [tool.maturin]
-# python-source = "pywfn"
 module-name = "pywfn.core"
+# python-source = "pywfn"
+features = ["pyo3/abi3-py310"] # 启用 abi3 以实现跨版本兼容性

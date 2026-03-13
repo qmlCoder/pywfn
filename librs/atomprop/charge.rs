@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use rswfn;
 
 use crate::base::Mole;
-use crate::orbtprop::obtmat::Deco;
+use crate::orbtprop::obtmat::Mocv;
 
 #[pyclass]
 pub struct Calculator {
@@ -16,7 +16,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::atomprop::charge::Calculator<'_> {
-        let mut caler = rswfn::atomprop::charge::Calculator::new(&self.mole.inner);
+        let mut caler = rswfn::atomprop::charge::Calculator::new(&self.mole.core);
         caler.atms = &self.atms;
         caler
     }
@@ -28,7 +28,7 @@ impl Calculator {
     pub fn new(mole: Mole, atms: Option<Vec<usize>>) -> Self {
         let atms = match atms {
             Some(atms) => atms,
-            None => mole.inner.atoms().idxs().clone(),
+            None => mole.core.atoms().idxs().clone(),
         };
         Self { mole, atms }
     }
@@ -69,21 +69,17 @@ impl Calculator {
         Ok(vals)
     }
 
-    pub fn deco(&self, decos: HashMap<usize, Deco>, ctype: &str) -> PyResult<Vec<f64>> {
-        let decos = decos
+    pub fn mocv(&self, mocvs: HashMap<usize, Mocv>, ctype: &str) -> PyResult<Vec<f64>> {
+        let mocvs = mocvs
             .into_iter()
-            .map(|(atm, deco)| (atm, deco.inner.clone()))
+            .map(|(atm, mocv)| (atm, mocv.core.clone()))
             .collect();
-        let vals = self.caler().deco(&decos, ctype);
+        let vals = self.caler().mocv(&mocvs, ctype);
         Ok(vals)
     }
 
-    pub fn pi_pocv(
-        &self,
-        ctype: &str,
-        atms: Vec<usize>,
-    ) -> PyResult<(HashMap<usize, [f64; 3]>, Vec<f64>)> {
-        let (dirs, eles) = self.caler().pi_pocv(ctype, &atms);
+    pub fn pi_pocv(&self, ctype: &str) -> PyResult<(HashMap<usize, [f64; 3]>, Vec<f64>)> {
+        let (dirs, eles) = self.caler().pi_pocv(ctype);
         let dirs = dirs
             .iter()
             .map(|(key, dir)| (*key, [dir.x, dir.y, dir.z]))
@@ -91,20 +87,13 @@ impl Calculator {
         Ok((dirs, eles))
     }
 
-    pub fn pi_deco(&self, ctype: &str) -> PyResult<(HashMap<usize, Deco>, Vec<f64>)> {
-        let (decos, eles) = self.caler().pi_deco(ctype);
-        let decos = decos
+    pub fn pi_mocv(&self, ctype: &str) -> PyResult<(HashMap<usize, Mocv>, Vec<f64>)> {
+        let (mocvs, eles) = self.caler().pi_mocv(ctype);
+        let mocvs = mocvs
             .iter()
-            .map(|(atm, deco)| {
-                (
-                    *atm,
-                    Deco {
-                        inner: deco.clone(),
-                    },
-                )
-            })
+            .map(|(atm, mocv)| (*atm, Mocv { core: mocv.clone() }))
             .collect();
-        Ok((decos, eles))
+        Ok((mocvs, eles))
     }
 }
 

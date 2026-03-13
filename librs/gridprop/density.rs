@@ -11,7 +11,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::gridprop::density::Calculator<'_> {
-        rswfn::gridprop::density::Calculator::new(&self.mole.inner)
+        rswfn::gridprop::density::Calculator::new(&self.mole.core)
     }
 }
 
@@ -31,7 +31,7 @@ impl Calculator {
         let caler = self.caler();
         let vals: Vec<(f64, [f64; 3], [[f64; 3]; 3])> = grids
             .into_par_iter()
-            .map(|grid| caler.mol_rho_dm(&grid, level, &atms))
+            .map(|grid| caler.mol_rho_dm(&grid, level))
             .collect();
         let rho0: Vec<f64> = vals.iter().map(|val| val.0).collect();
         let rho1 = if level > 0 {
@@ -129,7 +129,7 @@ impl Calculator {
         let caler = self.caler();
         grids
             .into_par_iter()
-            .map(|grid| caler.fukui(&grid, &moleN.inner, &moleP.inner))
+            .map(|grid| caler.fukui(&grid, &moleN.core, &moleP.core))
             .collect()
     }
 

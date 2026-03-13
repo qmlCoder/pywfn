@@ -9,5 +9,5 @@ class Calculator:
     def mole_pi(self)->Mole:
         mole_core=self.caler.mole_pi()
         newmole=self.mole.clone()
-        newmole.mole=mole_core
+        newmole.core=mole_core
         return newmole

@@ -24,7 +24,7 @@ class Calculator:
         Returns:
             np.ndarray: 福井函数[n,7](N,N+1,N-1,f-,f+,f0,df)
         """
-        vals=self.core.fukui(mole_n.mole,mole_p.mole,ctype)
+        vals=self.core.fukui(mole_n.core,mole_p.core,ctype)
         return np.array(vals)
 
     # 活性矢量
@@ -53,13 +53,13 @@ class Calculator:
         Returns:
             np.ndarray: 指定方向的福井函数[n,6](N,N+1,N-1,f-,f+,f0,df)
         """
-        vals=self.core.fukui_dir(atm,dir,mole_n.mole,mole_p.mole,ctype)
+        vals=self.core.fukui_dir(atm,dir,mole_n.core,mole_p.core,ctype)
         return np.array(vals)
         
     
     def fukui_pi(self,mole_n:Mole,mole_p:Mole,ctype:str='mulliken'):
         """基于pi电子数的福井函数"""
-        dirs,vals=self.core.fukui_pi(mole_n.mole,mole_p.mole,ctype)
+        dirs,vals=self.core.fukui_pi(mole_n.core,mole_p.core,ctype)
         return dirs, np.array(vals)
 
     # parr函数

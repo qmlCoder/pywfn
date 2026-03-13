@@ -8,7 +8,7 @@ use rswfn::reader::Reader;
 
 #[pyclass]
 pub struct MdeReader {
-    inner: rswfn::reader::MdeReader,
+    core: rswfn::reader::MdeReader,
 }
 
 #[pymethods]
@@ -16,23 +16,23 @@ impl MdeReader {
     #[new]
     pub fn new(path: String) -> PyResult<Self> {
         let reader = Self {
-            inner: rswfn::reader::MdeReader::new(&path),
+            core: rswfn::reader::MdeReader::new(&path),
         };
         Ok(reader)
     }
 
     pub fn get_geome(&self) -> Geome {
-        let geome = self.inner.get_geome();
-        Geome { inner: geome }
+        let geome = self.core.get_geome();
+        Geome { core: geome }
     }
 
     pub fn get_basis(&self) -> Basis {
-        let basis = self.inner.get_basis();
-        Basis { inner: basis }
+        let basis = self.core.get_basis();
+        Basis { core: basis }
     }
 
     pub fn get_coefs(&self) -> Coefs {
-        let coefs = self.inner.get_coefs();
-        Coefs { inner: coefs }
+        let coefs = self.core.get_coefs();
+        Coefs { core: coefs }
     }
 }

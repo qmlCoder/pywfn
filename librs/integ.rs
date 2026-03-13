@@ -50,7 +50,7 @@ pub struct Int_mat {
 impl Int_mat {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::integ::Int_mat<'_> {
-        rswfn::integ::Int_mat::new(&self.mole.inner)
+        rswfn::integ::Int_mat::new(&self.mole.core)
     }
 }
 
@@ -90,7 +90,7 @@ impl Int_mat {
     }
 
     pub fn mat1e_lcs(&self, py: Python, stms: Vec<Stm>, level: usize) -> [Py<PyArray2<f64>>; 3] {
-        let stms = stms.into_iter().map(|stm| stm.inner).collect();
+        let stms = stms.into_iter().map(|stm| stm.core).collect();
         let [smat, tmat, vmat] = self.caler().mat1e_lcs(&stms, level);
         let smat = smat.into_pyarray(py).unbind();
         let tmat = tmat.into_pyarray(py).unbind();

@@ -47,7 +47,7 @@ class Mole:
         self.basis=reader.get_basis()
         self.coefs=reader.get_coefs()
         self.neles=reader.get_neles()
-        self.mole=core.base.Mole(self.geome.core,self.basis.core,self.coefs.core,self.neles) # type: ignore
+        self.core=core.base.Mole(self.geome.core,self.basis.core,self.coefs.core,self.neles) # type: ignore
         self.reader:"reader.Reader"=reader
         
         self.bohr:bool=False # 是否使用波尔坐标
@@ -163,13 +163,13 @@ class Mole:
     @property
     def xyzs(self)->np.ndarray:
         """返回原子坐标矩阵[n,3]"""
-        xyzs=self.mole.xyzs(False)
+        xyzs=self.core.xyzs()
         return np.array(xyzs)
     
     @property
     def syms(self)->list[str]:
         """返回原子坐标矩阵[n,3]"""
-        syms=self.mole.syms()
+        syms=self.core.syms()
         return syms
 
     @property
@@ -187,7 +187,7 @@ class Mole:
     @property
     def CM(self)->npt.NDArray[np.float64]:
         """分子轨道系数矩阵"""
-        return self.mole.get_cmat("raw")
+        return self.core.get_cmat("raw")
     
     @property
     def SM(self)->np.ndarray: # 新代码，直接计算重叠矩阵

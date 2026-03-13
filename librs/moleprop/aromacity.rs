@@ -10,7 +10,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::moleprop::aromacity::Calculator<'_> {
-        rswfn::moleprop::aromacity::Calculator::new(&self.mole.inner)
+        rswfn::moleprop::aromacity::Calculator::new(&self.mole.core)
     }
 }
 

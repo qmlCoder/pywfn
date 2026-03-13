@@ -9,7 +9,7 @@ use rswfn;
 
 #[pyclass]
 pub struct LineGrid {
-    pub inner: rswfn::gridprop::LineGrid,
+    pub core: rswfn::gridprop::LineGrid,
 }
 
 #[pymethods]
@@ -17,25 +17,25 @@ impl LineGrid {
     #[new]
     pub fn new() -> Self {
         Self {
-            inner: rswfn::gridprop::LineGrid::new(),
+            core: rswfn::gridprop::LineGrid::new(),
         }
     }
 
     pub fn set(&mut self, p0: [f64; 3], p1: [f64; 3], step: f64) {
         let p0 = Vector3::new(p0[0], p0[1], p0[2]);
         let p1 = Vector3::new(p1[0], p1[1], p1[2]);
-        self.inner.set(p0, p1, step);
+        self.core.set(p0, p1, step);
     }
 
     pub fn get(&self) -> ([usize; 1], Vec<[f64; 3]>) {
-        let (shape, grids) = self.inner.get();
+        let (shape, grids) = self.core.get();
         (shape, grids.clone())
     }
 }
 
 #[pyclass]
 pub struct RectGrid {
-    pub inner: rswfn::gridprop::RectGrid,
+    pub core: rswfn::gridprop::RectGrid,
 }
 
 #[pymethods]
@@ -43,7 +43,7 @@ impl RectGrid {
     #[new]
     pub fn new() -> Self {
         RectGrid {
-            inner: rswfn::gridprop::RectGrid::new(),
+            core: rswfn::gridprop::RectGrid::new(),
         }
     }
 
@@ -58,25 +58,25 @@ impl RectGrid {
         let center = Vector3::new(center[0], center[1], center[2]);
         let normal = Vector3::new(normal[0], normal[1], normal[2]);
         let vector = Vector3::new(vector[0], vector[1], vector[2]);
-        self.inner.set_v1(&center, &normal, &vector, size, step);
+        self.core.set_v1(&center, &normal, &vector, size, step);
     }
 
     pub fn set_v2(&mut self, p0: [f64; 3], p1: [f64; 3], p2: [f64; 3], step: [f64; 2]) {
         let p0 = Vector3::new(p0[0], p0[1], p0[2]);
         let p1 = Vector3::new(p1[0], p1[1], p1[2]);
         let p2 = Vector3::new(p2[0], p2[1], p2[2]);
-        self.inner.set_v2(&p0, &p1, &p2, step);
+        self.core.set_v2(&p0, &p1, &p2, step);
     }
 
     pub fn get(&self) -> ([usize; 2], Vec<[f64; 3]>) {
-        let (shape, grids) = self.inner.get();
+        let (shape, grids) = self.core.get();
         (shape, grids.clone())
     }
 }
 
 #[pyclass]
 pub struct CubeGrid {
-    inner: rswfn::gridprop::CubeGrid,
+    core: rswfn::gridprop::CubeGrid,
 }
 
 #[pymethods]
@@ -84,16 +84,16 @@ impl CubeGrid {
     #[new]
     pub fn new() -> Self {
         CubeGrid {
-            inner: rswfn::gridprop::CubeGrid::new(),
+            core: rswfn::gridprop::CubeGrid::new(),
         }
     }
 
     pub fn set_v1(&mut self, p0: [f64; 3], p1: [f64; 3], step: f64, bord: f64) {
-        self.inner.set_v1(&p0, &p1, step, bord);
+        self.core.set_v1(&p0, &p1, step, bord);
     }
 
     pub fn get(&self) -> ([usize; 3], Vec<[f64; 3]>) {
-        let (shape, grids) = self.inner.get();
+        let (shape, grids) = self.core.get();
         (shape, grids.clone())
     }
 }

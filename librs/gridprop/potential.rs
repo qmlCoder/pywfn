@@ -11,7 +11,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::gridprop::potential::Calculator<'_> {
-        rswfn::gridprop::potential::Calculator::new(&self.mole.inner)
+        rswfn::gridprop::potential::Calculator::new(&self.mole.core)
     }
 }
 

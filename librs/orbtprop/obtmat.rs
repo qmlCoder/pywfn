@@ -17,7 +17,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::orbtprop::obtmat::Calculator<'_> {
-        let mut caler = rswfn::orbtprop::obtmat::Calculator::new(&self.mole.inner);
+        let mut caler = rswfn::orbtprop::obtmat::Calculator::new(&self.mole.core);
         caler.atms = &self.atms;
         caler
     }
@@ -29,7 +29,7 @@ impl Calculator {
     pub fn new(mole: Mole, atms: Option<Vec<usize>>) -> Self {
         let atms = match atms {
             Some(atms) => atms,
-            None => mole.inner.atoms().idxs().clone(),
+            None => mole.core.atoms().idxs().clone(),
         };
         Self { mole, atms }
     }
@@ -59,28 +59,28 @@ impl Calculator {
         (dirs, cmat)
     }
 
-    pub fn deco(&self, py: Python, decos: HashMap<usize, Deco>) -> Py<PyArray2<f64>> {
+    pub fn mocv(&self, py: Python, decos: HashMap<usize, Mocv>) -> Py<PyArray2<f64>> {
         let decos = decos
             .into_iter()
-            .map(|(key, deco)| (key, deco.inner))
+            .map(|(key, deco)| (key, deco.core))
             .collect();
-        let cmat_deco = self.caler().deco(&decos);
+        let cmat_deco = self.caler().mocv(&decos);
         cmat_deco.into_pyarray(py).unbind()
     }
 
-    pub fn pi_deco(&self, py: Python) -> (HashMap<usize, Deco>, Py<PyArray2<f64>>) {
-        let (decos, cmat) = self.caler().pi_deco();
-        let decos = decos
+    pub fn pi_mocv(&self, py: Python) -> (HashMap<usize, Mocv>, Py<PyArray2<f64>>) {
+        let (mocvs, cmat) = self.caler().pi_mocv();
+        let mocvs = mocvs
             .into_iter()
-            .map(|(key, deco)| (key, Deco { inner: deco }))
+            .map(|(key, mocv)| (key, Mocv { core: mocv }))
             .collect();
         let cmat = cmat.into_pyarray(py).unbind();
-        (decos, cmat)
+        (mocvs, cmat)
     }
 
     /// 局部坐标系的系数矩阵
     pub fn ldao(&self, py: Python, stms: Vec<Stm>) -> Py<PyArray2<f64>> {
-        let stms = stms.into_iter().map(|stm| stm.inner).collect();
+        let stms = stms.into_iter().map(|stm| stm.core).collect();
         let cmat = self.caler().ldao(&stms);
         let cmat = cmat.into_pyarray(py).unbind();
         cmat
@@ -89,12 +89,12 @@ impl Calculator {
 
 #[pyclass]
 #[derive(Clone)]
-pub struct Deco {
-    pub inner: rswfn::orbtprop::obtmat::Deco,
+pub struct Mocv {
+    pub core: rswfn::orbtprop::obtmat::Mocv,
 }
 
 #[pymethods]
-impl Deco {
+impl Mocv {
     #[new]
     pub fn new(
         _py: Python,
@@ -106,7 +106,7 @@ impl Deco {
         let stm = stm.to_owned_array();
         let stm = rswfn::base::Stm::from_mat(stm);
         Self {
-            inner: rswfn::orbtprop::obtmat::Deco {
+            core: rswfn::orbtprop::obtmat::Mocv {
                 stm,
                 skeep,
                 pkeep,
@@ -116,13 +116,13 @@ impl Deco {
     }
 
     pub fn __repr__(&self) -> String {
-        format!("{}", self.inner)
+        format!("{}", self.core)
     }
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "obtmat")?;
     m.add_class::<Calculator>()?;
-    m.add_class::<Deco>()?;
+    m.add_class::<Mocv>()?;
     parent_module.add_submodule(&m)
 }

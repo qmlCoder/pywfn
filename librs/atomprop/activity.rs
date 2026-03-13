@@ -12,7 +12,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::atomprop::activity::Calculator<'_> {
-        rswfn::atomprop::activity::Calculator::new(&self.mole.inner)
+        rswfn::atomprop::activity::Calculator::new(&self.mole.core)
     }
 }
 
@@ -24,7 +24,7 @@ impl Calculator {
     }
 
     pub fn fukui(&self, mole_n: Mole, mole_p: Mole, ctype: &str) -> PyResult<Vec<[f64; 7]>> {
-        let vals = self.caler().fukui(&mole_n.inner, &mole_p.inner, ctype);
+        let vals = self.caler().fukui(&mole_n.core, &mole_p.core, ctype);
         Ok(vals)
     }
 
@@ -34,7 +34,7 @@ impl Calculator {
         mole_p: Mole,
         ctype: &str,
     ) -> PyResult<(HashMap<usize, [f64; 3]>, Vec<[f64; 7]>)> {
-        let (dirs, vals) = self.caler().fukui_pi(&mole_n.inner, &mole_p.inner, ctype);
+        let (dirs, vals) = self.caler().fukui_pi(&mole_n.core, &mole_p.core, ctype);
         let dirs = dirs
             .iter()
             .map(|(key, dir)| (*key, [dir.x, dir.y, dir.z]))
@@ -53,7 +53,7 @@ impl Calculator {
         let dir = Vector3::new(dir[0], dir[1], dir[2]);
         let vals = self
             .caler()
-            .fukui_dir(atm, &dir, &mole_n.inner, &mole_p.inner, ctype);
+            .fukui_dir(atm, &dir, &mole_n.core, &mole_p.core, ctype);
         vals
     }
 

@@ -11,7 +11,7 @@ pub struct Calculator {
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::fragprop::energy::Calculator<'_> {
-        rswfn::fragprop::energy::Calculator::new(&self.mole.inner)
+        rswfn::fragprop::energy::Calculator::new(&self.mole.core)
     }
 }
 

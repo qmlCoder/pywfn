@@ -6,7 +6,7 @@ use rswfn;
 #[derive(Clone)]
 #[pyclass]
 pub struct Coefs {
-    pub inner: rswfn::base::Coefs,
+    pub core: rswfn::base::Coefs,
 }
 
 #[pymethods]
@@ -14,7 +14,7 @@ impl Coefs {
     #[new]
     fn new() -> Coefs {
         Coefs {
-            inner: rswfn::base::Coefs::blank(),
+            core: rswfn::base::Coefs::blank(),
         }
     }
 
@@ -28,10 +28,10 @@ impl Coefs {
         cmat: PyReadonlyArray2<f64>,
     ) {
         let cmat = cmat.as_array().to_owned();
-        self.inner
+        self.core
             .build(ato_atms, ato_shls, ato_syms, obt_engs, obt_occs, cmat);
     }
     pub fn __repr__(&self) -> String {
-        format!("{}", self.inner)
+        format!("{}", self.core)
     }
 }

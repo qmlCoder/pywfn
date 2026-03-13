@@ -4,7 +4,7 @@ use rswfn;
 
 #[pyclass]
 struct Tool {
-    inner: rswfn::tools::log::Tool,
+    core: rswfn::tools::log::Tool,
 }
 
 #[pymethods]
@@ -12,16 +12,16 @@ impl Tool {
     #[new]
     fn new() -> Tool {
         Tool {
-            inner: rswfn::tools::log::Tool::new(),
+            core: rswfn::tools::log::Tool::new(),
         }
     }
 
     pub fn get_SI(&self, paths: Vec<String>) -> String {
-        self.inner.get_SI(&paths)
+        self.core.get_SI(&paths)
     }
 
     pub fn split_opt(&self, path: String) -> Vec<(Vec<usize>, Vec<[f64; 3]>, f64)> {
-        self.inner.split_opt(path)
+        self.core.split_opt(path)
     }
 }
 

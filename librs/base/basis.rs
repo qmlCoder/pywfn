@@ -5,7 +5,7 @@ use rswfn;
 #[derive(Clone)]
 #[pyclass]
 pub struct Basis {
-    pub inner: rswfn::base::Basis,
+    pub core: rswfn::base::Basis,
 }
 
 #[pymethods]
@@ -13,7 +13,7 @@ impl Basis {
     #[new]
     fn new() -> Self {
         Self {
-            inner: rswfn::base::Basis::blank(),
+            core: rswfn::base::Basis::blank(),
         }
     }
 
@@ -22,10 +22,10 @@ impl Basis {
         for (atm, shl, ang, alp, coe, nlm) in data {
             basis_datas.push(rswfn::base::BasisData::new(atm, shl, ang, alp, coe, nlm));
         }
-        self.inner.build(basis_datas);
+        self.core.build(basis_datas);
     }
 
     pub fn __repr__(&self) -> String {
-        format!("{}", self.inner)
+        format!("{}", self.core)
     }
 }
