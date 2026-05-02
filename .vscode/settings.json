@@ -1,14 +1,25 @@
 {
   "Codegeex.RepoIndex": true,
-  "python.analysis.extraPaths": ["d:/code/pywfn"],
   "python.analysis.autoImportCompletions": false,
   "python.analysis.diagnosticMode": "workspace",
-  "python.analysis.exclude": ["**/protos/**/*.*"],
+  "python.analysis.exclude": ["**/protos/**/*.*","**/.venv/**/*.*"],
   "rust-analyzer.linkedProjects": [
     "e:/code/rswfn/Cargo.toml",
     "e:/code/pywfn/Cargo.toml"
   ],
-  "python-envs.defaultEnvManager": "ms-python.python:conda",
-  "python-envs.defaultPackageManager": "ms-python.python:conda",
-  "python-envs.pythonProjects": []
+  "python-envs.defaultEnvManager": "ms-python.python:venv",
+  "python-envs.defaultPackageManager": "ms-python.python:pip",
+  "python.testing.pytestArgs": [
+    "tests"
+  ],
+  "python.testing.unittestEnabled": false,
+  "python.testing.pytestEnabled": true,
+  "editor.wordWrapColumn": 200,
+  "[python]": {
+    "editor.wordWrapColumn": 200,
+    "editor.defaultFormatter": null,
+    "editor.formatOnSave": false
+  },
+  "black.args": ["--line-length", "200"],
+  "autopep8.args": ["--max-line-length", "200"]
 }

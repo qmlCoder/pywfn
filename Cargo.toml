@@ -1,22 +1,25 @@
 [package]
-name = "core"
+name = "pywfn"
 version = "0.1.0"
 edition = "2021"
 
 
 [lib]
-path = "librs/lib.rs"
-name = "core"
-crate-type = ["cdylib", "lib"]
+path = "src_rs/lib.rs"
+name = "_core"
+crate-type = ["cdylib"]
 
 [dependencies]
-rayon = "1.5.1"
-rswfn = { path = "e:/code/rswfn" } # for Windows
-# rswfn = { path = "/mnt/d/code/rswfn" }                         # for WSL
-pyo3 = { version = "0.25.1", features = ["extension-module", "abi3-py310"] }
+rayon = "1.12.0"
+numpy = "0.28.0"
 ndarray = "0.16.1"
-numpy = "0.25.0"
-nalgebra = "0.34.1"                                                          # 线性代数库
+rswfn = { path = "e:/code/rswfn" }
+pyo3 = { version = "0.28.3", features = [
+    "extension-module",
+    "abi3-py310",
+    # "experimental-inspect",
+] }
+
 
 [profile.release]
 lto = true

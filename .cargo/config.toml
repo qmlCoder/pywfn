@@ -1,0 +1,2 @@
+[build]
+rustflags = ["-A", "warnings"] # 忽略编译时的警告信息

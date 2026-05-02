@@ -1,10 +1,10 @@
 [build-system]
-requires = ["maturin>=1.0,<2.0"]
+requires = ["maturin>=1.13,<2.0"]
 build-backend = "maturin"
 
 [project]
 name = "pywfn"
-version = "1.0.8"
+version = "1.0.9"
 authors = [{ name = "shixiaofei", email = "1103275712@qq.com" }]
 description = "A python package for wave function analysis"
 readme = "README.md"
@@ -12,8 +12,6 @@ requires-python = ">=3.10"
 classifiers = [
     "Development Status :: 4 - Beta",
     "Programming Language :: Python :: 3.10",
-    "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
     "Programming Language :: Rust",
     "Operating System :: OS Independent",
 ]
@@ -30,6 +28,6 @@ Homepage = "https://github.com/qmlCoder/pywfn"
 Issues = "https://github.com/qmlCoder/pywfn/issues"
 
 [tool.maturin]
-module-name = "pywfn.core"
-# python-source = "pywfn"
+python-source = "src_py"
+module-name = "pywfn._core"
 features = ["pyo3/abi3-py310"] # 启用 abi3 以实现跨版本兼容性

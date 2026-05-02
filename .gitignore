@@ -7,6 +7,8 @@ __pycache__/
 /data/
 /#/
 /build/
+/target/
+.venv/
 
 # 忽略的文件类型
 *.pyc
