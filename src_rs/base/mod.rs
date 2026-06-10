@@ -5,21 +5,25 @@ mod mole;
 mod atoms;
 mod basis;
 mod coefs;
-
-pub use atoms::{Atom, Stm};
 pub use mole::Mole;
 
-pub use atoms::Atoms;
-pub use basis::Basis;
+pub use atoms::{Atom, Atoms, Stm};
+pub use basis::{Atos, Basis, Shl, Shls};
 pub use coefs::Coefs;
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "base")?;
+    m.add_class::<Atoms>()?;
     m.add_class::<Stm>()?;
     m.add_class::<Atom>()?;
-    m.add_class::<Atoms>()?;
+    m.add_class::<Shl>()?;
+    m.add_class::<Shls>()?;
+
     m.add_class::<Basis>()?;
+    m.add_class::<Atos>()?;
+
     m.add_class::<Coefs>()?;
+
     m.add_class::<Mole>()?;
     parent_module.add_submodule(&m)
 }

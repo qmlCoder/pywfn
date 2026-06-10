@@ -1,3 +1,4 @@
+use numpy::{IntoPyArray, PyArray2};
 use pyo3::prelude::*;
 
 use rswfn;
@@ -19,6 +20,32 @@ impl Stm {
         })
     }
 
+    pub fn set(&mut self, ex: [f64; 3], ey: [f64; 3], ez: [f64; 3]) {
+        self.core.ex = ex;
+        self.core.ey = ey;
+        self.core.ez = ez;
+    }
+
+    #[getter]
+    pub fn ex(&self) -> [f64; 3] {
+        self.core.ex
+    }
+
+    #[getter]
+    pub fn ey(&self) -> [f64; 3] {
+        self.core.ey
+    }
+
+    #[getter]
+    pub fn ez(&self) -> [f64; 3] {
+        self.core.ez
+    }
+
+    #[getter]
+    pub fn mat(&self, py: Python) -> Py<PyArray2<f64>> {
+        self.core.mat.clone().into_pyarray(py).unbind()
+    }
+
     pub fn __repr__(&self) -> String {
         format!("{}", self.core)
     }
@@ -32,15 +59,18 @@ pub struct Atom {
 #[pymethods]
 impl Atom {
     /// 添加一个原子
+    #[getter]
     pub fn rad(&self) -> f64 {
         self.core.rad
     }
 
+    #[getter]
     pub fn sym(&self) -> String {
         self.core.sym.clone()
     }
 }
 
+#[derive(Clone)]
 #[pyclass]
 pub struct Atoms {
     pub core: rswfn::base::Atoms,
@@ -49,23 +79,14 @@ pub struct Atoms {
 #[pymethods]
 impl Atoms {
     #[new]
-    pub fn new(
-        atms: Vec<usize>,
-        xyzs: Vec<[f64; 3]>,
-        crgs: Vec<f64>,
-        stms: Vec<Stm>,
-    ) -> PyResult<Self> {
-        let stms = match stms.len() {
-            0 => None,
-            _ => Some(stms.into_iter().map(|stm| stm.core).collect()),
-        };
+    pub fn new(atms: Vec<usize>, xyzs: Vec<[f64; 3]>, crgs: Vec<f64>) -> PyResult<Self> {
         Ok(Self {
-            core: rswfn::base::Atoms::new(&atms, &xyzs, &crgs, stms.as_ref()),
+            core: rswfn::base::Atoms::new(&atms, &xyzs, &crgs),
         })
     }
 
-    pub fn add(&mut self, atm: usize, xyz: [f64; 3], crg: f64, stm: Stm) {
-        self.core.add(atm, xyz, crg, stm.core);
+    pub fn add(&mut self, atm: usize, xyz: [f64; 3], crg: f64) {
+        self.core.add(atm, xyz, crg);
     }
 
     pub fn get(&self, idx: usize) -> PyResult<Atom> {
@@ -81,16 +102,32 @@ impl Atoms {
         self.core.dist(i, j)
     }
 
-    pub fn ato_nums(&self, form: &str, mole: &Mole) -> Vec<usize> {
-        self.core.ato_nums(form, &mole.core)
-    }
-
     pub fn syms(&self) -> Vec<String> {
         self.core.syms()
     }
 
     pub fn xyzs(&self) -> Vec<[f64; 3]> {
         self.core.xyzs().to_vec()
+    }
+
+    pub fn nucs(&self) -> Vec<usize> {
+        self.core.nucs().clone()
+    }
+
+    pub fn crgs(&self) -> Vec<f64> {
+        self.core.crgs().clone()
+    }
+
+    pub fn nebs(&self, atm: usize) -> Vec<usize> {
+        self.core.nebs(atm).clone()
+    }
+
+    pub fn is_line(&self, atm: usize) -> bool {
+        self.core.is_line(atm)
+    }
+
+    pub fn is_bond(&self, i: usize, j: usize) -> bool {
+        self.core.is_bond(i, j)
     }
 
     pub fn __repr__(&self) -> String {

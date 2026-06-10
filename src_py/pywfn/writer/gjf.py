@@ -1,35 +1,62 @@
 """
 将分子对象保存为gif文件
 """
-from pathlib import Path
-import numpy as np
-from pywfn.base.mole import Mole
-from pywfn import config
-from pywfn.datas import temps
+
 from pywfn import _core
+from pywfn.base.mole import Mole
 
 
 class GjfWriter:
     def __init__(self):
         self.core = _core.writer.GjfWriter()  # type: ignore
 
-    def set_syms(self, syms: list[str]):
-        self.core.set_syms(syms)
+    @property
+    def syms(self) -> list[str]:
+        return self.core.syms
 
-    def set_xyzs(self, xyzs: np.ndarray):
-        self.core.set_xyzs(xyzs)
+    @syms.setter
+    def syms(self, syms: list[str]):
+        self.core.syms = syms
 
-    def set_chk(self, chk: str):
-        self.core.set_chk(chk)
+    @property
+    def xyzs(self) -> list[list[float]]:
+        return self.core.xyzs
 
-    def set_job(self, job: str):
-        self.core.set_job(job)
+    @xyzs.setter
+    def xyzs(self, xyzs: list[list[float]]):
+        self.core.xyzs = xyzs
 
-    def set_charge(self, charge: int):
-        self.core.set_charge(charge)
+    @property
+    def chk(self) -> str:
+        return self.core.chk
 
-    def set_multip(self, multip: int):
-        self.core.set_multip(multip)
+    @chk.setter
+    def chk(self, chk: str):
+        self.core.chk = chk
+
+    @property
+    def job(self) -> str:
+        return self.core.job
+
+    @job.setter
+    def job(self, job: str):
+        self.core.job = job
+
+    @property
+    def charge(self) -> int:
+        return self.core.charge
+
+    @charge.setter
+    def charge(self, charge: int):
+        self.core.charge = charge
+
+    @property
+    def multip(self) -> int:
+        return self.core.multip
+
+    @multip.setter
+    def multip(self, multip: int):
+        self.core.multip = multip
 
     def from_mole(self, mole: Mole):
         self.core.from_mole(mole.core)

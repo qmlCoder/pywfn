@@ -4,9 +4,9 @@ use std::collections::HashMap;
 use rswfn;
 use rswfn::base::Vec3;
 
-use crate::base::Mole;
-use crate::orbtprop::obtmat::Mocv;
-use numpy::{IntoPyArray, PyArray2};
+use crate::base::{Mole, Stm};
+// use crate::orbtprop::obtmat::Mocv;
+use numpy::{IntoPyArray, PyArray2, PyArrayMethods};
 
 #[pyclass]
 pub struct Calculator {
@@ -29,12 +29,6 @@ impl Calculator {
 
     pub fn mayer(&self, py: Python) -> Py<PyArray2<f64>> {
         let omat = self.caler().mayer();
-        let omat = omat.into_pyarray(py).unbind();
-        omat
-    }
-
-    pub fn lowdin(&self, py: Python) -> Py<PyArray2<f64>> {
-        let omat = self.caler().lowdin();
         let omat = omat.into_pyarray(py).unbind();
         omat
     }
@@ -66,14 +60,12 @@ impl Calculator {
     pub fn deco(
         &self,
         py: Python,
-        mocvs: HashMap<usize, Mocv>, // 每个原子的保留信息
+        stms: HashMap<usize, Stm>, // 每个原子的保留信息
+        atos: Vec<usize>,
         otype: &str,
     ) -> Py<PyArray2<f64>> {
-        let mocvs = mocvs
-            .into_iter()
-            .map(|(key, mocv)| (key, mocv.core))
-            .collect();
-        let omat = self.caler().mocv(&mocvs, otype);
+        let stms = stms.into_iter().map(|(key, stm)| (key, stm.core)).collect();
+        let omat = self.caler().mocv(&stms, &atos, otype);
         omat.into_pyarray(py).unbind()
     }
 
@@ -91,14 +83,18 @@ impl Calculator {
         (dirs, omat)
     }
 
-    pub fn pi_mocv(&self, py: Python, otype: &str) -> (HashMap<usize, Mocv>, Py<PyArray2<f64>>) {
-        let (mocvs, omat) = self.caler().pi_mocv(otype);
-        let mocvs = mocvs
+    pub fn pi_mocv(
+        &self,
+        py: Python,
+        otype: &str,
+    ) -> (HashMap<usize, Stm>, Vec<usize>, Py<PyArray2<f64>>) {
+        let (stms, atos, omat) = self.caler().pi_mocv(otype);
+        let stms = stms
             .into_iter()
-            .map(|(key, mocv)| (key, Mocv { core: mocv }))
+            .map(|(key, stm)| (key, Stm { core: stm }))
             .collect();
         let omat = omat.into_pyarray(py).unbind();
-        (mocvs, omat)
+        (stms, atos, omat)
     }
 
     pub fn bound(&self, atm: usize, dir: [f64; 3], nebs: Vec<usize>, otype: &str) -> Vec<f64> {
@@ -107,9 +103,50 @@ impl Calculator {
     }
 }
 
+#[pyfunction]
+pub fn mayer(
+    py: Python,
+    dmat: Bound<'_, PyArray2<f64>>,
+    smat: Bound<'_, PyArray2<f64>>,
+) -> Py<PyArray2<f64>> {
+    let dmat = dmat.readonly().as_array().to_owned();
+    let smat = smat.readonly().as_array().to_owned();
+    rswfn::bondprop::order::mayer(&dmat, &smat)
+        .into_pyarray(py)
+        .unbind()
+}
+
+#[pyfunction]
+pub fn wiberg(
+    py: Python,
+    dmat: Bound<'_, PyArray2<f64>>,
+    smat: Bound<'_, PyArray2<f64>>,
+) -> Py<PyArray2<f64>> {
+    let dmat = dmat.readonly().as_array().to_owned();
+    let smat = smat.readonly().as_array().to_owned();
+    rswfn::bondprop::order::wiberg(&dmat, &smat)
+        .into_pyarray(py)
+        .unbind()
+}
+
+#[pyfunction]
+pub fn ato2atm(
+    py: Python,
+    omat: Bound<'_, PyArray2<f64>>,
+    uplo: Vec<[usize; 2]>,
+) -> Py<PyArray2<f64>> {
+    let omat = omat.readonly().as_array().to_owned();
+    rswfn::bondprop::order::ato2atm(&omat, &uplo)
+        .into_pyarray(py)
+        .unbind()
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "order")?;
     m.add_class::<Calculator>()?;
+    m.add_function(wrap_pyfunction!(mayer, &m)?)?;
+    m.add_function(wrap_pyfunction!(wiberg, &m)?)?;
+    m.add_function(wrap_pyfunction!(ato2atm, &m)?)?;
     parent_module.add_submodule(&m)
 }
 

@@ -6,9 +6,9 @@
 ## 依赖
 ```
 numpy>=2.1.1
-rich>=13.8.0
-matplotlib>=3.9.2
 ```
+> python >= 3.10
+
 ## 运行(CLI)
 ``` shell
 python main.py
@@ -17,14 +17,12 @@ python main.py
 ## 示例(API)
 ```python
 from pywfn.base import Mole
-from pywfn.reader import LogReader
 from pywfn.atomprop import charge
 
 path="D:\BaiduSyncdisk\gfile\CnHn\C6H6.log" # 高斯输出文件的路径
-reader=LogReader(path) # 实例化log文件读取器
-mol=Mole(reader) # 实例化分子对象
+mole=Mole.from_file(path) # 实例化分子对象
 
-caler=charge.Calculator(mol) # 实例化原子电荷计算器，传入分子对象
+caler=charge.Calculator(mole) # 实例化原子电荷计算器，传入分子对象
 result=caler.mulliken() # 计算mulliken电荷
 print(result) # 打印结果
 ```

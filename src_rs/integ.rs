@@ -8,19 +8,19 @@ use pyo3::prelude::*;
 use rswfn;
 
 #[pyclass]
-pub struct Int_mat {
+pub struct RsInt {
     pub mole: Mole,
 }
 
-impl Int_mat {
+impl RsInt {
     // 提取公共的 calculator 创建逻辑
-    fn caler(&self) -> rswfn::integ::Int_mat<'_> {
-        rswfn::integ::Int_mat::new(&self.mole.core)
+    fn caler(&self) -> rswfn::integ::RsInt<'_> {
+        rswfn::integ::RsInt::new(self.mole.core.atoms(), self.mole.core.basis())
     }
 }
 
 #[pymethods]
-impl Int_mat {
+impl RsInt {
     #[new]
     pub fn new(mole: Mole) -> Self {
         Self { mole }
@@ -72,7 +72,6 @@ impl Int_mat {
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "integ")?; // 为当前的rs文件创建一个子模块
-    m.add_class::<Int_mat>()?;
-    // m.add_function(wrap_pyfunction!(rys_roots, &m)?)?;
+    m.add_class::<RsInt>()?;
     parent_module.add_submodule(&m) // 将子模块添加到父模块中
 }

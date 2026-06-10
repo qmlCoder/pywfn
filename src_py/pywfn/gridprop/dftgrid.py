@@ -1,13 +1,14 @@
 """
 计算DFT格点
 """
-from pywfn.base.mole import Mole
-from pywfn.datas.elements import elements
-from pywfn.datas import lebedev
+
+import sys
 
 import numpy as np
-import sys
+
 from pywfn import _core
+from pywfn.base.mole import Mole
+from pywfn.datas import elems, lebedev
 
 
 class Calculator:
@@ -18,7 +19,7 @@ class Calculator:
         self.caler = _core.gridprop.dftgrid.Calculator(mole.core)  # type: ignore
 
     def rad_grids(self, atmic: int):
-        R = elements[atmic].radius
+        R = elems.get_by_idx(atmic).rad
         return self.caler.rad_grids(R, self.nrad)
 
     def sph_grids(self) -> tuple[np.ndarray, np.ndarray]:
@@ -27,14 +28,21 @@ class Calculator:
         Returns:
             tuple[np.ndarray,np.ndarray]: 格点坐标,格点权重
         """
-        match(self.fsph):
-            case 6: result = lebedev.LD0006()
-            case 14: result = lebedev.LD0014()
-            case 26: result = lebedev.LD0026()
-            case 74: result = lebedev.LD0074()
-            case 86: result = lebedev.LD0086()
-            case 230: result = lebedev.LD0230()
-            case 434: result = lebedev.LD0434()
+        match self.fsph:
+            case 6:
+                result = lebedev.LD0006()
+            case 14:
+                result = lebedev.LD0014()
+            case 26:
+                result = lebedev.LD0026()
+            case 74:
+                result = lebedev.LD0074()
+            case 86:
+                result = lebedev.LD0086()
+            case 230:
+                result = lebedev.LD0230()
+            case 434:
+                result = lebedev.LD0434()
             case _:
                 print("原子角度格点数量不匹配!!")
                 sys.exit(1)

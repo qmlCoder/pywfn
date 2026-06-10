@@ -18,32 +18,64 @@ impl GjfWriter {
         Ok(writer)
     }
 
+    #[getter(syms)]
+    pub fn get_syms(&self) -> Vec<String> {
+        self.core.syms.clone()
+    }
+
+    #[setter(syms)]
     pub fn set_syms(&mut self, syms: Vec<String>) {
         self.core.syms = syms;
     }
 
+    #[getter(xyzs)]
+    pub fn get_xyzs(&self) -> Vec<[f64; 3]> {
+        self.core.xyzs.clone()
+    }
+
+    #[setter(xyzs)]
     pub fn set_xyzs(&mut self, xyzs: Vec<[f64; 3]>) {
         self.core.xyzs = xyzs;
     }
 
+    #[getter(chk)]
+    pub fn get_chk(&self) -> String {
+        self.core.chk.clone()
+    }
+
+    #[setter(chk)]
     pub fn set_chk(&mut self, chk: String) {
         self.core.chk = chk;
     }
 
+    #[getter(job)]
+    pub fn get_job(&self) -> String {
+        self.core.job.clone()
+    }
+
+    #[setter(job)]
     pub fn set_job(&mut self, job: String) {
         self.core.job = job;
     }
 
+    #[getter(charge)]
+    pub fn get_charge(&self) -> isize {
+        self.core.charge
+    }
+
+    #[setter(charge)]
     pub fn set_charge(&mut self, charge: isize) {
         self.core.charge = charge;
     }
 
-    pub fn set_multip(&mut self, multip: usize) {
-        self.core.multip = multip;
+    #[getter(multip)]
+    pub fn get_multip(&self) -> usize {
+        self.core.multip
     }
 
-    pub fn from_mole(&mut self, mole: Mole) {
-        self.core.read_mole(&mole.core);
+    #[setter(multip)]
+    pub fn set_multip(&mut self, multip: usize) {
+        self.core.multip = multip;
     }
 
     pub fn build(&self) -> String {

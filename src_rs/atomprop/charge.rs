@@ -1,11 +1,13 @@
+use ndarray::{Array, Array1, Array2};
 use pyo3::prelude::*;
 use std::collections::HashMap;
 
 use rswfn;
 use rswfn::base::Vec3;
 
-use crate::base::Mole;
-use crate::orbtprop::obtmat::Mocv;
+use crate::base::{Mole, Stm};
+// use crate::orbtprop::obtmat::Mocv;
+use numpy::{IntoPyArray, PyArray1, PyArray2, PyArrayMethods};
 
 #[pyclass]
 pub struct Calculator {
@@ -33,20 +35,28 @@ impl Calculator {
         Self { mole, atms }
     }
 
-    pub fn spin(&self, ctype: &str) -> Vec<[f64; 3]> {
-        self.caler().spin(ctype)
+    pub fn spin(&self, py: Python, ctype: &str) -> Py<PyArray2<f64>> {
+        let vals = self.caler().spin(ctype);
+        let arr = Array2::from_shape_vec((vals.len(), 3), vals.concat()).unwrap();
+        arr.into_pyarray(py).unbind()
     }
 
-    pub fn mulliken(&self) -> Vec<f64> {
-        self.caler().mulliken()
+    pub fn mulliken(&self, py: Python) -> Py<PyArray1<f64>> {
+        let vals = self.caler().mulliken();
+        let arr = Array1::from_vec(vals);
+        arr.into_pyarray(py).unbind()
     }
 
-    pub fn lowdin(&self) -> Vec<f64> {
-        self.caler().lowdin()
+    pub fn lowdin(&self, py: Python) -> Py<PyArray1<f64>> {
+        let vals = self.caler().lowdin();
+        let arr = Array1::from_vec(vals);
+        arr.into_pyarray(py).unbind()
     }
 
-    pub fn hirshfeld(&self) -> Vec<f64> {
-        self.caler().hirshfeld()
+    pub fn hirshfeld(&self, py: Python) -> Py<PyArray1<f64>> {
+        let vals = self.caler().hirshfeld();
+        let arr = Array1::from_vec(vals);
+        arr.into_pyarray(py).unbind()
     }
 
     pub fn pocv(
@@ -66,12 +76,17 @@ impl Calculator {
         Ok(vals)
     }
 
-    pub fn mocv(&self, mocvs: HashMap<usize, Mocv>, ctype: &str) -> PyResult<Vec<f64>> {
-        let mocvs = mocvs
+    pub fn mocv(
+        &self,
+        stms: HashMap<usize, Stm>,
+        atos: Vec<usize>,
+        ctype: &str,
+    ) -> PyResult<Vec<f64>> {
+        let stms = stms
             .into_iter()
-            .map(|(atm, mocv)| (atm, mocv.core.clone()))
+            .map(|(atm, stm)| (atm, stm.core.clone()))
             .collect();
-        let vals = self.caler().mocv(&mocvs, ctype);
+        let vals = self.caler().mocv(&stms, &atos, ctype);
         Ok(vals)
     }
 
@@ -84,19 +99,43 @@ impl Calculator {
         Ok((dirs, eles))
     }
 
-    pub fn pi_mocv(&self, ctype: &str) -> PyResult<(HashMap<usize, Mocv>, Vec<f64>)> {
-        let (mocvs, eles) = self.caler().pi_mocv(ctype);
-        let mocvs = mocvs
+    pub fn pi_mocv(&self, ctype: &str) -> PyResult<(HashMap<usize, Stm>, Vec<usize>, Vec<f64>)> {
+        let (stms, atos, eles) = self.caler().pi_mocv(ctype);
+        let stms = stms
             .iter()
-            .map(|(atm, mocv)| (*atm, Mocv { core: mocv.clone() }))
+            .map(|(atm, stm)| (*atm, Stm { core: stm.clone() }))
             .collect();
-        Ok((mocvs, eles))
+        Ok((stms, atos, eles))
     }
+}
+
+#[pyfunction]
+pub fn mulliken(
+    dmat: Bound<'_, PyArray2<f64>>,
+    smat: Bound<'_, PyArray2<f64>>,
+    uplo: Vec<[usize; 2]>,
+) -> Vec<f64> {
+    let dmat = dmat.readonly().as_array().to_owned();
+    let smat = smat.readonly().as_array().to_owned();
+    rswfn::atomprop::charge::mulliken(&dmat, &smat, &uplo)
+}
+
+#[pyfunction]
+pub fn lowdin(
+    dmat: Bound<'_, PyArray2<f64>>,
+    smat: Bound<'_, PyArray2<f64>>,
+    uplo: Vec<[usize; 2]>,
+) -> Vec<f64> {
+    let dmat = dmat.readonly().as_array().to_owned();
+    let smat = smat.readonly().as_array().to_owned();
+    rswfn::atomprop::charge::lowdin(&dmat, &smat, &uplo)
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "charge")?;
     m.add_class::<Calculator>()?;
+    m.add_function(wrap_pyfunction!(mulliken, &m)?)?;
+    m.add_function(wrap_pyfunction!(lowdin, &m)?)?;
     parent_module.add_submodule(&m)
 }
 

@@ -19,12 +19,13 @@
 """
 
 from functools import cached_property
-from pywfn.base.coefs import Coefs
-from pywfn.base.basis import Basis
-from pywfn.base.atoms import Atoms
-from pywfn import _core
 
 import numpy as np
+
+from pywfn import _core
+from pywfn.base.atoms import Atoms
+from pywfn.base.basis import Basis
+from pywfn.base.coefs import Coefs
 
 
 class Mole:  # type: ignore
@@ -39,15 +40,23 @@ class Mole:  # type: ignore
 
     @cached_property
     def atoms(self) -> Atoms:
-        return Atoms(self.core.atoms())
+        return Atoms(self.core.atoms(), self)
 
     @cached_property
     def basis(self) -> Basis:
-        return Basis(self.core.basis())
+        return Basis(self.core.basis(), self)
 
     @cached_property
     def coefs(self) -> Coefs:
-        return Coefs(self.core.coefs())
+        return Coefs(self.core.coefs(), self)
+
+    @property
+    def charge(self) -> int:
+        return self.core.charge()
+
+    @property
+    def multip(self) -> int:
+        return self.core.multip()
 
     def __repr__(self) -> str:
         return self.core.__repr__()

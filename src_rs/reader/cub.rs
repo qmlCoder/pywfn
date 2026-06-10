@@ -26,13 +26,21 @@ impl CubReader {
         Atoms { core: atoms }
     }
 
-    pub fn get_basis(&self) -> Basis {
+    pub fn get_basis(&self) -> Option<Basis> {
         let basis = self.core.get_basis();
-        Basis { core: basis }
+        if let Some(basis) = basis {
+            Some(Basis { core: basis })
+        } else {
+            None
+        }
     }
 
-    pub fn get_coefs(&self) -> Coefs {
+    pub fn get_coefs(&self) -> Option<Coefs> {
         let coefs = self.core.get_coefs();
-        Coefs { core: coefs }
+        if let Some(coefs) = coefs {
+            Some(Coefs { core: coefs })
+        } else {
+            None
+        }
     }
 }

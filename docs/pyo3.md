@@ -6,7 +6,7 @@ rust接收python矩阵
 
 ```rust
 def fn set_cmat(arr:cmat: Bound<'_, PyArray2<f64>>){
-    let cmat=cmat.into_array();
+    let cmat=cmat.readonly().as_array().to_owned();
 }
 ```
 

@@ -62,25 +62,29 @@ impl Calculator {
     pub fn mocv(
         &self,
         py: Python,
-        mocvs: HashMap<usize, Mocv>,
-        atos: Option<Vec<usize>>,
+        stms: HashMap<usize, Stm>,
+        atos: Vec<usize>,
     ) -> Py<PyArray2<f64>> {
-        let mocvs = mocvs
+        let stms = stms
             .into_iter()
             .map(|(key, deco)| (key, deco.core))
             .collect();
-        let cmat_deco = self.caler().mocv(&mocvs, atos.as_ref());
+        let cmat_deco = self.caler().mocv(&stms, &atos);
         cmat_deco.into_pyarray(py).unbind()
     }
 
-    pub fn pi_mocv(&self, py: Python) -> (HashMap<usize, Mocv>, Py<PyArray2<f64>>) {
-        let (mocvs, cmat) = self.caler().pi_mocv();
-        let mocvs = mocvs
+    pub fn pi_mocv(
+        &self,
+        py: Python,
+        dest: usize,
+    ) -> (HashMap<usize, Stm>, Vec<usize>, Py<PyArray2<f64>>) {
+        let (stms, atos, cmat) = self.caler().pi_mocv(dest);
+        let stms = stms
             .into_iter()
-            .map(|(key, mocv)| (key, Mocv { core: mocv }))
+            .map(|(key, stm)| (key, Stm { core: stm }))
             .collect();
         let cmat = cmat.into_pyarray(py).unbind();
-        (mocvs, cmat)
+        (stms, atos, cmat)
     }
 
     /// 局部坐标系的系数矩阵
@@ -92,49 +96,32 @@ impl Calculator {
     }
 }
 
-#[pyclass]
-#[derive(Clone)]
-pub struct Mocv {
-    pub core: rswfn::orbtprop::obtmat::Mocv,
-}
-
-#[pymethods]
-impl Mocv {
-    #[new]
-    pub fn new(
-        _py: Python,
-        stm: Stm,
-        skeep: [usize; 1],
-        pkeep: [usize; 3],
-        dkeep: [usize; 5],
-    ) -> Self {
-        let stm = stm.core;
-        Self {
-            core: rswfn::orbtprop::obtmat::Mocv {
-                stm,
-                skeep,
-                pkeep,
-                dkeep,
-            },
-        }
-    }
-
-    pub fn __repr__(&self) -> String {
-        format!("{}", self.core)
-    }
+#[pyfunction]
+fn mocv(
+    py: Python,
+    L: Bound<'_, PyArray2<f64>>,
+    rcoefs: Bound<'_, PyArray2<f64>>,
+    keeps: Bound<'_, PyArray2<f64>>,
+) -> Py<PyArray2<f64>> {
+    let L = L.readonly().as_array().to_owned();
+    let rcoefs = rcoefs.readonly().as_array().to_owned();
+    let keeps = keeps.readonly().as_array().to_owned();
+    rswfn::orbtprop::obtmat::mocv(&L, &rcoefs, &keeps)
+        .into_pyarray(py)
+        .unbind()
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "obtmat")?;
     m.add_class::<Calculator>()?;
-    m.add_class::<Mocv>()?;
+    m.add_function(wrap_pyfunction!(mocv, &m)?)?;
     parent_module.add_submodule(&m)
 }
 
-#[pymodule]
-pub mod obtmat {
-    #[pymodule_export]
-    use super::Calculator;
-    #[pymodule_export]
-    use super::Mocv;
-}
+// #[pymodule]
+// pub mod obtmat {
+//     #[pymodule_export]
+//     use super::Calculator;
+//     // #[pymodule_export]
+//     // use super::Mocv;
+// }

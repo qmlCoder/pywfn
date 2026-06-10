@@ -9,6 +9,7 @@ __pycache__/
 /build/
 /target/
 .venv/
+src_py/docs/
 
 # 忽略的文件类型
 *.pyc

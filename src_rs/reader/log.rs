@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 
+use numpy::{IntoPyArray, PyArray2};
 use pyo3::prelude::*;
 use rswfn;
 
@@ -22,7 +23,19 @@ impl LogReader {
     }
 
     pub fn read_job(&self) -> String {
-        self.core.read_job()
+        self.core.read_job().to_owned()
+    }
+
+    pub fn read_smat<'py>(&self, py: Python<'py>) -> Option<Bound<'py, PyArray2<f64>>> {
+        self.core.read_smat().map(|smat| smat.into_pyarray(py))
+    }
+
+    pub fn read_tmat<'py>(&self, py: Python<'py>) -> Option<Bound<'py, PyArray2<f64>>> {
+        self.core.read_tmat().map(|tmat| tmat.into_pyarray(py))
+    }
+
+    pub fn read_vmat<'py>(&self, py: Python<'py>) -> Option<Bound<'py, PyArray2<f64>>> {
+        self.core.read_vmat().map(|vmat| vmat.into_pyarray(py))
     }
 
     pub fn get_atoms(&self) -> Atoms {
@@ -32,11 +45,15 @@ impl LogReader {
 
     pub fn get_basis(&self) -> Basis {
         let basis = self.core.get_basis();
-        Basis { core: basis }
+        Basis {
+            core: basis.unwrap(),
+        }
     }
 
     pub fn get_coefs(&self) -> Coefs {
         let coefs = self.core.get_coefs();
-        Coefs { core: coefs }
+        Coefs {
+            core: coefs.unwrap(),
+        }
     }
 }

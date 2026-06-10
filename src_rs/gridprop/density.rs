@@ -17,22 +17,20 @@ impl Calculator {
     }
 }
 
-fn vals_split<A, B, C>(vals: Vec<(A, B, C)>, level: usize) -> (Vec<A>, Vec<B>, Vec<C>)
-where
-    A: Clone,
-    B: Clone,
-    C: Clone,
-{
+fn vals_split(
+    vals: &Vec<rswfn::gridprop::GridVals>,
+    level: usize,
+) -> (Vec<f64>, Vec<Grad>, Vec<Hess>) {
     let mut vals0 = vec![];
     let mut vals1 = vec![];
     let mut vals2 = vec![];
     for val in vals {
-        vals0.push(val.0);
+        vals0.push(val.val0);
         if level > 0 {
-            vals1.push(val.1);
+            vals1.push(val.val1);
         }
         if level > 1 {
-            vals2.push(val.2);
+            vals2.push(val.val2);
         }
     }
     (vals0, vals1, vals2)
@@ -53,7 +51,7 @@ fn hesss2array(hesss: Vec<Hess>) -> Array3<f64> {
 
 fn vals2numpy(
     py: Python,
-    vals: Vec<(f64, Grad, Hess)>,
+    vals: &Vec<rswfn::gridprop::GridVals>,
     level: usize,
 ) -> (Py<PyArray1<f64>>, Py<PyArray2<f64>>, Py<PyArray3<f64>>) {
     let (vals, grad, hess) = vals_split(vals, level);
@@ -81,7 +79,7 @@ impl Calculator {
             .into_par_iter()
             .map(|grid| caler.mol_rho_cm(&grid, level))
             .collect();
-        vals2numpy(py, vals, level)
+        vals2numpy(py, &vals, level)
     }
 
     pub fn mol_rho_dm(
@@ -95,20 +93,27 @@ impl Calculator {
             .into_par_iter()
             .map(|grid| caler.mol_rho_dm(&grid, level))
             .collect();
-        vals2numpy(py, vals, level)
+        vals2numpy(py, &vals, level)
     }
 
+    // 获取原子轨道的格点
     pub fn ato_rho(
         &self,
+        py: Python,
         grids: Vec<[f64; 3]>,
         level: usize,
-    ) -> (Vec<Vec<f64>>, Vec<Vec<[f64; 3]>>, Vec<Vec<[[f64; 3]; 3]>>) {
+    ) -> Vec<(Py<PyArray1<f64>>, Py<PyArray2<f64>>, Py<PyArray3<f64>>)> {
         let caler = self.caler();
-        let vals = grids
-            .into_par_iter()
-            .map(|grid| caler.ato_rho(&grid, level))
-            .collect();
-        vals_split(vals, level)
+        let ngrid = grids.len();
+        let nato = self.mole.basis().atos().len("raw");
+        let mut vals = vec![vec![rswfn::gridprop::GridVals::non(); ngrid]; nato];
+        for (g, grid) in grids.iter().enumerate() {
+            let ato_vals = caler.ato_rho(grid, level);
+            for (a, ato_val) in ato_vals.into_iter().enumerate() {
+                vals[a][g] = ato_val.clone();
+            }
+        }
+        vals.iter().map(|val| vals2numpy(py, val, level)).collect()
     }
 
     pub fn pro_rho(&self, grids: Vec<[f64; 3]>) -> Vec<f64> {
@@ -121,15 +126,17 @@ impl Calculator {
 
     pub fn obt_rho(
         &self,
+        py: Python,
         grids: Vec<[f64; 3]>,
         obt: usize,
         level: usize,
-    ) -> Vec<(f64, [f64; 3], [[f64; 3]; 3])> {
+    ) -> (Py<PyArray1<f64>>, Py<PyArray2<f64>>, Py<PyArray3<f64>>) {
         let caler = self.caler();
-        grids
+        let vals = grids
             .into_par_iter()
             .map(|grid| caler.obt_rho(&grid, obt, level))
-            .collect()
+            .collect();
+        vals2numpy(py, &vals, level)
     }
 
     pub fn RDG(&self, grids: Vec<[f64; 3]>) -> Vec<f64> {

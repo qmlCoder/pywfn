@@ -35,6 +35,14 @@ impl Mole {
         Coefs { core: coefs }
     }
 
+    pub fn charge(&self) -> isize {
+        self.core.charge()
+    }
+
+    pub fn multip(&self) -> usize {
+        self.core.multip()
+    }
+
     pub fn syms(&self) -> Vec<String> {
         self.core.atoms().syms()
     }
@@ -45,21 +53,29 @@ impl Mole {
 
     pub fn set_cmat(&mut self, form: &str, cmat: Bound<'_, PyArray2<f64>>) {
         let cmat = cmat.readonly().as_array().to_owned();
-        self.core.coefs.set_cmat(form, &cmat);
+        let basis = self.core.basis().clone();
+        self.core
+            .coefs
+            .as_mut()
+            .unwrap()
+            .set_cmat(form, &cmat, &basis);
     }
 
     pub fn get_cmat(&self, py: Python, form: &str) -> Py<PyArray2<f64>> {
-        let cmat = self.core.coefs().get_cmat(form).clone();
+        let basis = self.core.basis().clone();
+        let cmat = self.core.coefs().get_cmat(form, &basis).clone();
         cmat.into_pyarray(py).unbind()
     }
 
     pub fn get_smat(&self, py: Python, form: &str) -> Py<PyArray2<f64>> {
-        let smat = self.core.basis().get_smat(form, &self.core).clone();
+        let atoms = self.core.atoms().clone();
+        let smat = self.core.basis().get_smat(form, &atoms).clone();
         smat.into_pyarray(py).unbind()
     }
 
     pub fn get_dmat(&self, py: Python, form: &str) -> Py<PyArray2<f64>> {
-        let dmat = self.core.coefs().get_dmat(form).clone();
+        let basis = self.core.basis().clone();
+        let dmat = self.core.coefs().get_dmat(form, &basis).clone();
         dmat.into_pyarray(py).unbind()
     }
 

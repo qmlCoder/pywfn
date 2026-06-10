@@ -11,23 +11,87 @@
 分子中相同元素的两个原子使用的基函数可能不同，因此要存储每个原子的数据
 """
 
+from functools import cached_property, lru_cache
+
+import pywfn
 from pywfn import _core
 
 
-# class MapAto:
-#     def __init__(self, core:_core.base.MapAto) -> None:  # type: ignore
-#         self.core = core  # type: ignore
+class Atos:
+    def __init__(self, _core: _core.base.Atos) -> None:  # type: ignore
+        self.core = _core
 
-#     def len(self):
-#         return self.core.len()
+    @property
+    def raws(self):
+        return self.core.raws()
 
-#     def coes_norm(self):
-#         return self.core.coes_norm()
+    @property
+    def cars(self):
+        return self.core.cars()
+
+    @property
+    def sphs(self):
+        return self.core.sphs()
+
+    def len(self, form: str = "raw") -> int:
+        return self.core.len(form)
+
+    def atms(self, form: str = "raw") -> list[int]:
+        return self.core.atms(form)
+
+    def shls(self, form: str = "raw") -> list[int]:
+        return self.core.shls(form)
+
+    def syms(self, form: str = "raw") -> list[str]:
+        return self.core.syms(form)
 
 
-# class BasisData:
-#     def __init__(self, core:_core.base.BasisData) -> None: # type: ignore
-#         self.core = core  # type: ignore
+class Shl:
+    def __init__(self, core: _core.base.Shl) -> None:  # type: ignore
+        self.core = core
+
+    @cached_property
+    def atm(self) -> int:
+        return self.core.atm
+
+    @cached_property
+    def shl(self) -> int:
+        return self.core.shl
+
+    @cached_property
+    def ang(self) -> int:
+        return self.core.ang
+
+    @cached_property
+    def loc(self) -> int:
+        return self.core.loc
+
+    @cached_property
+    def form(self) -> str:
+        return self.core.form()
+
+    @cached_property
+    def alps(self) -> list[float]:
+        return self.core.alps
+
+    @cached_property
+    def coes(self) -> list[float]:
+        return self.core.coes
+
+
+class Shls:
+    def __init__(self, core: _core.base.Shls) -> None:  # type: ignore
+        self.core = core
+
+    @lru_cache
+    def get(self, i: int) -> Shl:
+        return Shl(self.core.get(i))
+
+    def len(self) -> int:
+        return self.core.len()
+
+    def uplo(self, form: str = "raw") -> list[list[int]]:
+        return self.core.uplo(form)
 
 
 class Basis:
@@ -35,16 +99,27 @@ class Basis:
     存储基组数据的类
     """
 
-    def __init__(self, core: _core.base.Basis) -> None:  # type: ignore
+    def __init__(self, core: _core.base.Basis, mole: "pywfn.base.Mole") -> None:  # type: ignore
         self.core = core
+        self.mole = mole
 
-    # @staticmethod
-    # def new(data: list[BasisData]) -> "Basis":
-    #     _core = _core.base.Basis(data)  # type: ignore
-    #     return Basis(_core)
+    @property
+    def atos(self):
+        return Atos(self.core.atos())
 
     def build(self, data):
         self.core.build(data)
+
+    def get_smat(self, form: str = "raw"):
+        atoms = self.mole.atoms
+        return self.core.get_smat(form, atoms.core)
+
+    def atm_uplo(self, form: str = "raw") -> list[list[int]]:
+        return self.core.atm_uplo(form)
+
+    @cached_property
+    def shls(self) -> Shls:
+        return Shls(self.core.shls())
 
     def __repr__(self) -> str:
         return self.core.__repr__()

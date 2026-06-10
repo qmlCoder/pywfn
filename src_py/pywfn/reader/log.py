@@ -6,20 +6,21 @@
 输出文件中存储的系数可能是球谐的，但是要转为笛卡尔的才方便使用
 """
 
+import numpy as np
 
+from pywfn import _core
+from pywfn.base.atoms import Atoms
 from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
-from pywfn.base.atoms import Atoms
-from pywfn import _core
 
 
 class LogReader:  # type: ignore
-    def __init__(self, _core: _core.reader.FchReader): # type: ignore
+    def __init__(self, _core: _core.reader.FchReader):  # type: ignore
         self.core = _core
-    
+
     @staticmethod
-    def from_path(path:str):
-        return LogReader(_core.reader.LogReader(path)) # type: ignore
+    def from_path(path: str):
+        return LogReader(_core.reader.LogReader(path))  # type: ignore
 
     def get_atoms(self) -> "Atoms":
         return self.core.get_atoms()
@@ -29,3 +30,12 @@ class LogReader:  # type: ignore
 
     def get_coefs(self) -> "Coefs":
         return self.core.get_coefs()
+
+    def read_smat(self) -> "np.ndarray":
+        return self.core.read_smat()
+
+    def read_tmat(self) -> "np.ndarray":
+        return self.core.read_tmat()
+
+    def read_vmat(self) -> "np.ndarray":
+        return self.core.read_vmat()

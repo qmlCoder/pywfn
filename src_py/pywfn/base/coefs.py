@@ -10,22 +10,44 @@
 
 轨道的类型要能够在混合、全笛卡尔和全球谐之间转换
 """
+
 import numpy as np
+
+import pywfn
 from pywfn import _core
 
 
 class Coefs:
-
-    def __init__(self, core: _core.base.Coefs) -> None:  # type: ignore
+    def __init__(self, core: _core.base.Coefs, mole: "pywfn.base.Mole") -> None:  # type: ignore
         self.core = core
+        self.mole = mole
 
-    @staticmethod
-    def new(ato_atms, ato_shls, ato_syms, obt_engs, obt_occs, cmat) -> "Coefs":
-        core = _core.base.Coefs(ato_atms, ato_shls, ato_syms, obt_engs, obt_occs, cmat)  # type: ignore
-        return Coefs(core)
+    def set_cmat(self, cmat: np.ndarray, form: str = "raw") -> None:
+        basis = self.mole.basis
+        self.core.set_cmat(form, cmat, basis.core)
+        self.mole.set_cmat(cmat, form)
 
-    def get_cmat(self, form: str) -> np.ndarray:
-        return np.array(self.core.get_cmat(form))
+    def get_cmat(self, form: str = "raw") -> np.ndarray:
+        basis = self.mole.basis
+        return self.core.get_cmat(form, basis.core)
+
+    def get_dmat(self, form: str = "raw") -> np.ndarray:
+        basis = self.mole.basis
+        return self.core.get_dmat(form, basis.core)
+
+    @property
+    def obt_occs(self) -> np.ndarray:
+        return self.core.obt_occs
+
+    @property
+    def obt_engs(self) -> np.ndarray:
+        return self.core.obt_engs
+
+    def obt_idxs(self, if_occ: bool) -> list[int]:
+        return self.core.obt_idxs(if_occ)
+
+    def atm_uplo(self, form: str = "raw") -> np.ndarray:
+        return self.core.atm_uplo(form)
 
     def __repr__(self) -> str:
         return self.core.__repr__()

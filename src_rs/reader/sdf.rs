@@ -28,11 +28,15 @@ impl SdfReader {
 
     pub fn get_basis(&self) -> Basis {
         let basis = self.core.get_basis();
-        Basis { core: basis }
+        Basis {
+            core: basis.unwrap(),
+        }
     }
 
     pub fn get_coefs(&self) -> Coefs {
         let coefs = self.core.get_coefs();
-        Coefs { core: coefs }
+        Coefs {
+            core: coefs.unwrap(),
+        }
     }
 }
