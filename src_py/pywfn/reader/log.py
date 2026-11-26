@@ -12,10 +12,12 @@ from pywfn import _core
 from pywfn.base.atoms import Atoms
 from pywfn.base.basis import Basis
 from pywfn.base.coefs import Coefs
+from pywfn.reader import Nics
 
 
 class LogReader:  # type: ignore
-    def __init__(self, _core: _core.reader.FchReader):  # type: ignore
+
+    def __init__(self, _core: _core.reader.LogReader):  # type: ignore
         self.core = _core
 
     @staticmethod
@@ -25,17 +27,29 @@ class LogReader:  # type: ignore
     def get_atoms(self) -> "Atoms":
         return self.core.get_atoms()
 
-    def get_basis(self) -> "Basis":
+    def get_basis(self) -> "Basis | None":
         return self.core.get_basis()
 
-    def get_coefs(self) -> "Coefs":
+    def get_coefs(self) -> "Coefs | None":
         return self.core.get_coefs()
 
-    def read_smat(self) -> "np.ndarray":
+    def read_job(self) -> str:
+        """从输出文件中读取任务信息"""
+        return self.core.read_job()
+
+    def read_smat(self) -> "np.ndarray | None":
+        """从输出文件中读取重叠矩阵"""
         return self.core.read_smat()
 
-    def read_tmat(self) -> "np.ndarray":
+    def read_tmat(self) -> "np.ndarray | None":
+        """从输出文件中读取动能矩阵"""
         return self.core.read_tmat()
 
-    def read_vmat(self) -> "np.ndarray":
+    def read_vmat(self) -> "np.ndarray | None":
+        """从输出文件中读取势能矩阵"""
         return self.core.read_vmat()
+
+    def read_nics(self) -> list["Nics"]|None:
+        """从输出文件中读取NICS数据"""
+        cores = self.core.read_nics()
+        return None if cores is None else [Nics(core) for core in cores]

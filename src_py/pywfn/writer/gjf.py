@@ -10,59 +10,21 @@ class GjfWriter:
     def __init__(self):
         self.core = _core.writer.GjfWriter()  # type: ignore
 
-    @property
-    def syms(self) -> list[str]:
-        return self.core.syms
 
-    @syms.setter
-    def syms(self, syms: list[str]):
-        self.core.syms = syms
-
-    @property
-    def xyzs(self) -> list[list[float]]:
-        return self.core.xyzs
-
-    @xyzs.setter
-    def xyzs(self, xyzs: list[list[float]]):
-        self.core.xyzs = xyzs
-
-    @property
-    def chk(self) -> str:
-        return self.core.chk
-
-    @chk.setter
-    def chk(self, chk: str):
-        self.core.chk = chk
-
-    @property
-    def job(self) -> str:
-        return self.core.job
-
-    @job.setter
-    def job(self, job: str):
-        self.core.job = job
-
-    @property
-    def charge(self) -> int:
-        return self.core.charge
-
-    @charge.setter
-    def charge(self, charge: int):
-        self.core.charge = charge
-
-    @property
-    def multip(self) -> int:
-        return self.core.multip
-
-    @multip.setter
-    def multip(self, multip: int):
-        self.core.multip = multip
-
-    def from_mole(self, mole: Mole):
-        self.core.from_mole(mole.core)
+    def set(self, syms: list[str], xyzs: list[list[float]], chk: str , job:str, charge: int, multip: int):
+        """
+        设置gjf文件的内容
+        """
+        self.core.set(syms, xyzs, chk, job, charge, multip)
 
     def build(self) -> str:
+        """生成gjf文件内容"""
         return self.core.build()
 
-    def save(self, path: str):
+    def save(self, path: str) -> None:
+        """保存gjf文件"""
         return self.core.save(path)
+
+    def read_mole(self, mole: Mole) -> None:
+        """从分子对象中读取数据"""
+        self.core.read_mole(mole.core)

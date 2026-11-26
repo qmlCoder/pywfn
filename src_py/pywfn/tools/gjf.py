@@ -10,12 +10,19 @@ class Tool:
         pass
 
     def join(self, paths: list[str]) -> str:
-        """将多个gjf文件拼接到一起"""
-        texts = []
+        """将多个gjf文件拼接到一起
+
+        Args:
+            paths: gjf文件路径列表
+
+        Returns:
+            str: 拼接后的gjf文件内容
+        """
+        texts: list[str] = []
         for path in paths:
             if Path(path).suffix != ".gjf":
                 continue
             text = Path(path).read_text()
             texts.append(text)
-        text: str = "--Link1--\n\n".join(texts)
-        return text
+        result: str = "--Link1--\n\n".join(texts)
+        return result

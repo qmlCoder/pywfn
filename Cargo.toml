@@ -11,13 +11,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 rayon = "1.12.0"
-numpy = "0.28.0"
+numpy = "0.30.0"
 ndarray = "0.16.1"
-rswfn = { path = "e:/code/rswfn", features = [
-    "use-imkl",
-    "use-lina",
-], default-features = false }
-pyo3 = { version = "0.28.3", features = ["extension-module", "abi3-py310"] }
+rswfn = { version = "=0.1.2" }
+pyo3 = { version = "0.30.1", features = ["extension-module", "abi3-py310"] }
 
 
 [profile.release]

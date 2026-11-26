@@ -1,16 +1,14 @@
 from pywfn.base import Mole
-from pywfn.bondprop import order,direction
+from pywfn.props.bondprop import order,direction
 from pathlib import Path
 
-root = Path(__file__).parent
+root = Path(__file__).parent.parent
 
 def test_order():
-    mole=Mole.from_file(rf"{root}/moles/C2H4.fch")
+    mole=Mole.from_file(rf"{root}/moles/C2H4.out")
     caler=order.Calculator(mole)
     res=caler.mayer()
     print("mayer\n",res)
-    res=caler.lowdin()
-    print("lowdin\n",res)
     res=caler.wiberg()
     print("wiberg\n",res)
     res=caler.pi_pocv()

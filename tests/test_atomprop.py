@@ -1,7 +1,7 @@
 from pathlib import Path
 
 import numpy as np
-from pywfn.atomprop import activity, charge, direction
+from pywfn.props.atomprop import activity, charge, direction
 from pywfn.base import Mole
 
 root = Path(__file__).parent.parent
@@ -73,7 +73,7 @@ def test_activity():
     caler = activity.Calculator(mole_0)
     res = caler.fukui(mole_n, mole_p)
     print("fukui:\n", res)
-    res = caler.fukui_pi(mole_n, mole_p)
+    res = caler.fukui_pi_pocv(mole_n, mole_p)
     print("fukui_pi:\n", res)
     res = caler.fukui_dir(0, [0, 0, 1], mole_n, mole_p)
     print("fukui_dir:\n", res)

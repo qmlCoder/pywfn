@@ -17,9 +17,9 @@ python main.py
 ## 示例(API)
 ```python
 from pywfn.base import Mole
-from pywfn.atomprop import charge
+from pywfn.props.atomprop import charge
 
-path="D:\BaiduSyncdisk\gfile\CnHn\C6H6.log" # 高斯输出文件的路径
+path="C6H6.log" # 高斯输出文件的路径
 mole=Mole.from_file(path) # 实例化分子对象
 
 caler=charge.Calculator(mole) # 实例化原子电荷计算器，传入分子对象

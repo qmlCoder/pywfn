@@ -10,6 +10,10 @@ pub struct CubWriter {
 
 #[pymethods]
 impl CubWriter {
+    /// 创建一个新的 CubWriter 实例
+    ///
+    /// ## 返回
+    /// 返回一个 CubWriter 对象
     #[new]
     pub fn new() -> PyResult<Self> {
         let writer = Self {
@@ -18,6 +22,19 @@ impl CubWriter {
         Ok(writer)
     }
 
+    /// 设置立方体文件的各个字段
+    ///
+    /// 所有参数均为可选，仅设置传入的字段。
+    ///
+    /// ## 参数
+    /// - `title`: 标题字符串
+    /// - `syms`: 原子符号列表
+    /// - `xyzs`: 原子坐标列表
+    /// - `obts`: 原子核电荷数列表
+    /// - `pos0`: 立方体原点坐标 [x, y, z]
+    /// - `size`: 三个方向上的格点数 [nx, ny, nz]
+    /// - `step`: 三个方向上的步长 [dx, dy, dz]
+    /// - `vals`: 三维格点数据（嵌套 Vec）
     pub fn set(
         &mut self,
         title: Option<String>,
@@ -55,11 +72,19 @@ impl CubWriter {
         }
     }
 
+    /// 从 Mole 对象中读取分子信息并填充到 CubWriter
+    ///
+    /// ## 参数
+    /// - `mole`: 包含分子信息的 Mole 对象
     pub fn read_mole(&mut self, mole: Mole) {
         self.core.read_mole(&mole.core);
     }
 
-    pub fn save(&mut self, path: &str) {
-        self.core.save(path);
+    /// 将立方体数据保存到文件
+    ///
+    /// ## 参数
+    /// - `path`: 保存路径
+    pub fn save(&mut self, path: String) {
+        self.core.save(&path);
     }
 }

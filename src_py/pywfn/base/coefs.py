@@ -22,18 +22,25 @@ class Coefs:
         self.core = core
         self.mole = mole
 
-    def set_cmat(self, cmat: np.ndarray, form: str = "raw") -> None:
-        basis = self.mole.basis
-        self.core.set_cmat(form, cmat, basis.core)
-        self.mole.set_cmat(cmat, form)
+    def set_cmat(self, form: str, cmat: np.ndarray) -> None:
+        """设置系数矩阵
+
+        Args:
+            form: 基函数形式, 如 "raw"、"sph"、"car"
+            cmat: 轨道系数矩阵
+        """
+        self.mole.set_cmat(form, cmat)
 
     def get_cmat(self, form: str = "raw") -> np.ndarray:
-        basis = self.mole.basis
-        return self.core.get_cmat(form, basis.core)
+        """获取系数矩阵
+
+        统一从 `mole.core` 读取，避免持有克隆的 `core` 时拿到 `set_cmat` 之前的旧值。
+        """
+        return self.mole.get_cmat(form)
 
     def get_dmat(self, form: str = "raw") -> np.ndarray:
-        basis = self.mole.basis
-        return self.core.get_dmat(form, basis.core)
+        """获取密度矩阵（同样从 `mole.core` 读取）"""
+        return self.mole.get_dmat(form)
 
     @property
     def obt_occs(self) -> np.ndarray:
@@ -44,10 +51,15 @@ class Coefs:
         return self.core.obt_engs
 
     def obt_idxs(self, if_occ: bool) -> list[int]:
+        """获取占据或非占据轨道的索引
+
+        Args:
+            if_occ: True 返回占据轨道, False 返回非占据轨道
+        """
         return self.core.obt_idxs(if_occ)
 
     def atm_uplo(self, form: str = "raw") -> np.ndarray:
-        return self.core.atm_uplo(form)
+        return self.mole.basis.atm_uplo(form)
 
     def __repr__(self) -> str:
         return self.core.__repr__()

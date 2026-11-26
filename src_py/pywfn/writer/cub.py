@@ -6,10 +6,12 @@ A=B/1.889
 B=A*1.889
 计算的时候使用A，写文件的时候将坐标和格点转为B
 """
-from numpy._core.numeric import ndarray
+
+import numpy as np
 from numpy.typing import NDArray
-from pywfn.base.mole import Mole
+
 from pywfn import _core
+from pywfn.base.mole import Mole
 
 
 class CubWriter:
@@ -17,22 +19,25 @@ class CubWriter:
         """cube文件导出器"""
         self.core = _core.writer.CubWriter()  # type: ignore
 
-    def set(self,
-            title: str | None = None,  # 标题
-            syms: list[str] | None = None,  # 元素符号
-            xyzs: NDArray[float] | None = None,  # 原子坐标
-            obts: list[int] | None = None,  # 轨道序数
-            pos0: list[float] | None = None,  # 起始坐标
-            size: list[int] | None = None,  # 格点数量
-            step: list[float] | None = None,  # 格点步长
-            vals: NDArray[float] | None = None  # 格点数值[ngrid,nobt]
-            ):
-        assert len(obts)==vals.shape[0], "obts和vals的维度不匹配"
+    def set(
+        self,
+        title: str | None = None,  # 标题
+        syms: list[str] | None = None,  # 元素符号
+        xyzs: NDArray[np.float64] | None = None,  # 原子坐标
+        obts: list[int] | None = None,  # 轨道序数
+        pos0: list[float] | None = None,  # 起始坐标
+        size: list[int] | None = None,  # 格点数量
+        step: list[float] | None = None,  # 格点步长
+        vals: NDArray[np.float64] | None = None,  # 格点数值[ngrid,nobt]
+    ) -> None:
+        assert obts is not None and vals is not None, "obts和vals不能为None"
+        assert len(obts) == vals.shape[0], "obts和vals的维度不匹配"
         self.core.set(title, syms, xyzs, obts, pos0, size, step, vals)
 
-    def read_mole(self, mole: Mole):
+    def read_mole(self, mole: Mole) -> None:
         """从分子对象中读取数据"""
         self.core.read_mole(mole.core)
 
-    def save(self,path:str):
+    def save(self, path: str) -> None:
+        """保存cube文件"""
         self.core.save(path)

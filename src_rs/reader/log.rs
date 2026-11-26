@@ -5,6 +5,7 @@ use pyo3::prelude::*;
 use rswfn;
 
 use crate::base::{Atoms, Basis, Coefs};
+use crate::reader::Nics;
 use rswfn::reader::Reader;
 
 #[pyclass]
@@ -38,22 +39,34 @@ impl LogReader {
         self.core.read_vmat().map(|vmat| vmat.into_pyarray(py))
     }
 
+    pub fn read_nics<'py>(&self, py: Python<'py>) -> Option<Vec<Nics>> {
+        if let Some(nics) = self.core.read_nics() {
+            Some(nics.into_iter().map(|core| Nics { core }).collect())
+        } else {
+            None
+        }
+    }
+
     pub fn get_atoms(&self) -> Atoms {
         let atoms = self.core.get_atoms();
         Atoms { core: atoms }
     }
 
-    pub fn get_basis(&self) -> Basis {
+    pub fn get_basis(&self) -> Option<Basis> {
         let basis = self.core.get_basis();
-        Basis {
-            core: basis.unwrap(),
+        if let Some(basis) = basis {
+            Some(Basis { core: basis })
+        } else {
+            None
         }
     }
 
-    pub fn get_coefs(&self) -> Coefs {
+    pub fn get_coefs(&self) -> Option<Coefs> {
         let coefs = self.core.get_coefs();
-        Coefs {
-            core: coefs.unwrap(),
+        if let Some(coefs) = coefs {
+            Some(Coefs { core: coefs })
+        } else {
+            None
         }
     }
 }

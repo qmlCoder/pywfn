@@ -11,7 +11,7 @@
 分子中相同元素的两个原子使用的基函数可能不同，因此要存储每个原子的数据
 """
 
-from functools import cached_property, lru_cache
+from functools import cached_property
 
 import pywfn
 from pywfn import _core
@@ -21,28 +21,20 @@ class Atos:
     def __init__(self, _core: _core.base.Atos) -> None:  # type: ignore
         self.core = _core
 
-    @property
-    def raws(self):
-        return self.core.raws()
-
-    @property
-    def cars(self):
-        return self.core.cars()
-
-    @property
-    def sphs(self):
-        return self.core.sphs()
-
     def len(self, form: str = "raw") -> int:
+        """基函数数量"""
         return self.core.len(form)
 
     def atms(self, form: str = "raw") -> list[int]:
+        """每个基函数对应的原子索引"""
         return self.core.atms(form)
 
     def shls(self, form: str = "raw") -> list[int]:
+        """每个基函数对应的壳层索引"""
         return self.core.shls(form)
 
     def syms(self, form: str = "raw") -> list[str]:
+        """每个基函数的符号"""
         return self.core.syms(form)
 
 
@@ -68,7 +60,7 @@ class Shl:
 
     @cached_property
     def form(self) -> str:
-        return self.core.form()
+        return self.core.form
 
     @cached_property
     def alps(self) -> list[float]:
@@ -83,7 +75,6 @@ class Shls:
     def __init__(self, core: _core.base.Shls) -> None:  # type: ignore
         self.core = core
 
-    @lru_cache
     def get(self, i: int) -> Shl:
         return Shl(self.core.get(i))
 
@@ -107,12 +98,8 @@ class Basis:
     def atos(self):
         return Atos(self.core.atos())
 
-    def build(self, data):
-        self.core.build(data)
-
     def get_smat(self, form: str = "raw"):
-        atoms = self.mole.atoms
-        return self.core.get_smat(form, atoms.core)
+        return self.core.get_smat(form, self.mole.core)
 
     def atm_uplo(self, form: str = "raw") -> list[list[int]]:
         return self.core.atm_uplo(form)

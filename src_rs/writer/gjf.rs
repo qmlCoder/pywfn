@@ -10,6 +10,10 @@ pub struct GjfWriter {
 
 #[pymethods]
 impl GjfWriter {
+    /// 创建一个新的 GjfWriter 实例
+    ///
+    /// ## 返回
+    /// 返回一个 GjfWriter 对象
     #[new]
     pub fn new() -> PyResult<Self> {
         let writer = Self {
@@ -18,71 +22,44 @@ impl GjfWriter {
         Ok(writer)
     }
 
-    #[getter(syms)]
-    pub fn get_syms(&self) -> Vec<String> {
-        self.core.syms.clone()
-    }
-
-    #[setter(syms)]
-    pub fn set_syms(&mut self, syms: Vec<String>) {
+    pub fn set(
+        &mut self,
+        syms: Vec<String>,
+        xyzs: Vec<[f64; 3]>,
+        chk: String,
+        job: String,
+        charge: isize,
+        multip: usize,
+    ) {
         self.core.syms = syms;
-    }
-
-    #[getter(xyzs)]
-    pub fn get_xyzs(&self) -> Vec<[f64; 3]> {
-        self.core.xyzs.clone()
-    }
-
-    #[setter(xyzs)]
-    pub fn set_xyzs(&mut self, xyzs: Vec<[f64; 3]>) {
         self.core.xyzs = xyzs;
-    }
-
-    #[getter(chk)]
-    pub fn get_chk(&self) -> String {
-        self.core.chk.clone()
-    }
-
-    #[setter(chk)]
-    pub fn set_chk(&mut self, chk: String) {
         self.core.chk = chk;
-    }
-
-    #[getter(job)]
-    pub fn get_job(&self) -> String {
-        self.core.job.clone()
-    }
-
-    #[setter(job)]
-    pub fn set_job(&mut self, job: String) {
         self.core.job = job;
-    }
-
-    #[getter(charge)]
-    pub fn get_charge(&self) -> isize {
-        self.core.charge
-    }
-
-    #[setter(charge)]
-    pub fn set_charge(&mut self, charge: isize) {
         self.core.charge = charge;
-    }
-
-    #[getter(multip)]
-    pub fn get_multip(&self) -> usize {
-        self.core.multip
-    }
-
-    #[setter(multip)]
-    pub fn set_multip(&mut self, multip: usize) {
         self.core.multip = multip;
     }
 
+    /// 生成 GJF 文件的文本内容
+    ///
+    /// ## 返回
+    /// 返回格式化的 GJF 文件字符串
     pub fn build(&self) -> String {
         self.core.build()
     }
 
+    /// 将 GJF 文件内容保存到磁盘
+    ///
+    /// ## 参数
+    /// - `path`: 保存路径
     pub fn save(&self, path: String) {
         self.core.save(&path);
+    }
+
+    /// 从分子对象中读取数据
+    ///
+    /// ## 参数
+    /// - `mole`: 分子对象
+    pub fn read_mole(&mut self, mole: Mole) {
+        self.core.read_mole(&mole.core);
     }
 }

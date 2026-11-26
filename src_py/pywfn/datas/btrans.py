@@ -7,10 +7,22 @@ import numpy as np
 
 from pywfn import _core
 
-DMAT: np.ndarray = _core.datas.btrans.DMAT()  # type: ignore
-FMAT: np.ndarray = _core.datas.btrans.FMAT()  # type: ignore
-GMAT: np.ndarray = _core.datas.btrans.GMAT()  # type: ignore
-HMAT: np.ndarray = _core.datas.btrans.HMAT()  # type: ignore
+DMAT: np.ndarray = _core.datas.btrans.DMAT()  # type: ignore [ 6, 5]
+FMAT: np.ndarray = _core.datas.btrans.FMAT()  # type: ignore [10, 7]
+GMAT: np.ndarray = _core.datas.btrans.GMAT()  # type: ignore [15, 9]
+HMAT: np.ndarray = _core.datas.btrans.HMAT()  # type: ignore [21,11]
+
+def sph2car_tmat(ang: int) -> np.ndarray:
+    return _core.datas.btrans.sph2car_tmat(ang) # type: ignore
+
+def car2sph_tmat(ang: int) -> np.ndarray:
+    return _core.datas.btrans.car2sph_tmat(ang) # type: ignore
+
+def car2sph_fmat(
+    smat_car: np.ndarray,
+    angs: list[int],
+) -> np.ndarray:
+    return _core.datas.btrans.car2sph_fmat(smat_car, angs) # type: ignore
 
 # SYMS
 MIX_S_SYMS: list[str] = _core.datas.btrans.MIX_S_SYMS()  # type: ignore

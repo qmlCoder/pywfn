@@ -1,10 +1,8 @@
 """
 记录一些模板文件
 """
-from pathlib import Path
 
-gjf=\
-"""%chk=<CHK>.chk
+gjf = """%chk=<CHK>.chk
 # <TITLE>
 
 Title Card Required
@@ -15,14 +13,12 @@ Title Card Required
 
 """
 
-xyz=\
-"""<NATM>
+xyz = """<NATM>
 <TITLE>
 <COORD>
 """
 
-si=\
-"""<NAME>
+si = """<NAME>
 
 Zero-point correction                        <E0>
 Thermal correction to Energy                 <E1>
@@ -40,8 +36,7 @@ Variable frequencies
 <FREQ>
 """
 
-pes=\
-"""<?xml version="1.0" encoding="UTF-8" ?>
+pes = """<?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE CDXML SYSTEM "http://www.cambridgesoft.com/xml/cdxml.dtd" >
 <CDXML
  CreationProgram="ChemDraw 20.0.0.41"
@@ -144,8 +139,7 @@ pes=\
 </page>
 </CDXML>"""
 
-mol=\
-"""[TITLE]
+mol = """[TITLE]
 
 Created by pywfn
 [NATOM][NBOND]  0  0  0  0  0  0  0  0  0    0
@@ -153,12 +147,3 @@ Created by pywfn
 [BONDBLOCK]
 M  END
 """
-
-from pywfn import config
-
-def get(name:str):
-    get=config.get_config(f'temp.{name}',None)
-    if get is not None:
-        return Path(get).read_text()
-    else:
-        return eval(name)

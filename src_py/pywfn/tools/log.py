@@ -6,9 +6,28 @@ class Tool:
         self.core = _core.tools.log.Tool()  # type: ignore
 
     def get_SI(self, paths: list[str]) -> str:
+        """从输出文件中提取补充信息(Supporting Information)
+
+        Args:
+            paths: log文件路径列表
+
+        Returns:
+            str: 提取的补充信息文本
+        """
         return self.core.get_SI(paths)
 
-    def split_opt(self, path: str):
+    def split_opt(
+        self, path: str
+    ) -> list[tuple[list[int], list[list[float]], float]]:
+        """分割优化轨迹中的多个结构
+
+        Args:
+            path: log文件路径
+
+        Returns:
+            list[tuple[list[int], list[list[float]], float]]: 每个优化步骤的
+            (原子索引, 坐标, 能量) 元组列表
+        """
         return self.core.split_opt(path)
 
     # def split_scan(self,path:str) -> list[Mole]:

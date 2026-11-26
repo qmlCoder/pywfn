@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "pywfn"
-version = "1.0.14"
+version = "1.0.21"
 authors = [{ name = "shixiaofei", email = "1103275712@qq.com" }]
 description = "A python package for wave function analysis"
 readme = "README.md"
@@ -20,9 +20,6 @@ license-files = ["LICENSE"]
 keywords = ["chemistry", "wave function"]
 dependencies = ["numpy>=2.2.3"]
 
-[project.scripts]
-pywfn = "pywfn:main"
-
 [project.urls]
 Homepage = "https://github.com/qmlCoder/pywfn"
 Issues = "https://github.com/qmlCoder/pywfn/issues"
@@ -31,3 +28,12 @@ Issues = "https://github.com/qmlCoder/pywfn/issues"
 python-source = "src_py"
 module-name = "pywfn._core"
 features = ["pyo3/abi3-py310"] # 启用 abi3 以实现跨版本兼容性
+
+[tool.pyright]
+typeCheckingMode = "basic" # 类型检查强度：off/basic/standard/strict，basic 比 Zed 默认的 standard 更宽松，只保留基础检查
+reportUnknownVariableType = "none" # 变量类型未知时报警（"Type of X is unknown"），本项目的 _core 无类型桩导致大量触发
+reportUnknownMemberType = "none" # 属性访问（obj.attr）类型未知时报警
+reportUnknownParameterType = "none" # 函数参数类型未知时报警（"Type of parameter X is unknown"）
+reportUnknownArgumentType = "none" # 函数调用实参类型未知时报警（"Argument type is unknown"）
+reportUnknownLambdaType = "none" # lambda 表达式参数/返回类型未知时报警
+reportMissingTypeStubs = "none" # 找不到类型桩文件（.pyi）时报警（"Stub file not found"）

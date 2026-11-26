@@ -15,24 +15,45 @@ class ELEM:
         self.core = core
 
     @property
-    def idx(self):
+    def idx(self) -> int:
+        """原子序数"""
         return self.core.idx
 
     @property
-    def sym(self):
+    def sym(self) -> str:
+        """元素符号"""
         return self.core.sym
 
     @property
-    def rad(self):
+    def rad(self) -> float:
+        """原子半径"""
         return self.core.rad
 
     @property
-    def row(self):
+    def row(self) -> int:
+        """周期数"""
         return self.core.row
 
     @property
-    def col(self):
+    def col(self) -> int:
+        """族数"""
         return self.core.col
+
+    @property
+    def color(self) -> str:
+        """颜色"""
+        return self.core.color
+
+    @property
+    def oxi_num(self) -> list[int]:
+        """氧化数
+
+        `OXIS` 从 H 开始按 0 下标排列，而 `idx` 是 1 基的原子序数，因此需要减一；
+        对 `X`(-1)、`Bq`(0) 这类伪原子没有氧化数，返回空列表。
+        """
+        if self.core.idx < 1:
+            return []
+        return OXIS[self.core.idx - 1]
 
 
 ELEMS = [ELEM(core) for core in _core.datas.elems.ELEMS()]  # type: ignore
@@ -48,3 +69,74 @@ def get_by_idx(idx: int) -> ELEM:
 def get_by_sym(sym: str) -> ELEM:
     core = _core.datas.elems.get_by_sym(sym)  # type: ignore
     return ELEM(core)
+
+
+@lru_cache
+def NLMS() -> list[tuple[int, int, int]]:
+    core = _core.datas.elems.NLMS()  # type: ignore
+    return core
+
+
+@lru_cache
+def ELES() -> list[list[int]]:
+    core = _core.datas.elems.ELES()  # type: ignore
+    return core
+
+
+def get_ab_nele(atm: int) -> list[int]:
+    """获取指定元素的α电子数和β电子数
+
+    参数:
+        atm: 原子序号
+
+    返回:
+        [nela, nelb] 分别为α电子数和β电子数
+    """
+    return _core.datas.elems.get_ab_nele(atm)  # type: ignore
+
+
+OXIS: list[list[int]] = _core.datas.elems.OXIS()  # type: ignore
+
+
+@lru_cache
+def sym2atm(sym: str) -> int:
+    """根据元素符号返回原子序数"""
+    return _core.datas.elems.sym2atm(sym)  # type: ignore
+
+
+@lru_cache
+def atm2sym(atm: int) -> str:
+    """根据原子序数返回元素符号"""
+    return _core.datas.elems.atm2sym(atm)  # type: ignore
+
+
+@lru_cache
+def zeff(atm: int, neb: int) -> float:
+    """返回指定原子的有效核电荷数（用于pi电子分析）
+
+    Args:
+        atm: 原子序号
+        neb: 参与共轭的电子数
+    """
+    return _core.datas.elems.zeff(atm, neb)  # type: ignore
+
+
+@lru_cache
+def atm2rad(idx: int) -> float:
+    """根据原子序数返回原子半径"""
+    return _core.datas.elems.atm2rad(idx)  # type: ignore
+
+
+@lru_cache
+def atm2row(atm: int) -> int:
+    """根据原子序数返回周期数"""
+    return _core.datas.elems.atm2row(atm)  # type: ignore
+
+
+def ELEM_DATA() -> list[tuple[int, str, float, int, int, str]]:
+    """返回原始的元组形式元素数据表
+
+    Returns:
+        (原子序数, 元素符号, 原子半径, 周期数, 族数, 颜色) 的列表
+    """
+    return _core.datas.elems.ELEM_DATA()  # type: ignore

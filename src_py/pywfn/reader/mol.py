@@ -19,8 +19,8 @@ class MolReader():  # type: ignore
     def get_atoms(self) -> "Atoms":
         return self.core.get_atoms()
 
-    def get_basis(self) -> "Basis":
+    def get_basis(self) -> "Basis | None":
         return self.core.get_basis()
 
-    def get_coefs(self) -> "Coefs":
+    def get_coefs(self) -> "Coefs | None":
         return self.core.get_coefs()

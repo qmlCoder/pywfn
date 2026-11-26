@@ -3,9 +3,8 @@
 可以用来生成刚性扫描的结构
 """
 
-from pywfn.base import Mole
 from pywfn import _core
-import numpy as np
+from pywfn.base import Mole
 
 
 class Editor:
