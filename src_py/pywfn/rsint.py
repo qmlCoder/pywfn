@@ -33,14 +33,6 @@ class RsInt:
         """
         return self.core.mat1e(cals, form)
 
-    def mat2e(self, form: str) -> np.ndarray:
-        """计算双电子积分矩阵
-
-        Args:
-            form: 积分格式，"sph" 或 "car"
-        """
-        return self.core.mat2e(form)
-
     def mat1e_lcs(self, stms: dict[int, Stm], cals: list[int]) -> np.ndarray:
         """计算局部坐标系下的单电子积分矩阵"""
         stms = {atm: stm.core for atm, stm in stms.items()}

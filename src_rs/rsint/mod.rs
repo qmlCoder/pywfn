@@ -3,7 +3,7 @@
 use std::collections::HashMap;
 
 use crate::base::{Mole, Stm};
-use numpy::{IntoPyArray, PyArray2, PyArray4, PyReadonlyArray2};
+use numpy::{IntoPyArray, PyArray2, PyReadonlyArray2};
 use pyo3::prelude::*;
 use rswfn;
 
@@ -87,20 +87,6 @@ impl RsInt {
         let tmat = tmat.into_pyarray(py).unbind();
         let vmat = vmat.into_pyarray(py).unbind();
         [smat, tmat, vmat]
-    }
-
-    /// 计算双电子（电子-电子排斥）积分
-    ///
-    /// ## 参数
-    /// - `py`: Python 解释器标记
-    /// - `form`: 积分格式，可选 "sph" 或 "car"
-    ///
-    /// ## 返回
-    /// 返回一个四维 NumPy 数组表示的双电子积分张量
-    pub fn mat2e(&self, py: Python, form: String) -> Py<PyArray4<f64>> {
-        let mat2e = self.caler().mat2e(&form);
-        let mat2e = mat2e.into_mat4();
-        mat2e.into_pyarray(py).unbind()
     }
 
     /// 在局域坐标系下同时计算三个单电子矩阵

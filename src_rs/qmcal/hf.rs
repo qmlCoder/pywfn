@@ -1,6 +1,4 @@
 use crate::base::Mole;
-use ndarray::Array4;
-use numpy::PyReadonlyArray4;
 use pyo3::prelude::*;
 use rswfn;
 
@@ -33,21 +31,9 @@ impl RHF {
     /// 执行 RHF 自洽场计算。
     ///
     /// 迭代求解 Hartree-Fock 方程，获得收敛的分子轨道和能量。
-    /// 可选地提供双电子积分矩阵以减少重复计算。
-    ///
-    /// # 参数
-    /// * `emat` - 可选，双电子积分矩阵（四维数组）。如果提供，则使用该矩阵
-    ///            进行计算，避免重新计算双电子积分。
-    pub fn run(&self, emat: Option<PyReadonlyArray4<f64>>) {
-        let emat = match emat {
-            Some(emat) => {
-                let emat = emat.as_array().to_owned();
-                let emat = rswfn::rsint::Mat2e::from_mat4(emat);
-                Some(emat)
-            }
-            None => None,
-        };
-        self.caler().run(emat);
+    /// 双电子积分由 rswfn 内部的壳层块引擎自动计算（直接 SCF）。
+    pub fn run(&self) {
+        self.caler().run();
     }
 }
 
