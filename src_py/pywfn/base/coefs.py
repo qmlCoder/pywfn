@@ -61,5 +61,25 @@ class Coefs:
     def atm_uplo(self, form: str = "raw") -> np.ndarray:
         return self.mole.basis.atm_uplo(form)
 
+    def is_none(self) -> bool:
+        """轨道系数是否为空"""
+        return self.core.is_none()
+
+    def obt_eles(self) -> list[int]:
+        """占据或虚轨道对应的电子数
+
+        Returns:
+            list[int]: [alpha 电子数, beta 电子数]
+        """
+        return self.core.obt_eles(self.mole.core)
+
+    def equal(self, other: "Coefs") -> bool:
+        """判断两个轨道系数是否相同
+
+        Args:
+            other: 另一个轨道系数对象
+        """
+        return self.core.equal(other.core)
+
     def __repr__(self) -> str:
         return self.core.__repr__()

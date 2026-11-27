@@ -190,6 +190,29 @@ impl Calculator {
         Ok((stms, atos, eles))
     }
 
+    /// 计算每个原子的电子数
+    ///
+    /// ## 参数
+    /// - `ctype`: 电荷类型
+    ///
+    /// ## 返回
+    /// 每个原子的电子数列表
+    pub fn eles(&self, ctype: &str) -> Vec<f64> {
+        self.caler().eles(ctype)
+    }
+
+    /// 计算指定轨道上的电子数
+    ///
+    /// ## 参数
+    /// - `ctype`: 电荷类型
+    /// - `obt`: 分子轨道索引
+    ///
+    /// ## 返回
+    /// 每个原子的电子数列表
+    pub fn eles_obt(&self, ctype: &str, obt: usize) -> Vec<f64> {
+        self.caler().eles_obt(ctype, obt)
+    }
+
     pub fn pi_mocv_v2(&self, ctype: &str) -> PyResult<(HashMap<usize, Stm>, Vec<usize>, Vec<f64>)> {
         let (stms, atos, eles) = self
             .caler()
@@ -247,11 +270,60 @@ pub fn lowdin(
     rswfn::props::atomprop::charge::lowdin(&dmat, &smat, &uplo)
 }
 
+/// 计算 Hirshfeld 布居分析（独立函数）
+///
+/// 直接使用原子信息和格点密度计算 Hirshfeld 电荷。
+///
+/// ## 参数
+/// - `atom_nucs`: 每个原子的核电荷数
+/// - `atom_xyzs`: 每个原子的坐标
+/// - `mole_grids`: 分子格点坐标
+/// - `mole_weits`: 分子格点权重
+/// - `mole_dens`: 分子在格点上的密度
+/// - `pro_mole_dens`: 参考原子密度在格点上的加和
+///
+/// ## 返回
+/// 每个原子的 Hirshfeld 电荷列表
+#[pyfunction]
+pub fn hirshfeld(
+    atom_nucs: Vec<usize>,
+    atom_xyzs: Vec<[f64; 3]>,
+    mole_grids: Vec<[f64; 3]>,
+    mole_weits: Vec<f64>,
+    mole_dens: Vec<f64>,
+    pro_mole_dens: Vec<f64>,
+) -> Vec<f64> {
+    rswfn::props::atomprop::charge::hirshfeld(
+        atom_nucs,
+        atom_xyzs,
+        &mole_grids,
+        &mole_weits,
+        &mole_dens,
+        &pro_mole_dens,
+    )
+}
+
+/// 由原子轨道布居矩阵汇总每个原子的电子数
+///
+/// ## 参数
+/// - `qmat`: 布居矩阵（NumPy 二维数组）
+/// - `uplo`: 上三角/下三角的原子轨道索引对列表
+///
+/// ## 返回
+/// 每个原子的电子数列表
+#[pyfunction]
+pub fn qmat2eles(qmat: Bound<'_, PyArray2<f64>>, uplo: Vec<[usize; 2]>) -> Vec<f64> {
+    let qmat = qmat.readonly().as_array().to_owned();
+    rswfn::props::atomprop::charge::qmat2eles(&qmat, &uplo)
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "charge")?;
     m.add_class::<Calculator>()?;
     m.add_function(wrap_pyfunction!(mulliken, &m)?)?;
     m.add_function(wrap_pyfunction!(lowdin, &m)?)?;
+    m.add_function(wrap_pyfunction!(hirshfeld, &m)?)?;
+    m.add_function(wrap_pyfunction!(qmat2eles, &m)?)?;
     parent_module.add_submodule(&m)
 }
 

@@ -11,3 +11,40 @@ def rswfn_version() -> str:
 
 
 __rswfn_version__ = rswfn_version()
+
+# 按 rswfn 的模块层级导出各个子模块，方便直接通过 `pywfn.<模块>` 访问
+from pywfn import (  # noqa: E402
+    base,
+    datas,
+    editor,
+    loger,
+    maths,
+    props,
+    qmcal,
+    reader,
+    rsbse,
+    rsint,
+    rsxcs,
+    space,
+    tools,
+    utils,
+    writer,
+)
+
+__all__ = [
+    "base",
+    "datas",
+    "editor",
+    "loger",
+    "maths",
+    "props",
+    "qmcal",
+    "reader",
+    "rsbse",
+    "rsint",
+    "rsxcs",
+    "space",
+    "tools",
+    "utils",
+    "writer",
+]

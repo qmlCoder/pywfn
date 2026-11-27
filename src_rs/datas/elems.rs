@@ -145,6 +145,86 @@ pub fn ELEM_DATA() -> Vec<(isize, String, f64, usize, usize, String)> {
         .collect()
 }
 
+/// 根据元素符号返回原子序数（不使用缓存）
+#[pyfunction]
+pub fn get_by_sym_no_cache(sym: &str) -> ELEM {
+    ELEM {
+        core: rswfn::datas::elems::get_by_sym_no_cache(sym),
+    }
+}
+
+/// 根据元素符号返回原子序数（预填充缓存）
+#[pyfunction]
+pub fn get_by_sym_prime_cache(sym: &str) -> ELEM {
+    ELEM {
+        core: rswfn::datas::elems::get_by_sym_prime_cache(sym),
+    }
+}
+
+/// 根据原子序数返回元素信息（不使用缓存）
+#[pyfunction]
+pub fn get_by_idx_no_cache(idx: usize) -> ELEM {
+    ELEM {
+        core: rswfn::datas::elems::get_by_idx_no_cache(idx),
+    }
+}
+
+/// 根据原子序数返回元素信息（预填充缓存）
+#[pyfunction]
+pub fn get_by_idx_prime_cache(idx: usize) -> ELEM {
+    ELEM {
+        core: rswfn::datas::elems::get_by_idx_prime_cache(idx),
+    }
+}
+
+/// 根据原子序数返回元素符号（不使用缓存）
+#[pyfunction]
+pub fn atm2sym_no_cache(atm: usize) -> String {
+    rswfn::datas::elems::atm2sym_no_cache(atm)
+}
+
+/// 根据原子序数返回元素符号（预填充缓存）
+#[pyfunction]
+pub fn atm2sym_prime_cache(atm: usize) -> String {
+    rswfn::datas::elems::atm2sym_prime_cache(atm)
+}
+
+/// 根据原子序数返回原子半径（不使用缓存）
+#[pyfunction]
+pub fn atm2rad_no_cache(idx: usize) -> f64 {
+    rswfn::datas::elems::atm2rad_no_cache(idx)
+}
+
+/// 根据原子序数返回原子半径（预填充缓存）
+#[pyfunction]
+pub fn atm2rad_prime_cache(idx: usize) -> f64 {
+    rswfn::datas::elems::atm2rad_prime_cache(idx)
+}
+
+/// 根据原子序数返回周期数（不使用缓存）
+#[pyfunction]
+pub fn atm2row_no_cache(atm: usize) -> usize {
+    rswfn::datas::elems::atm2row_no_cache(atm)
+}
+
+/// 根据原子序数返回周期数（预填充缓存）
+#[pyfunction]
+pub fn atm2row_prime_cache(atm: usize) -> usize {
+    rswfn::datas::elems::atm2row_prime_cache(atm)
+}
+
+/// 返回指定原子的有效核电荷数（不使用缓存）
+#[pyfunction]
+pub fn zeff_no_cache(atm: usize, neb: usize) -> f64 {
+    rswfn::datas::elems::zeff_no_cache(atm, neb)
+}
+
+/// 返回指定原子的有效核电荷数（预填充缓存）
+#[pyfunction]
+pub fn zeff_prime_cache(atm: usize, neb: usize) -> f64 {
+    rswfn::datas::elems::zeff_prime_cache(atm, neb)
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "elems")?;
     m.add_class::<ELEM>()?;
@@ -161,5 +241,17 @@ pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_function(wrap_pyfunction!(atm2rad, &m)?)?;
     m.add_function(wrap_pyfunction!(atm2row, &m)?)?;
     m.add_function(wrap_pyfunction!(ELEM_DATA, &m)?)?;
+    m.add_function(wrap_pyfunction!(get_by_sym_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(get_by_sym_prime_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(get_by_idx_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(get_by_idx_prime_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2sym_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2sym_prime_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2rad_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2rad_prime_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2row_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(atm2row_prime_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(zeff_no_cache, &m)?)?;
+    m.add_function(wrap_pyfunction!(zeff_prime_cache, &m)?)?;
     parent_module.add_submodule(&m)
 }

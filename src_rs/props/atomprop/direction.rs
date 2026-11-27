@@ -1,8 +1,9 @@
+use numpy::PyArray2;
 use pyo3::prelude::*;
 
 use rswfn;
 
-use crate::base::{Mole, Stm};
+use crate::base::{Mole, Stm, Vec3};
 
 #[pyclass]
 pub struct Calculator {
@@ -92,6 +93,76 @@ impl Calculator {
         let dirs = self.caler().reactions(atm);
         let dirs: Vec<[f64; 3]> = dirs.iter().map(|dir| dir.into_arr()).collect();
         dirs
+    }
+    /// 返回修正后的密度矩阵
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    ///
+    /// ## 返回
+    /// NumPy 二维数组
+    pub fn dmat_fix(&self, py: Python) -> Py<PyArray2<f64>> {
+        use numpy::IntoPyArray;
+        self.caler().dmat_fix().into_pyarray(py).unbind()
+    }
+
+    /// 使用随机局域坐标系（RLCS）
+    ///
+    /// ## 参数
+    /// - `atm`: 原子索引
+    ///
+    /// ## 返回
+    /// 局域坐标系对象
+    pub fn RLCS(&self, atm: usize) -> Stm {
+        Stm {
+            core: self.caler().RLCS(atm),
+        }
+    }
+
+    /// 使用多个局域坐标系（MLCS）
+    ///
+    /// ## 参数
+    /// - `atm`: 原子索引
+    ///
+    /// ## 返回
+    /// 局域坐标系列表
+    pub fn MLCS(&mut self, atm: usize) -> Vec<Stm> {
+        let mut caler = self.caler();
+        caler.MLCS(atm).into_iter().map(|core| Stm { core }).collect()
+    }
+
+    /// 获取指定原子的键角方向
+    ///
+    /// ## 参数
+    /// - `atm`: 原子索引
+    pub fn gt_bond_angle(&self, atm: usize) -> Vec<Vec3> {
+        self.caler()
+            .gt_bond_angle(atm)
+            .into_iter()
+            .map(|core| Vec3 { core })
+            .collect()
+    }
+
+    /// 获取线性分子的圆周方向
+    ///
+    /// ## 参数
+    /// - `atm`: 原子索引
+    pub fn linear_circle(&self, atm: usize) -> Vec<Vec3> {
+        self.caler()
+            .linear_circle(atm)
+            .into_iter()
+            .map(|core| Vec3 { core })
+            .collect()
+    }
+
+    /// 获取排除其他原子后的最小方向
+    ///
+    /// ## 参数
+    /// - `atm`: 原子索引
+    pub fn min_exclusion(&self, atm: usize) -> Vec3 {
+        Vec3 {
+            core: self.caler().min_exclusion(atm),
+        }
     }
 }
 

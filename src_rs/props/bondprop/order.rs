@@ -142,6 +142,42 @@ impl Calculator {
             .bound(atm, &dir, &nebs, otype, mtype)
             .map_err(|e| PyRuntimeError::new_err(format!("{e}")))
     }
+    /// 按指定键级类型计算原子轨道键级矩阵
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `otype`: 键级类型，如 "mayer"、"wiberg"
+    ///
+    /// ## 返回
+    /// NumPy 二维数组
+    pub fn order(&self, py: Python, otype: &str) -> Py<PyArray2<f64>> {
+        self.caler().order(otype).into_pyarray(py).unbind()
+    }
+}
+
+/// 按指定键级类型计算原子轨道键级矩阵（独立函数）
+///
+/// ## 参数
+/// - `py`: Python 解释器标记
+/// - `dmat`: 密度矩阵（NumPy 二维数组）
+/// - `smat`: 重叠矩阵（NumPy 二维数组）
+/// - `otype`: 键级类型
+///
+/// ## 返回
+/// NumPy 二维数组
+#[pyfunction]
+#[pyo3(name = "order")]
+pub fn order_mat(
+    py: Python,
+    dmat: Bound<'_, PyArray2<f64>>,
+    smat: Bound<'_, PyArray2<f64>>,
+    otype: &str,
+) -> Py<PyArray2<f64>> {
+    let dmat = dmat.readonly().as_array().to_owned();
+    let smat = smat.readonly().as_array().to_owned();
+    rswfn::props::bondprop::order::order(&dmat, &smat, otype)
+        .into_pyarray(py)
+        .unbind()
 }
 
 /// 计算 Mayer 键级（独立函数）
@@ -220,6 +256,7 @@ pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Calculator>()?;
     m.add_function(wrap_pyfunction!(mayer, &m)?)?;
     m.add_function(wrap_pyfunction!(wiberg, &m)?)?;
+    m.add_function(wrap_pyfunction!(order_mat, &m)?)?;
     m.add_function(wrap_pyfunction!(ato2atm, &m)?)?;
     parent_module.add_submodule(&m)
 }

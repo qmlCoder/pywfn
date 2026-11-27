@@ -1,0 +1,1751 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="pdoc 16.0.0"/>
+    <title>pywfn.base API documentation</title>
+
+    <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
+    <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
+    <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
+    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;z-index:999;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;opacity:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent; z-index:1}nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
+    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{cursor:pointer;display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:.75rem center;margin-bottom:1rem;}.pdoc .alert > em{display:none;}.pdoc .alert > *:last-child{margin-bottom:0;}.pdoc .alert.note{color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .alert.tip{color:#0a3622;background-color:#d1e7dd;border-color:#a3cfbb;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%230a3622%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%206a6%206%200%201%201%2010.174%204.31c-.203.196-.359.4-.453.619l-.762%201.769A.5.5%200%200%201%2010.5%2013a.5.5%200%200%201%200%201%20.5.5%200%200%201%200%201l-.224.447a1%201%200%200%201-.894.553H6.618a1%201%200%200%201-.894-.553L5.5%2015a.5.5%200%200%201%200-1%20.5.5%200%200%201%200-1%20.5.5%200%200%201-.46-.302l-.761-1.77a2%202%200%200%200-.453-.618A5.98%205.98%200%200%201%202%206m6-5a5%205%200%200%200-3.479%208.592c.263.254.514.564.676.941L5.83%2012h4.342l.632-1.467c.162-.377.413-.687.676-.941A5%205%200%200%200%208%201%22/%3E%3C/svg%3E");}.pdoc .alert.important{color:#055160;background-color:#cff4fc;border-color:#9eeaf9;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23055160%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M2%200a2%202%200%200%200-2%202v12a2%202%200%200%200%202%202h12a2%202%200%200%200%202-2V2a2%202%200%200%200-2-2zm6%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .alert.caution{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M11.46.146A.5.5%200%200%200%2011.107%200H4.893a.5.5%200%200%200-.353.146L.146%204.54A.5.5%200%200%200%200%204.893v6.214a.5.5%200%200%200%20.146.353l4.394%204.394a.5.5%200%200%200%20.353.146h6.214a.5.5%200%200%200%20.353-.146l4.394-4.394a.5.5%200%200%200%20.146-.353V4.893a.5.5%200%200%200-.146-.353zM8%204c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%204.995A.905.905%200%200%201%208%204m.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2%22/%3E%3C/svg%3E");}.pdoc .alert.danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--accent);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.view-source-toggle-state,.view-source-toggle-state ~ .pdoc-code{display:none;}.view-source-toggle-state:checked ~ .pdoc-code{display:block;}.view-source-button{display:inline-block;float:right;font-size:.75rem;line-height:1.5rem;color:var(--muted);padding:0 .4rem 0 1.3rem;cursor:pointer;text-indent:-2px;}.view-source-button > span{visibility:hidden;}.module-info .view-source-button{float:none;display:flex;justify-content:flex-end;margin:-1.2rem .4rem -.2rem 0;}.view-source-button::before{position:absolute;content:"View Source";display:list-item;list-style-type:disclosure-closed;}.view-source-toggle-state:checked ~ .attr .view-source-button::before,.view-source-toggle-state:checked ~ .view-source-button::before{list-style-type:disclosure-open;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .pdoc-code .linenos{user-select:none;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc section, .pdoc .classattr{position:relative;}.pdoc .headerlink{--width:clamp(1rem, 3vw, 2rem);position:absolute;top:0;left:calc(0rem - var(--width));transition:all 100ms ease-in-out;opacity:0;}.pdoc .headerlink::before{content:"#";display:block;text-align:center;width:var(--width);height:2.3rem;line-height:2.3rem;font-size:1.5rem;}.pdoc .attr:hover ~ .headerlink,.pdoc *:target > .headerlink,.pdoc .headerlink:hover{opacity:1;}.pdoc .attr{display:block;margin:.5rem 0 .5rem;padding:.4rem .4rem .4rem 1rem;background-color:var(--accent);overflow-x:auto;}.pdoc .classattr{margin-left:2rem;}.pdoc .decorator-deprecated{color:#842029;}.pdoc .decorator-deprecated ~ span{filter:grayscale(1) opacity(0.8);}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{background-color:transparent;}.pdoc .param, .pdoc .return-annotation{white-space:pre;}.pdoc .signature.multiline .param{display:block;}.pdoc .signature.condensed .param{display:inline-block;}.pdoc .annotation{color:var(--annotation);}.pdoc .view-value-toggle-state,.pdoc .view-value-toggle-state ~ .default_value{display:none;}.pdoc .view-value-toggle-state:checked ~ .default_value{display:inherit;}.pdoc .view-value-button{font-size:.5rem;vertical-align:middle;border-style:dashed;margin-top:-0.1rem;}.pdoc .view-value-button:hover{background:white;}.pdoc .view-value-button::before{content:"show";text-align:center;width:2.2em;display:inline-block;}.pdoc .view-value-toggle-state:checked ~ .view-value-button::before{content:"hide";}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:27px;vertical-align:bottom;width:50px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+    <style>/*! custom.css */</style></head>
+<body>
+    <nav class="pdoc">
+        <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
+        <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
+        <div>            <a class="pdoc-button module-list-button" href="../pywfn.html">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
+  <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+</svg>                &nbsp;pywfn</a>
+
+
+            <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
+                   pattern=".+" required>
+
+
+
+            <h2>API Documentation</h2>
+                <ul class="memberlist">
+            <li>
+                    <a class="class" href="#Atom">Atom</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Atom.__init__">Atom</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atom.core">core</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atom.rad">rad</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atom.sym">sym</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Atoms">Atoms</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Atoms.__init__">Atoms</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.core">core</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.mole">mole</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Atoms.len">len</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.neles">neles</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Atoms.dist">dist</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.syms">syms</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.xyzs">xyzs</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Atoms.nebs">nebs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.nucs">nucs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Atoms.crgs">crgs</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Atoms.is_line">is_line</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Atoms.is_bond">is_bond</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Stm">Stm</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Stm.__init__">Stm</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Stm.core">core</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Stm.set">set</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Stm.ex">ex</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Stm.ey">ey</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Stm.ez">ez</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Stm.mat">mat</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Basis">Basis</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Basis.__init__">Basis</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Basis.core">core</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Basis.mole">mole</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Basis.atos">atos</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Basis.build">build</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Basis.get_smat">get_smat</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Basis.atm_uplo">atm_uplo</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Basis.shls">shls</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Coefs">Coefs</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Coefs.__init__">Coefs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Coefs.core">core</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Coefs.mole">mole</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Coefs.set_cmat">set_cmat</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Coefs.get_cmat">get_cmat</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Coefs.get_dmat">get_dmat</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Coefs.obt_occs">obt_occs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Coefs.obt_engs">obt_engs</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Coefs.obt_idxs">obt_idxs</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Coefs.atm_uplo">atm_uplo</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="class" href="#Mole">Mole</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Mole.__init__">Mole</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.core">core</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mole.from_file">from_file</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.atoms">atoms</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.basis">basis</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.coefs">coefs</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.charge">charge</a>
+                        </li>
+                        <li>
+                                <a class="variable" href="#Mole.multip">multip</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mole.get_cmat">get_cmat</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mole.set_cmat">set_cmat</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Mole.border">border</a>
+                        </li>
+                </ul>
+
+            </li>
+    </ul>
+
+
+
+        <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
+            built with <span class="visually-hidden">pdoc</span><img
+                alt="pdoc logo"
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22pdoc%20logo%22%20width%3D%22300%22%20height%3D%22160%22%20viewBox%3D%220%200%20150%2080%22%3E%3Ctitle%3Epdoc%3C/title%3E%3Cpath%20d%3D%22M132.316%2048.886c.276-4.679%202.342-6.698%204.409-7.982s4.27-1.165%206.751-1.055c1.586.07%203.044.156%204.222-.482%201.142-.619%202.026-1.932%202.162-3.739.268-3.576-1.929-5.368-5.006-5.551s-7.599.524-10.517%201.606c-4.455%201.652-8.588%206.606-9.552%208.992s-2.342%206.193-1.745%2010.873%202.664%209.221%205.878%2011.79%205.878%203.808%2010.103%204.312%203.444.229%206.062.229%205.006-2.202%204.914-4.909-2.296-5.001-4.501-4.863-3.077.505-5.281.229-7.715-2.064-7.899-9.451z%22%20fill%3D%22%23198754%22/%3E%3Ccircle%20cx%3D%22101.504%22%20cy%3D%2248.943%22%20r%3D%2214.208%22%20fill%3D%22none%22%20stroke%3D%22%23198754%22%20stroke-width%3D%229.354%22/%3E%3Cpath%20d%3D%22M87.81.002c-3.637.065-5.001.454-7.014%201.232s-3.443%201.363-6.3%204.282c-1.723%201.76-3.148%205.019-3.776%207.329-.413%201.521-.316%202.63-.316%202.63l-.195%2034.612c.065%205.774-6.755%208.305-9.612%208.37s-9.678-1.038-9.743-9.408%207.128-9.521%208.362-9.521c1.413-.13%202.526-.021%203.718-.016%202.071.009%204.157-.778%204.092-4.671s-4.157-4.736-4.157-4.736c-6.3-.843-11.43%202.206-11.43%202.206S40.917%2038.15%2041.372%2049.634%2051.568%2068.19%2061.311%2068.125s18.316-7.007%2018.445-17.193l.13-22.772c.046-2.291%202.683-3.644%204.476-4.203.745-.232%201.694-.274%201.694-.274l10.457-.13s4.871-.324%207.729-3.114%204.352-6.294%204.352-6.294.974-3.049.13-4.606-.195-1.233-2.792-3.309-8.573-4.477-8.573-4.477S91.447-.063%2087.81.002zM0%2047.169l.065%2028.417S0%2080.127%204.481%2079.997s5.072-3.866%205.049-4.152l-.113-28.482s1.624-7.656%209.937-7.721%2010.002%206.942%2010.002%208.499-.909%2010.51-9.093%2010.51c-.948%200-2.99-.567-4.145-.272-3.919%201-3.194%204.554-3.194%204.554s.065%205.061%207.404%204.996%2018.575-6.034%2018.575-19.074S26.953%2030.04%2019.549%2029.91%201.234%2035.296%200%2047.169z%22%20fill%3D%22%23198754%22/%3E%3Cg%20transform%3D%22matrix%28.325601%200%200%20.325256%20-10.32669%20-45.802786%29%22%3E%3Ccircle%20cx%3D%22297.554%22%20cy%3D%22172.286%22%20r%3D%2216.5%22%20fill%3D%22%23fff%22/%3E%3Cellipse%20cx%3D%22297.709%22%20cy%3D%22172.642%22%20rx%3D%2211.071%22%20ry%3D%2210.871%22%20fill%3D%22%23105a48%22/%3E%3Ccircle%20cx%3D%22304.104%22%20cy%3D%22167.667%22%20r%3D%224.5%22%20fill%3D%22%23fff%22/%3E%3C/g%3E%3Cpath%20d%3D%22M94.661%2017.032l.893-1.476s.99.714%201.916.925%201.575.114%202.955.114l14.565-.162c1.283-.032%203.085-.762%203.02-3.293s-.373-3.503-.373-3.503l1.283-.487s.52.503.877%201.573.309%201.995.292%202.66-.227%201.541-.227%201.541%201.564-.308%202.359-1.038.823-.779%201.489-1.508.812-.86.812-.86.552-.13.877.26.341.957.065%201.46-1.672%202.206-3.247%203.066-2.76%201.427-3.929%201.768-3.848.73-7.063.714l-10.944-.114s-2.143-.081-3.02-.373-2.241-.973-2.598-1.265z%22%20fill%3D%22%23d36d49%22/%3E%3Cg%20fill%3D%22%23105a48%22%3E%3Cellipse%20cx%3D%2293.052%22%20cy%3D%2243.567%22%20rx%3D%22.869%22%20ry%3D%221.014%22%20transform%3D%22rotate%28341.022%29%22/%3E%3Cellipse%20cx%3D%22104.3%22%20cy%3D%22-16.184%22%20rx%3D%22.865%22%20ry%3D%221.009%22%20transform%3D%22rotate%2814.786%29%22/%3E%3C/g%3E%3C/svg%3E"/>
+        </a>
+</div>
+    </nav>
+    <main class="pdoc">
+            <section class="module-info">
+                    <h1 class="modulename">
+<a href="./../pywfn.html">pywfn</a><wbr>.base    </h1>
+
+                        <div class="docstring"><p>定义一些存储数据的核心对象</p>
+</div>
+
+                        <input id="mod-base-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+
+                        <label class="view-source-button" for="mod-base-view-source"><span>View Source</span></label>
+
+                        <div class="pdoc-code codehilite"><pre><span></span><span id="L-1"><a href="#L-1"><span class="linenos"> 1</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos"> 2</span></a><span class="sd">定义一些存储数据的核心对象</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos"> 3</span></a><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos"> 4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos"> 5</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pywfn.base.atoms</span><span class="w"> </span><span class="kn">import</span> <span class="n">Atom</span><span class="p">,</span> <span class="n">Atoms</span><span class="p">,</span> <span class="n">Stm</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos"> 6</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pywfn.base.basis</span><span class="w"> </span><span class="kn">import</span> <span class="n">Basis</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos"> 7</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pywfn.base.coefs</span><span class="w"> </span><span class="kn">import</span> <span class="n">Coefs</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos"> 8</span></a><span class="kn">from</span><span class="w"> </span><span class="nn">pywfn.base.mole</span><span class="w"> </span><span class="kn">import</span> <span class="n">Mole</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos"> 9</span></a>
+</span><span id="L-10"><a href="#L-10"><span class="linenos">10</span></a><span class="n">__all__</span> <span class="o">=</span> <span class="p">[</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos">11</span></a>    <span class="s2">&quot;Atom&quot;</span><span class="p">,</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos">12</span></a>    <span class="s2">&quot;Atoms&quot;</span><span class="p">,</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos">13</span></a>    <span class="s2">&quot;Stm&quot;</span><span class="p">,</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos">14</span></a>    <span class="s2">&quot;Basis&quot;</span><span class="p">,</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos">15</span></a>    <span class="s2">&quot;Coefs&quot;</span><span class="p">,</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos">16</span></a>    <span class="s2">&quot;Mole&quot;</span><span class="p">,</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos">17</span></a><span class="p">]</span>
+</span></pre></div>
+
+
+            </section>
+                <section id="Atom">
+                            <input id="Atom-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Atom</span>:
+
+                <label class="view-source-button" for="Atom-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atom"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atom-37"><a href="#Atom-37"><span class="linenos">37</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Atom</span><span class="p">:</span>
+</span><span id="Atom-38"><a href="#Atom-38"><span class="linenos">38</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Atom-39"><a href="#Atom-39"><span class="linenos">39</span></a><span class="sd">    原子对象</span>
+</span><span id="Atom-40"><a href="#Atom-40"><span class="linenos">40</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Atom-41"><a href="#Atom-41"><span class="linenos">41</span></a>
+</span><span id="Atom-42"><a href="#Atom-42"><span class="linenos">42</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Atom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Atom-43"><a href="#Atom-43"><span class="linenos">43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span><span id="Atom-44"><a href="#Atom-44"><span class="linenos">44</span></a>
+</span><span id="Atom-45"><a href="#Atom-45"><span class="linenos">45</span></a>    <span class="nd">@property</span>
+</span><span id="Atom-46"><a href="#Atom-46"><span class="linenos">46</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="Atom-47"><a href="#Atom-47"><span class="linenos">47</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;原子半径&quot;&quot;&quot;</span>
+</span><span id="Atom-48"><a href="#Atom-48"><span class="linenos">48</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">rad</span>
+</span><span id="Atom-49"><a href="#Atom-49"><span class="linenos">49</span></a>
+</span><span id="Atom-50"><a href="#Atom-50"><span class="linenos">50</span></a>    <span class="nd">@property</span>
+</span><span id="Atom-51"><a href="#Atom-51"><span class="linenos">51</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sym</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Atom-52"><a href="#Atom-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;元素符号&quot;&quot;&quot;</span>
+</span><span id="Atom-53"><a href="#Atom-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">sym</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>原子对象</p>
+</div>
+
+
+                            <div id="Atom.__init__" class="classattr">
+                                        <input id="Atom.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Atom</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">_core</span><span class="p">:</span> <span class="n">Atom</span></span>)</span>
+
+                <label class="view-source-button" for="Atom.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atom.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atom.__init__-42"><a href="#Atom.__init__-42"><span class="linenos">42</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Atom</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Atom.__init__-43"><a href="#Atom.__init__-43"><span class="linenos">43</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Atom.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Atom.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Atom.rad" class="classattr">
+                                        <input id="Atom.rad-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">rad</span><span class="annotation">: float</span>
+
+                <label class="view-source-button" for="Atom.rad-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atom.rad"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atom.rad-45"><a href="#Atom.rad-45"><span class="linenos">45</span></a>    <span class="nd">@property</span>
+</span><span id="Atom.rad-46"><a href="#Atom.rad-46"><span class="linenos">46</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">rad</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="Atom.rad-47"><a href="#Atom.rad-47"><span class="linenos">47</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;原子半径&quot;&quot;&quot;</span>
+</span><span id="Atom.rad-48"><a href="#Atom.rad-48"><span class="linenos">48</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">rad</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>原子半径</p>
+</div>
+
+
+                            </div>
+                            <div id="Atom.sym" class="classattr">
+                                        <input id="Atom.sym-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">sym</span><span class="annotation">: str</span>
+
+                <label class="view-source-button" for="Atom.sym-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atom.sym"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atom.sym-50"><a href="#Atom.sym-50"><span class="linenos">50</span></a>    <span class="nd">@property</span>
+</span><span id="Atom.sym-51"><a href="#Atom.sym-51"><span class="linenos">51</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">sym</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Atom.sym-52"><a href="#Atom.sym-52"><span class="linenos">52</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;元素符号&quot;&quot;&quot;</span>
+</span><span id="Atom.sym-53"><a href="#Atom.sym-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">sym</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>元素符号</p>
+</div>
+
+
+                            </div>
+                </section>
+                <section id="Atoms">
+                            <input id="Atoms-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Atoms</span>:
+
+                <label class="view-source-button" for="Atoms-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms-56"><a href="#Atoms-56"><span class="linenos"> 56</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Atoms</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Atoms-57"><a href="#Atoms-57"><span class="linenos"> 57</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Atoms</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Atoms-58"><a href="#Atoms-58"><span class="linenos"> 58</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Atoms-59"><a href="#Atoms-59"><span class="linenos"> 59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span><span id="Atoms-60"><a href="#Atoms-60"><span class="linenos"> 60</span></a>
+</span><span id="Atoms-61"><a href="#Atoms-61"><span class="linenos"> 61</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Atoms-62"><a href="#Atoms-62"><span class="linenos"> 62</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;原子数量&quot;&quot;&quot;</span>
+</span><span id="Atoms-63"><a href="#Atoms-63"><span class="linenos"> 63</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+</span><span id="Atoms-64"><a href="#Atoms-64"><span class="linenos"> 64</span></a>
+</span><span id="Atoms-65"><a href="#Atoms-65"><span class="linenos"> 65</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms-66"><a href="#Atoms-66"><span class="linenos"> 66</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Atoms-67"><a href="#Atoms-67"><span class="linenos"> 67</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">neles</span><span class="p">()</span>
+</span><span id="Atoms-68"><a href="#Atoms-68"><span class="linenos"> 68</span></a>
+</span><span id="Atoms-69"><a href="#Atoms-69"><span class="linenos"> 69</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="Atoms-70"><a href="#Atoms-70"><span class="linenos"> 70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;计算两个原子之间的距离&quot;&quot;&quot;</span>
+</span><span id="Atoms-71"><a href="#Atoms-71"><span class="linenos"> 71</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">dist</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+</span><span id="Atoms-72"><a href="#Atoms-72"><span class="linenos"> 72</span></a>
+</span><span id="Atoms-73"><a href="#Atoms-73"><span class="linenos"> 73</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms-74"><a href="#Atoms-74"><span class="linenos"> 74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">syms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span id="Atoms-75"><a href="#Atoms-75"><span class="linenos"> 75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的元素符号&quot;&quot;&quot;</span>
+</span><span id="Atoms-76"><a href="#Atoms-76"><span class="linenos"> 76</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">syms</span><span class="p">()</span>
+</span><span id="Atoms-77"><a href="#Atoms-77"><span class="linenos"> 77</span></a>
+</span><span id="Atoms-78"><a href="#Atoms-78"><span class="linenos"> 78</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms-79"><a href="#Atoms-79"><span class="linenos"> 79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">xyzs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+</span><span id="Atoms-80"><a href="#Atoms-80"><span class="linenos"> 80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的坐标&quot;&quot;&quot;</span>
+</span><span id="Atoms-81"><a href="#Atoms-81"><span class="linenos"> 81</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">xyzs</span><span class="p">()</span>
+</span><span id="Atoms-82"><a href="#Atoms-82"><span class="linenos"> 82</span></a>
+</span><span id="Atoms-83"><a href="#Atoms-83"><span class="linenos"> 83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">nebs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Atoms-84"><a href="#Atoms-84"><span class="linenos"> 84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取指定原子的相邻原子索引&quot;&quot;&quot;</span>
+</span><span id="Atoms-85"><a href="#Atoms-85"><span class="linenos"> 85</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">nebs</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
+</span><span id="Atoms-86"><a href="#Atoms-86"><span class="linenos"> 86</span></a>
+</span><span id="Atoms-87"><a href="#Atoms-87"><span class="linenos"> 87</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms-88"><a href="#Atoms-88"><span class="linenos"> 88</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">nucs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Atoms-89"><a href="#Atoms-89"><span class="linenos"> 89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的核电荷数&quot;&quot;&quot;</span>
+</span><span id="Atoms-90"><a href="#Atoms-90"><span class="linenos"> 90</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">nucs</span><span class="p">()</span>
+</span><span id="Atoms-91"><a href="#Atoms-91"><span class="linenos"> 91</span></a>
+</span><span id="Atoms-92"><a href="#Atoms-92"><span class="linenos"> 92</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms-93"><a href="#Atoms-93"><span class="linenos"> 93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">crgs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Atoms-94"><a href="#Atoms-94"><span class="linenos"> 94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的电荷&quot;&quot;&quot;</span>
+</span><span id="Atoms-95"><a href="#Atoms-95"><span class="linenos"> 95</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">crgs</span><span class="p">()</span>
+</span><span id="Atoms-96"><a href="#Atoms-96"><span class="linenos"> 96</span></a>
+</span><span id="Atoms-97"><a href="#Atoms-97"><span class="linenos"> 97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="Atoms-98"><a href="#Atoms-98"><span class="linenos"> 98</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;判断原子是否在一条直线上&quot;&quot;&quot;</span>
+</span><span id="Atoms-99"><a href="#Atoms-99"><span class="linenos"> 99</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">is_line</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
+</span><span id="Atoms-100"><a href="#Atoms-100"><span class="linenos">100</span></a>
+</span><span id="Atoms-101"><a href="#Atoms-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="Atoms-102"><a href="#Atoms-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;判断两个原子之间是否成键&quot;&quot;&quot;</span>
+</span><span id="Atoms-103"><a href="#Atoms-103"><span class="linenos">103</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">is_bond</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+</span><span id="Atoms-104"><a href="#Atoms-104"><span class="linenos">104</span></a>
+</span><span id="Atoms-105"><a href="#Atoms-105"><span class="linenos">105</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Atoms-106"><a href="#Atoms-106"><span class="linenos">106</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            <div id="Atoms.__init__" class="classattr">
+                                        <input id="Atoms.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Atoms</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">core</span><span class="p">:</span> <span class="n">Atoms</span>, </span><span class="param"><span class="n">mole</span><span class="p">:</span> <span class="n"><a href="#Mole">Mole</a></span></span>)</span>
+
+                <label class="view-source-button" for="Atoms.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.__init__-57"><a href="#Atoms.__init__-57"><span class="linenos">57</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Atoms</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Atoms.__init__-58"><a href="#Atoms.__init__-58"><span class="linenos">58</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Atoms.__init__-59"><a href="#Atoms.__init__-59"><span class="linenos">59</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Atoms.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Atoms.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Atoms.mole" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mole</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Atoms.mole"></a>
+    
+    
+
+                            </div>
+                            <div id="Atoms.len" class="classattr">
+                                        <input id="Atoms.len-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">len</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="nb">int</span>:</span></span>
+
+                <label class="view-source-button" for="Atoms.len-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.len"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.len-61"><a href="#Atoms.len-61"><span class="linenos">61</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">len</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Atoms.len-62"><a href="#Atoms.len-62"><span class="linenos">62</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;原子数量&quot;&quot;&quot;</span>
+</span><span id="Atoms.len-63"><a href="#Atoms.len-63"><span class="linenos">63</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">len</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>原子数量</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.neles" class="classattr">
+                                        <input id="Atoms.neles-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">neles</span>
+
+                <label class="view-source-button" for="Atoms.neles-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.neles"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.neles-65"><a href="#Atoms.neles-65"><span class="linenos">65</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms.neles-66"><a href="#Atoms.neles-66"><span class="linenos">66</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">neles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Atoms.neles-67"><a href="#Atoms.neles-67"><span class="linenos">67</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">neles</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Atoms.dist" class="classattr">
+                                        <input id="Atoms.dist-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">dist</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">i</span><span class="p">:</span> <span class="nb">int</span>, </span><span class="param"><span class="n">j</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="nb">float</span>:</span></span>
+
+                <label class="view-source-button" for="Atoms.dist-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.dist"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.dist-69"><a href="#Atoms.dist-69"><span class="linenos">69</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">dist</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+</span><span id="Atoms.dist-70"><a href="#Atoms.dist-70"><span class="linenos">70</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;计算两个原子之间的距离&quot;&quot;&quot;</span>
+</span><span id="Atoms.dist-71"><a href="#Atoms.dist-71"><span class="linenos">71</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">dist</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>计算两个原子之间的距离</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.syms" class="classattr">
+                                        <input id="Atoms.syms-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">syms</span><span class="annotation">: list[str]</span>
+
+                <label class="view-source-button" for="Atoms.syms-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.syms"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.syms-73"><a href="#Atoms.syms-73"><span class="linenos">73</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms.syms-74"><a href="#Atoms.syms-74"><span class="linenos">74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">syms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]:</span>
+</span><span id="Atoms.syms-75"><a href="#Atoms.syms-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的元素符号&quot;&quot;&quot;</span>
+</span><span id="Atoms.syms-76"><a href="#Atoms.syms-76"><span class="linenos">76</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">syms</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>所有原子的元素符号</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.xyzs" class="classattr">
+                                        <input id="Atoms.xyzs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">xyzs</span><span class="annotation">: list[list[float]]</span>
+
+                <label class="view-source-button" for="Atoms.xyzs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.xyzs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.xyzs-78"><a href="#Atoms.xyzs-78"><span class="linenos">78</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms.xyzs-79"><a href="#Atoms.xyzs-79"><span class="linenos">79</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">xyzs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]]:</span>
+</span><span id="Atoms.xyzs-80"><a href="#Atoms.xyzs-80"><span class="linenos">80</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的坐标&quot;&quot;&quot;</span>
+</span><span id="Atoms.xyzs-81"><a href="#Atoms.xyzs-81"><span class="linenos">81</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">xyzs</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>所有原子的坐标</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.nebs" class="classattr">
+                                        <input id="Atoms.nebs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">nebs</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">atm</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>:</span></span>
+
+                <label class="view-source-button" for="Atoms.nebs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.nebs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.nebs-83"><a href="#Atoms.nebs-83"><span class="linenos">83</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">nebs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Atoms.nebs-84"><a href="#Atoms.nebs-84"><span class="linenos">84</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取指定原子的相邻原子索引&quot;&quot;&quot;</span>
+</span><span id="Atoms.nebs-85"><a href="#Atoms.nebs-85"><span class="linenos">85</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">nebs</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>获取指定原子的相邻原子索引</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.nucs" class="classattr">
+                                        <input id="Atoms.nucs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">nucs</span><span class="annotation">: list[int]</span>
+
+                <label class="view-source-button" for="Atoms.nucs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.nucs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.nucs-87"><a href="#Atoms.nucs-87"><span class="linenos">87</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms.nucs-88"><a href="#Atoms.nucs-88"><span class="linenos">88</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">nucs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Atoms.nucs-89"><a href="#Atoms.nucs-89"><span class="linenos">89</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的核电荷数&quot;&quot;&quot;</span>
+</span><span id="Atoms.nucs-90"><a href="#Atoms.nucs-90"><span class="linenos">90</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">nucs</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>所有原子的核电荷数</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.crgs" class="classattr">
+                                        <input id="Atoms.crgs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">crgs</span><span class="annotation">: list[float]</span>
+
+                <label class="view-source-button" for="Atoms.crgs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.crgs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.crgs-92"><a href="#Atoms.crgs-92"><span class="linenos">92</span></a>    <span class="nd">@property</span>
+</span><span id="Atoms.crgs-93"><a href="#Atoms.crgs-93"><span class="linenos">93</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">crgs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Atoms.crgs-94"><a href="#Atoms.crgs-94"><span class="linenos">94</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;所有原子的电荷&quot;&quot;&quot;</span>
+</span><span id="Atoms.crgs-95"><a href="#Atoms.crgs-95"><span class="linenos">95</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">crgs</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>所有原子的电荷</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.is_line" class="classattr">
+                                        <input id="Atoms.is_line-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">is_line</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">atm</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
+
+                <label class="view-source-button" for="Atoms.is_line-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.is_line"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.is_line-97"><a href="#Atoms.is_line-97"><span class="linenos">97</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_line</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">atm</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="Atoms.is_line-98"><a href="#Atoms.is_line-98"><span class="linenos">98</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;判断原子是否在一条直线上&quot;&quot;&quot;</span>
+</span><span id="Atoms.is_line-99"><a href="#Atoms.is_line-99"><span class="linenos">99</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">is_line</span><span class="p">(</span><span class="n">atm</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>判断原子是否在一条直线上</p>
+</div>
+
+
+                            </div>
+                            <div id="Atoms.is_bond" class="classattr">
+                                        <input id="Atoms.is_bond-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">is_bond</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">i</span><span class="p">:</span> <span class="nb">int</span>, </span><span class="param"><span class="n">j</span><span class="p">:</span> <span class="nb">int</span></span><span class="return-annotation">) -> <span class="nb">bool</span>:</span></span>
+
+                <label class="view-source-button" for="Atoms.is_bond-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Atoms.is_bond"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Atoms.is_bond-101"><a href="#Atoms.is_bond-101"><span class="linenos">101</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">is_bond</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">i</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">j</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+</span><span id="Atoms.is_bond-102"><a href="#Atoms.is_bond-102"><span class="linenos">102</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;判断两个原子之间是否成键&quot;&quot;&quot;</span>
+</span><span id="Atoms.is_bond-103"><a href="#Atoms.is_bond-103"><span class="linenos">103</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">is_bond</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">j</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>判断两个原子之间是否成键</p>
+</div>
+
+
+                            </div>
+                </section>
+                <section id="Stm">
+                            <input id="Stm-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Stm</span>:
+
+                <label class="view-source-button" for="Stm-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm-8"><a href="#Stm-8"><span class="linenos"> 8</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Stm</span><span class="p">:</span>
+</span><span id="Stm-9"><a href="#Stm-9"><span class="linenos"> 9</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;原子局部坐标系&quot;&quot;&quot;</span>
+</span><span id="Stm-10"><a href="#Stm-10"><span class="linenos">10</span></a>
+</span><span id="Stm-11"><a href="#Stm-11"><span class="linenos">11</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Stm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Stm-12"><a href="#Stm-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span><span id="Stm-13"><a href="#Stm-13"><span class="linenos">13</span></a>
+</span><span id="Stm-14"><a href="#Stm-14"><span class="linenos">14</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ey</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ez</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Stm-15"><a href="#Stm-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ez</span><span class="p">)</span>
+</span><span id="Stm-16"><a href="#Stm-16"><span class="linenos">16</span></a>
+</span><span id="Stm-17"><a href="#Stm-17"><span class="linenos">17</span></a>    <span class="nd">@property</span>
+</span><span id="Stm-18"><a href="#Stm-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm-19"><a href="#Stm-19"><span class="linenos">19</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ex</span>
+</span><span id="Stm-20"><a href="#Stm-20"><span class="linenos">20</span></a>
+</span><span id="Stm-21"><a href="#Stm-21"><span class="linenos">21</span></a>    <span class="nd">@property</span>
+</span><span id="Stm-22"><a href="#Stm-22"><span class="linenos">22</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ey</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm-23"><a href="#Stm-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ey</span>
+</span><span id="Stm-24"><a href="#Stm-24"><span class="linenos">24</span></a>
+</span><span id="Stm-25"><a href="#Stm-25"><span class="linenos">25</span></a>    <span class="nd">@property</span>
+</span><span id="Stm-26"><a href="#Stm-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ez</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm-27"><a href="#Stm-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ez</span>
+</span><span id="Stm-28"><a href="#Stm-28"><span class="linenos">28</span></a>
+</span><span id="Stm-29"><a href="#Stm-29"><span class="linenos">29</span></a>    <span class="nd">@property</span>
+</span><span id="Stm-30"><a href="#Stm-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Stm-31"><a href="#Stm-31"><span class="linenos">31</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">mat</span>
+</span><span id="Stm-32"><a href="#Stm-32"><span class="linenos">32</span></a>
+</span><span id="Stm-33"><a href="#Stm-33"><span class="linenos">33</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Stm-34"><a href="#Stm-34"><span class="linenos">34</span></a>        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;pywfn: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>原子局部坐标系</p>
+</div>
+
+
+                            <div id="Stm.__init__" class="classattr">
+                                        <input id="Stm.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Stm</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">_core</span><span class="p">:</span> <span class="n">Stm</span></span>)</span>
+
+                <label class="view-source-button" for="Stm.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.__init__-11"><a href="#Stm.__init__-11"><span class="linenos">11</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Stm</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Stm.__init__-12"><a href="#Stm.__init__-12"><span class="linenos">12</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Stm.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Stm.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Stm.set" class="classattr">
+                                        <input id="Stm.set-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">set</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">ex</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>, </span><span class="param"><span class="n">ey</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span>, </span><span class="param"><span class="n">ez</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="Stm.set-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.set"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.set-14"><a href="#Stm.set-14"><span class="linenos">14</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ex</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ey</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">],</span> <span class="n">ez</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Stm.set-15"><a href="#Stm.set-15"><span class="linenos">15</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">ex</span><span class="p">,</span> <span class="n">ey</span><span class="p">,</span> <span class="n">ez</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Stm.ex" class="classattr">
+                                        <input id="Stm.ex-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">ex</span><span class="annotation">: list[float]</span>
+
+                <label class="view-source-button" for="Stm.ex-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.ex"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.ex-17"><a href="#Stm.ex-17"><span class="linenos">17</span></a>    <span class="nd">@property</span>
+</span><span id="Stm.ex-18"><a href="#Stm.ex-18"><span class="linenos">18</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ex</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm.ex-19"><a href="#Stm.ex-19"><span class="linenos">19</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ex</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Stm.ey" class="classattr">
+                                        <input id="Stm.ey-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">ey</span><span class="annotation">: list[float]</span>
+
+                <label class="view-source-button" for="Stm.ey-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.ey"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.ey-21"><a href="#Stm.ey-21"><span class="linenos">21</span></a>    <span class="nd">@property</span>
+</span><span id="Stm.ey-22"><a href="#Stm.ey-22"><span class="linenos">22</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ey</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm.ey-23"><a href="#Stm.ey-23"><span class="linenos">23</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ey</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Stm.ez" class="classattr">
+                                        <input id="Stm.ez-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">ez</span><span class="annotation">: list[float]</span>
+
+                <label class="view-source-button" for="Stm.ez-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.ez"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.ez-25"><a href="#Stm.ez-25"><span class="linenos">25</span></a>    <span class="nd">@property</span>
+</span><span id="Stm.ez-26"><a href="#Stm.ez-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">ez</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">]:</span>
+</span><span id="Stm.ez-27"><a href="#Stm.ez-27"><span class="linenos">27</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">ez</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Stm.mat" class="classattr">
+                                        <input id="Stm.mat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">mat</span><span class="annotation">: numpy.ndarray</span>
+
+                <label class="view-source-button" for="Stm.mat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Stm.mat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Stm.mat-29"><a href="#Stm.mat-29"><span class="linenos">29</span></a>    <span class="nd">@property</span>
+</span><span id="Stm.mat-30"><a href="#Stm.mat-30"><span class="linenos">30</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">mat</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Stm.mat-31"><a href="#Stm.mat-31"><span class="linenos">31</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">mat</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                </section>
+                <section id="Basis">
+                            <input id="Basis-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Basis</span>:
+
+                <label class="view-source-button" for="Basis-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis-107"><a href="#Basis-107"><span class="linenos">107</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Basis</span><span class="p">:</span>
+</span><span id="Basis-108"><a href="#Basis-108"><span class="linenos">108</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
+</span><span id="Basis-109"><a href="#Basis-109"><span class="linenos">109</span></a><span class="sd">    存储基组数据的类</span>
+</span><span id="Basis-110"><a href="#Basis-110"><span class="linenos">110</span></a><span class="sd">    &quot;&quot;&quot;</span>
+</span><span id="Basis-111"><a href="#Basis-111"><span class="linenos">111</span></a>
+</span><span id="Basis-112"><a href="#Basis-112"><span class="linenos">112</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Basis</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Basis-113"><a href="#Basis-113"><span class="linenos">113</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Basis-114"><a href="#Basis-114"><span class="linenos">114</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span><span id="Basis-115"><a href="#Basis-115"><span class="linenos">115</span></a>
+</span><span id="Basis-116"><a href="#Basis-116"><span class="linenos">116</span></a>    <span class="nd">@property</span>
+</span><span id="Basis-117"><a href="#Basis-117"><span class="linenos">117</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Basis-118"><a href="#Basis-118"><span class="linenos">118</span></a>        <span class="k">return</span> <span class="n">Atos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atos</span><span class="p">())</span>
+</span><span id="Basis-119"><a href="#Basis-119"><span class="linenos">119</span></a>
+</span><span id="Basis-120"><a href="#Basis-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Basis-121"><a href="#Basis-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;从字典数据构建基组&quot;&quot;&quot;</span>
+</span><span id="Basis-122"><a href="#Basis-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span><span id="Basis-123"><a href="#Basis-123"><span class="linenos">123</span></a>
+</span><span id="Basis-124"><a href="#Basis-124"><span class="linenos">124</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_smat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">):</span>
+</span><span id="Basis-125"><a href="#Basis-125"><span class="linenos">125</span></a>        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">atoms</span>
+</span><span id="Basis-126"><a href="#Basis-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_smat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">atoms</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span><span id="Basis-127"><a href="#Basis-127"><span class="linenos">127</span></a>
+</span><span id="Basis-128"><a href="#Basis-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atm_uplo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="Basis-129"><a href="#Basis-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atm_uplo</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span><span id="Basis-130"><a href="#Basis-130"><span class="linenos">130</span></a>
+</span><span id="Basis-131"><a href="#Basis-131"><span class="linenos">131</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Basis-132"><a href="#Basis-132"><span class="linenos">132</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">shls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shls</span><span class="p">:</span>
+</span><span id="Basis-133"><a href="#Basis-133"><span class="linenos">133</span></a>        <span class="k">return</span> <span class="n">Shls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">shls</span><span class="p">())</span>
+</span><span id="Basis-134"><a href="#Basis-134"><span class="linenos">134</span></a>
+</span><span id="Basis-135"><a href="#Basis-135"><span class="linenos">135</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Basis-136"><a href="#Basis-136"><span class="linenos">136</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>存储基组数据的类</p>
+</div>
+
+
+                            <div id="Basis.__init__" class="classattr">
+                                        <input id="Basis.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Basis</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">core</span><span class="p">:</span> <span class="n">Basis</span>, </span><span class="param"><span class="n">mole</span><span class="p">:</span> <span class="n"><a href="#Mole">Mole</a></span></span>)</span>
+
+                <label class="view-source-button" for="Basis.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.__init__-112"><a href="#Basis.__init__-112"><span class="linenos">112</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Basis</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Basis.__init__-113"><a href="#Basis.__init__-113"><span class="linenos">113</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Basis.__init__-114"><a href="#Basis.__init__-114"><span class="linenos">114</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Basis.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Basis.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Basis.mole" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mole</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Basis.mole"></a>
+    
+    
+
+                            </div>
+                            <div id="Basis.atos" class="classattr">
+                                        <input id="Basis.atos-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">atos</span>
+
+                <label class="view-source-button" for="Basis.atos-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.atos"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.atos-116"><a href="#Basis.atos-116"><span class="linenos">116</span></a>    <span class="nd">@property</span>
+</span><span id="Basis.atos-117"><a href="#Basis.atos-117"><span class="linenos">117</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atos</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Basis.atos-118"><a href="#Basis.atos-118"><span class="linenos">118</span></a>        <span class="k">return</span> <span class="n">Atos</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atos</span><span class="p">())</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Basis.build" class="classattr">
+                                        <input id="Basis.build-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">build</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">data</span><span class="p">:</span> <span class="nb">dict</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="Basis.build-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.build"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.build-120"><a href="#Basis.build-120"><span class="linenos">120</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">build</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Basis.build-121"><a href="#Basis.build-121"><span class="linenos">121</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;从字典数据构建基组&quot;&quot;&quot;</span>
+</span><span id="Basis.build-122"><a href="#Basis.build-122"><span class="linenos">122</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">build</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>从字典数据构建基组</p>
+</div>
+
+
+                            </div>
+                            <div id="Basis.get_smat" class="classattr">
+                                        <input id="Basis.get_smat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_smat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">):</span></span>
+
+                <label class="view-source-button" for="Basis.get_smat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.get_smat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.get_smat-124"><a href="#Basis.get_smat-124"><span class="linenos">124</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_smat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">):</span>
+</span><span id="Basis.get_smat-125"><a href="#Basis.get_smat-125"><span class="linenos">125</span></a>        <span class="n">atoms</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">atoms</span>
+</span><span id="Basis.get_smat-126"><a href="#Basis.get_smat-126"><span class="linenos">126</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_smat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">atoms</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Basis.atm_uplo" class="classattr">
+                                        <input id="Basis.atm_uplo-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">atm_uplo</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]</span>:</span></span>
+
+                <label class="view-source-button" for="Basis.atm_uplo-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.atm_uplo"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.atm_uplo-128"><a href="#Basis.atm_uplo-128"><span class="linenos">128</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atm_uplo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]]:</span>
+</span><span id="Basis.atm_uplo-129"><a href="#Basis.atm_uplo-129"><span class="linenos">129</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atm_uplo</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Basis.shls" class="classattr">
+                                        <input id="Basis.shls-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">shls</span><span class="annotation">: pywfn.base.basis.Shls</span>
+
+                <label class="view-source-button" for="Basis.shls-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Basis.shls"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Basis.shls-131"><a href="#Basis.shls-131"><span class="linenos">131</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Basis.shls-132"><a href="#Basis.shls-132"><span class="linenos">132</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">shls</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Shls</span><span class="p">:</span>
+</span><span id="Basis.shls-133"><a href="#Basis.shls-133"><span class="linenos">133</span></a>        <span class="k">return</span> <span class="n">Shls</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">shls</span><span class="p">())</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                </section>
+                <section id="Coefs">
+                            <input id="Coefs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Coefs</span>:
+
+                <label class="view-source-button" for="Coefs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs-21"><a href="#Coefs-21"><span class="linenos">21</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Coefs</span><span class="p">:</span>
+</span><span id="Coefs-22"><a href="#Coefs-22"><span class="linenos">22</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Coefs</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Coefs-23"><a href="#Coefs-23"><span class="linenos">23</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Coefs-24"><a href="#Coefs-24"><span class="linenos">24</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span><span id="Coefs-25"><a href="#Coefs-25"><span class="linenos">25</span></a>
+</span><span id="Coefs-26"><a href="#Coefs-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Coefs-27"><a href="#Coefs-27"><span class="linenos">27</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs-28"><a href="#Coefs-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">cmat</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span><span id="Coefs-29"><a href="#Coefs-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">cmat</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
+</span><span id="Coefs-30"><a href="#Coefs-30"><span class="linenos">30</span></a>
+</span><span id="Coefs-31"><a href="#Coefs-31"><span class="linenos">31</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs-32"><a href="#Coefs-32"><span class="linenos">32</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs-33"><a href="#Coefs-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span><span id="Coefs-34"><a href="#Coefs-34"><span class="linenos">34</span></a>
+</span><span id="Coefs-35"><a href="#Coefs-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs-36"><a href="#Coefs-36"><span class="linenos">36</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs-37"><a href="#Coefs-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_dmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span><span id="Coefs-38"><a href="#Coefs-38"><span class="linenos">38</span></a>
+</span><span id="Coefs-39"><a href="#Coefs-39"><span class="linenos">39</span></a>    <span class="nd">@property</span>
+</span><span id="Coefs-40"><a href="#Coefs-40"><span class="linenos">40</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_occs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs-41"><a href="#Coefs-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_occs</span>
+</span><span id="Coefs-42"><a href="#Coefs-42"><span class="linenos">42</span></a>
+</span><span id="Coefs-43"><a href="#Coefs-43"><span class="linenos">43</span></a>    <span class="nd">@property</span>
+</span><span id="Coefs-44"><a href="#Coefs-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_engs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs-45"><a href="#Coefs-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_engs</span>
+</span><span id="Coefs-46"><a href="#Coefs-46"><span class="linenos">46</span></a>
+</span><span id="Coefs-47"><a href="#Coefs-47"><span class="linenos">47</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_idxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">if_occ</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Coefs-48"><a href="#Coefs-48"><span class="linenos">48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取占据或非占据轨道的索引</span>
+</span><span id="Coefs-49"><a href="#Coefs-49"><span class="linenos">49</span></a>
+</span><span id="Coefs-50"><a href="#Coefs-50"><span class="linenos">50</span></a><span class="sd">        Args:</span>
+</span><span id="Coefs-51"><a href="#Coefs-51"><span class="linenos">51</span></a><span class="sd">            if_occ: True 返回占据轨道, False 返回非占据轨道</span>
+</span><span id="Coefs-52"><a href="#Coefs-52"><span class="linenos">52</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Coefs-53"><a href="#Coefs-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_idxs</span><span class="p">(</span><span class="n">if_occ</span><span class="p">)</span>
+</span><span id="Coefs-54"><a href="#Coefs-54"><span class="linenos">54</span></a>
+</span><span id="Coefs-55"><a href="#Coefs-55"><span class="linenos">55</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atm_uplo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs-56"><a href="#Coefs-56"><span class="linenos">56</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atm_uplo</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span><span id="Coefs-57"><a href="#Coefs-57"><span class="linenos">57</span></a>
+</span><span id="Coefs-58"><a href="#Coefs-58"><span class="linenos">58</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Coefs-59"><a href="#Coefs-59"><span class="linenos">59</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            <div id="Coefs.__init__" class="classattr">
+                                        <input id="Coefs.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Coefs</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">core</span><span class="p">:</span> <span class="n">Coefs</span>, </span><span class="param"><span class="n">mole</span><span class="p">:</span> <span class="n"><a href="#Mole">Mole</a></span></span>)</span>
+
+                <label class="view-source-button" for="Coefs.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.__init__-22"><a href="#Coefs.__init__-22"><span class="linenos">22</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Coefs</span><span class="p">,</span> <span class="n">mole</span><span class="p">:</span> <span class="s2">&quot;pywfn.base.Mole&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Coefs.__init__-23"><a href="#Coefs.__init__-23"><span class="linenos">23</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">core</span>
+</span><span id="Coefs.__init__-24"><a href="#Coefs.__init__-24"><span class="linenos">24</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span> <span class="o">=</span> <span class="n">mole</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Coefs.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Coefs.mole" class="classattr">
+                                <div class="attr variable">
+            <span class="name">mole</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Coefs.mole"></a>
+    
+    
+
+                            </div>
+                            <div id="Coefs.set_cmat" class="classattr">
+                                        <input id="Coefs.set_cmat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">set_cmat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">cmat</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="Coefs.set_cmat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.set_cmat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.set_cmat-26"><a href="#Coefs.set_cmat-26"><span class="linenos">26</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">cmat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Coefs.set_cmat-27"><a href="#Coefs.set_cmat-27"><span class="linenos">27</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs.set_cmat-28"><a href="#Coefs.set_cmat-28"><span class="linenos">28</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">cmat</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span><span id="Coefs.set_cmat-29"><a href="#Coefs.set_cmat-29"><span class="linenos">29</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">cmat</span><span class="p">,</span> <span class="n">form</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.get_cmat" class="classattr">
+                                        <input id="Coefs.get_cmat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_cmat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="Coefs.get_cmat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.get_cmat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.get_cmat-31"><a href="#Coefs.get_cmat-31"><span class="linenos">31</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs.get_cmat-32"><a href="#Coefs.get_cmat-32"><span class="linenos">32</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs.get_cmat-33"><a href="#Coefs.get_cmat-33"><span class="linenos">33</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.get_dmat" class="classattr">
+                                        <input id="Coefs.get_dmat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_dmat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="Coefs.get_dmat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.get_dmat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.get_dmat-35"><a href="#Coefs.get_dmat-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_dmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs.get_dmat-36"><a href="#Coefs.get_dmat-36"><span class="linenos">36</span></a>        <span class="n">basis</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">mole</span><span class="o">.</span><span class="n">basis</span>
+</span><span id="Coefs.get_dmat-37"><a href="#Coefs.get_dmat-37"><span class="linenos">37</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_dmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">basis</span><span class="o">.</span><span class="n">core</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.obt_occs" class="classattr">
+                                        <input id="Coefs.obt_occs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">obt_occs</span><span class="annotation">: numpy.ndarray</span>
+
+                <label class="view-source-button" for="Coefs.obt_occs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.obt_occs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.obt_occs-39"><a href="#Coefs.obt_occs-39"><span class="linenos">39</span></a>    <span class="nd">@property</span>
+</span><span id="Coefs.obt_occs-40"><a href="#Coefs.obt_occs-40"><span class="linenos">40</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_occs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs.obt_occs-41"><a href="#Coefs.obt_occs-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_occs</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.obt_engs" class="classattr">
+                                        <input id="Coefs.obt_engs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">obt_engs</span><span class="annotation">: numpy.ndarray</span>
+
+                <label class="view-source-button" for="Coefs.obt_engs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.obt_engs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.obt_engs-43"><a href="#Coefs.obt_engs-43"><span class="linenos">43</span></a>    <span class="nd">@property</span>
+</span><span id="Coefs.obt_engs-44"><a href="#Coefs.obt_engs-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_engs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs.obt_engs-45"><a href="#Coefs.obt_engs-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_engs</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Coefs.obt_idxs" class="classattr">
+                                        <input id="Coefs.obt_idxs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">obt_idxs</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">if_occ</span><span class="p">:</span> <span class="nb">bool</span></span><span class="return-annotation">) -> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span>:</span></span>
+
+                <label class="view-source-button" for="Coefs.obt_idxs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.obt_idxs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.obt_idxs-47"><a href="#Coefs.obt_idxs-47"><span class="linenos">47</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">obt_idxs</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">if_occ</span><span class="p">:</span> <span class="nb">bool</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]:</span>
+</span><span id="Coefs.obt_idxs-48"><a href="#Coefs.obt_idxs-48"><span class="linenos">48</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取占据或非占据轨道的索引</span>
+</span><span id="Coefs.obt_idxs-49"><a href="#Coefs.obt_idxs-49"><span class="linenos">49</span></a>
+</span><span id="Coefs.obt_idxs-50"><a href="#Coefs.obt_idxs-50"><span class="linenos">50</span></a><span class="sd">        Args:</span>
+</span><span id="Coefs.obt_idxs-51"><a href="#Coefs.obt_idxs-51"><span class="linenos">51</span></a><span class="sd">            if_occ: True 返回占据轨道, False 返回非占据轨道</span>
+</span><span id="Coefs.obt_idxs-52"><a href="#Coefs.obt_idxs-52"><span class="linenos">52</span></a><span class="sd">        &quot;&quot;&quot;</span>
+</span><span id="Coefs.obt_idxs-53"><a href="#Coefs.obt_idxs-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">obt_idxs</span><span class="p">(</span><span class="n">if_occ</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>获取占据或非占据轨道的索引</p>
+
+<p>Args:
+    if_occ: True 返回占据轨道, False 返回非占据轨道</p>
+</div>
+
+
+                            </div>
+                            <div id="Coefs.atm_uplo" class="classattr">
+                                        <input id="Coefs.atm_uplo-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">atm_uplo</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s1">&#39;raw&#39;</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="Coefs.atm_uplo-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Coefs.atm_uplo"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Coefs.atm_uplo-55"><a href="#Coefs.atm_uplo-55"><span class="linenos">55</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atm_uplo</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;raw&quot;</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Coefs.atm_uplo-56"><a href="#Coefs.atm_uplo-56"><span class="linenos">56</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atm_uplo</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                </section>
+                <section id="Mole">
+                            <input id="Mole-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr class">
+            
+    <span class="def">class</span>
+    <span class="name">Mole</span>:
+
+                <label class="view-source-button" for="Mole-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole-32"><a href="#Mole-32"><span class="linenos">32</span></a><span class="k">class</span><span class="w"> </span><span class="nc">Mole</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Mole-33"><a href="#Mole-33"><span class="linenos">33</span></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;基础的分子对象&quot;&quot;&quot;</span>
+</span><span id="Mole-34"><a href="#Mole-34"><span class="linenos">34</span></a>
+</span><span id="Mole-35"><a href="#Mole-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Mole</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Mole-36"><a href="#Mole-36"><span class="linenos">36</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span><span id="Mole-37"><a href="#Mole-37"><span class="linenos">37</span></a>
+</span><span id="Mole-38"><a href="#Mole-38"><span class="linenos">38</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Mole-39"><a href="#Mole-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mole&quot;</span><span class="p">:</span>
+</span><span id="Mole-40"><a href="#Mole-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;从文件读取分子结构&quot;&quot;&quot;</span>
+</span><span id="Mole-41"><a href="#Mole-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="n">Mole</span><span class="p">(</span><span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Mole</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+</span><span id="Mole-42"><a href="#Mole-42"><span class="linenos">42</span></a>
+</span><span id="Mole-43"><a href="#Mole-43"><span class="linenos">43</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole-44"><a href="#Mole-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Atoms</span><span class="p">:</span>
+</span><span id="Mole-45"><a href="#Mole-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="n">Atoms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atoms</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="Mole-46"><a href="#Mole-46"><span class="linenos">46</span></a>
+</span><span id="Mole-47"><a href="#Mole-47"><span class="linenos">47</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole-48"><a href="#Mole-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">basis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Basis</span><span class="p">:</span>
+</span><span id="Mole-49"><a href="#Mole-49"><span class="linenos">49</span></a>        <span class="k">return</span> <span class="n">Basis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">basis</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="Mole-50"><a href="#Mole-50"><span class="linenos">50</span></a>
+</span><span id="Mole-51"><a href="#Mole-51"><span class="linenos">51</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole-52"><a href="#Mole-52"><span class="linenos">52</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coefs</span><span class="p">:</span>
+</span><span id="Mole-53"><a href="#Mole-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="n">Coefs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coefs</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span><span id="Mole-54"><a href="#Mole-54"><span class="linenos">54</span></a>
+</span><span id="Mole-55"><a href="#Mole-55"><span class="linenos">55</span></a>    <span class="nd">@property</span>
+</span><span id="Mole-56"><a href="#Mole-56"><span class="linenos">56</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Mole-57"><a href="#Mole-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">charge</span><span class="p">()</span>
+</span><span id="Mole-58"><a href="#Mole-58"><span class="linenos">58</span></a>
+</span><span id="Mole-59"><a href="#Mole-59"><span class="linenos">59</span></a>    <span class="nd">@property</span>
+</span><span id="Mole-60"><a href="#Mole-60"><span class="linenos">60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">multip</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Mole-61"><a href="#Mole-61"><span class="linenos">61</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">multip</span><span class="p">()</span>
+</span><span id="Mole-62"><a href="#Mole-62"><span class="linenos">62</span></a>
+</span><span id="Mole-63"><a href="#Mole-63"><span class="linenos">63</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+</span><span id="Mole-64"><a href="#Mole-64"><span class="linenos">64</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+</span><span id="Mole-65"><a href="#Mole-65"><span class="linenos">65</span></a>
+</span><span id="Mole-66"><a href="#Mole-66"><span class="linenos">66</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Mole-67"><a href="#Mole-67"><span class="linenos">67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取系数矩阵&quot;&quot;&quot;</span>
+</span><span id="Mole-68"><a href="#Mole-68"><span class="linenos">68</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span><span id="Mole-69"><a href="#Mole-69"><span class="linenos">69</span></a>
+</span><span id="Mole-70"><a href="#Mole-70"><span class="linenos">70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cmat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Mole-71"><a href="#Mole-71"><span class="linenos">71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;设置系数矩阵&quot;&quot;&quot;</span>
+</span><span id="Mole-72"><a href="#Mole-72"><span class="linenos">72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">cmat</span><span class="p">)</span>
+</span><span id="Mole-73"><a href="#Mole-73"><span class="linenos">73</span></a>
+</span><span id="Mole-74"><a href="#Mole-74"><span class="linenos">74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">border</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Mole-75"><a href="#Mole-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取分子的边界框&quot;&quot;&quot;</span>
+</span><span id="Mole-76"><a href="#Mole-76"><span class="linenos">76</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">border</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>基础的分子对象</p>
+</div>
+
+
+                            <div id="Mole.__init__" class="classattr">
+                                        <input id="Mole.__init__-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="name">Mole</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">_core</span><span class="p">:</span> <span class="n">Mole</span></span>)</span>
+
+                <label class="view-source-button" for="Mole.__init__-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.__init__"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.__init__-35"><a href="#Mole.__init__-35"><span class="linenos">35</span></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">_core</span><span class="p">:</span> <span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Mole</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>  <span class="c1"># type: ignore</span>
+</span><span id="Mole.__init__-36"><a href="#Mole.__init__-36"><span class="linenos">36</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span> <span class="o">=</span> <span class="n">_core</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.core" class="classattr">
+                                <div class="attr variable">
+            <span class="name">core</span>
+
+        
+    </div>
+    <a class="headerlink" href="#Mole.core"></a>
+    
+    
+
+                            </div>
+                            <div id="Mole.from_file" class="classattr">
+                                        <input id="Mole.from_file-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+                    <div class="decorator decorator-staticmethod">@staticmethod</div>
+
+        <span class="def">def</span>
+        <span class="name">from_file</span><span class="signature pdoc-code condensed">(<span class="param"><span class="n">path</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n"><a href="#Mole">Mole</a></span>:</span></span>
+
+                <label class="view-source-button" for="Mole.from_file-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.from_file"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.from_file-38"><a href="#Mole.from_file-38"><span class="linenos">38</span></a>    <span class="nd">@staticmethod</span>
+</span><span id="Mole.from_file-39"><a href="#Mole.from_file-39"><span class="linenos">39</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">from_file</span><span class="p">(</span><span class="n">path</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="s2">&quot;Mole&quot;</span><span class="p">:</span>
+</span><span id="Mole.from_file-40"><a href="#Mole.from_file-40"><span class="linenos">40</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;从文件读取分子结构&quot;&quot;&quot;</span>
+</span><span id="Mole.from_file-41"><a href="#Mole.from_file-41"><span class="linenos">41</span></a>        <span class="k">return</span> <span class="n">Mole</span><span class="p">(</span><span class="n">_core</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">Mole</span><span class="p">(</span><span class="n">path</span><span class="p">))</span>  <span class="c1"># type: ignore</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>从文件读取分子结构</p>
+</div>
+
+
+                            </div>
+                            <div id="Mole.atoms" class="classattr">
+                                        <input id="Mole.atoms-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">atoms</span><span class="annotation">: <a href="#Atoms">Atoms</a></span>
+
+                <label class="view-source-button" for="Mole.atoms-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.atoms"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.atoms-43"><a href="#Mole.atoms-43"><span class="linenos">43</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole.atoms-44"><a href="#Mole.atoms-44"><span class="linenos">44</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">atoms</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Atoms</span><span class="p">:</span>
+</span><span id="Mole.atoms-45"><a href="#Mole.atoms-45"><span class="linenos">45</span></a>        <span class="k">return</span> <span class="n">Atoms</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">atoms</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.basis" class="classattr">
+                                        <input id="Mole.basis-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">basis</span><span class="annotation">: <a href="#Basis">Basis</a></span>
+
+                <label class="view-source-button" for="Mole.basis-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.basis"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.basis-47"><a href="#Mole.basis-47"><span class="linenos">47</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole.basis-48"><a href="#Mole.basis-48"><span class="linenos">48</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">basis</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Basis</span><span class="p">:</span>
+</span><span id="Mole.basis-49"><a href="#Mole.basis-49"><span class="linenos">49</span></a>        <span class="k">return</span> <span class="n">Basis</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">basis</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.coefs" class="classattr">
+                                        <input id="Mole.coefs-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">coefs</span><span class="annotation">: <a href="#Coefs">Coefs</a></span>
+
+                <label class="view-source-button" for="Mole.coefs-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.coefs"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.coefs-51"><a href="#Mole.coefs-51"><span class="linenos">51</span></a>    <span class="nd">@cached_property</span>
+</span><span id="Mole.coefs-52"><a href="#Mole.coefs-52"><span class="linenos">52</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">coefs</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">Coefs</span><span class="p">:</span>
+</span><span id="Mole.coefs-53"><a href="#Mole.coefs-53"><span class="linenos">53</span></a>        <span class="k">return</span> <span class="n">Coefs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">coefs</span><span class="p">(),</span> <span class="bp">self</span><span class="p">)</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.charge" class="classattr">
+                                        <input id="Mole.charge-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">charge</span><span class="annotation">: int</span>
+
+                <label class="view-source-button" for="Mole.charge-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.charge"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.charge-55"><a href="#Mole.charge-55"><span class="linenos">55</span></a>    <span class="nd">@property</span>
+</span><span id="Mole.charge-56"><a href="#Mole.charge-56"><span class="linenos">56</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">charge</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Mole.charge-57"><a href="#Mole.charge-57"><span class="linenos">57</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">charge</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.multip" class="classattr">
+                                        <input id="Mole.multip-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr variable">
+            <span class="name">multip</span><span class="annotation">: int</span>
+
+                <label class="view-source-button" for="Mole.multip-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.multip"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.multip-59"><a href="#Mole.multip-59"><span class="linenos">59</span></a>    <span class="nd">@property</span>
+</span><span id="Mole.multip-60"><a href="#Mole.multip-60"><span class="linenos">60</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">multip</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
+</span><span id="Mole.multip-61"><a href="#Mole.multip-61"><span class="linenos">61</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">multip</span><span class="p">()</span>
+</span></pre></div>
+
+
+    
+
+                            </div>
+                            <div id="Mole.get_cmat" class="classattr">
+                                        <input id="Mole.get_cmat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">get_cmat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="Mole.get_cmat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.get_cmat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.get_cmat-66"><a href="#Mole.get_cmat-66"><span class="linenos">66</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">get_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Mole.get_cmat-67"><a href="#Mole.get_cmat-67"><span class="linenos">67</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取系数矩阵&quot;&quot;&quot;</span>
+</span><span id="Mole.get_cmat-68"><a href="#Mole.get_cmat-68"><span class="linenos">68</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">get_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>获取系数矩阵</p>
+</div>
+
+
+                            </div>
+                            <div id="Mole.set_cmat" class="classattr">
+                                        <input id="Mole.set_cmat-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">set_cmat</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span>, </span><span class="param"><span class="n">form</span><span class="p">:</span> <span class="nb">str</span>, </span><span class="param"><span class="n">cmat</span><span class="p">:</span> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span></span><span class="return-annotation">) -> <span class="kc">None</span>:</span></span>
+
+                <label class="view-source-button" for="Mole.set_cmat-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.set_cmat"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.set_cmat-70"><a href="#Mole.set_cmat-70"><span class="linenos">70</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">set_cmat</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">form</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">cmat</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Mole.set_cmat-71"><a href="#Mole.set_cmat-71"><span class="linenos">71</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;设置系数矩阵&quot;&quot;&quot;</span>
+</span><span id="Mole.set_cmat-72"><a href="#Mole.set_cmat-72"><span class="linenos">72</span></a>        <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">set_cmat</span><span class="p">(</span><span class="n">form</span><span class="p">,</span> <span class="n">cmat</span><span class="p">)</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>设置系数矩阵</p>
+</div>
+
+
+                            </div>
+                            <div id="Mole.border" class="classattr">
+                                        <input id="Mole.border-view-source" class="view-source-toggle-state" type="checkbox" aria-hidden="true" tabindex="-1">
+<div class="attr function">
+            
+        <span class="def">def</span>
+        <span class="name">border</span><span class="signature pdoc-code condensed">(<span class="param"><span class="bp">self</span></span><span class="return-annotation">) -> <span class="n">numpy</span><span class="o">.</span><span class="n">ndarray</span>:</span></span>
+
+                <label class="view-source-button" for="Mole.border-view-source"><span>View Source</span></label>
+
+    </div>
+    <a class="headerlink" href="#Mole.border"></a>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Mole.border-74"><a href="#Mole.border-74"><span class="linenos">74</span></a>    <span class="k">def</span><span class="w"> </span><span class="nf">border</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+</span><span id="Mole.border-75"><a href="#Mole.border-75"><span class="linenos">75</span></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;获取分子的边界框&quot;&quot;&quot;</span>
+</span><span id="Mole.border-76"><a href="#Mole.border-76"><span class="linenos">76</span></a>        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">core</span><span class="o">.</span><span class="n">border</span><span class="p">()</span>
+</span></pre></div>
+
+
+            <div class="docstring"><p>获取分子的边界框</p>
+</div>
+
+
+                            </div>
+                </section>
+    </main>
+<script>
+    function escapeHTML(html) {
+        return document.createElement('div').appendChild(document.createTextNode(html)).parentNode.innerHTML;
+    }
+
+    const originalContent = document.querySelector("main.pdoc");
+    let currentContent = originalContent;
+
+    function setContent(innerHTML) {
+        let elem;
+        if (innerHTML) {
+            elem = document.createElement("main");
+            elem.classList.add("pdoc");
+            elem.innerHTML = innerHTML;
+        } else {
+            elem = originalContent;
+        }
+        if (currentContent !== elem) {
+            currentContent.replaceWith(elem);
+            currentContent = elem;
+        }
+    }
+
+    function getSearchTerm() {
+        return (new URL(window.location)).searchParams.get("search");
+    }
+
+    const searchBox = document.querySelector(".pdoc input[type=search]");
+    searchBox.addEventListener("input", function () {
+        let url = new URL(window.location);
+        if (searchBox.value.trim()) {
+            url.hash = "";
+            url.searchParams.set("search", searchBox.value);
+        } else {
+            url.searchParams.delete("search");
+        }
+        history.replaceState("", "", url.toString());
+        onInput();
+    });
+    window.addEventListener("popstate", onInput);
+
+
+    let search, searchErr;
+
+    async function initialize() {
+        try {
+            search = await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.type = "text/javascript";
+                script.async = true;
+                script.onload = () => resolve(window.pdocSearch);
+                script.onerror = (e) => reject(e);
+                script.src = "../search.js";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            });
+        } catch (e) {
+            console.error("Cannot fetch pdoc search index");
+            searchErr = "Cannot fetch search index.";
+        }
+        onInput();
+
+        document.querySelector("nav.pdoc").addEventListener("click", e => {
+            if (e.target.hash) {
+                searchBox.value = "";
+                searchBox.dispatchEvent(new Event("input"));
+            }
+        });
+    }
+
+    function onInput() {
+        setContent((() => {
+            const term = getSearchTerm();
+            if (!term) {
+                return null
+            }
+            if (searchErr) {
+                return `<h3>Error: ${searchErr}</h3>`
+            }
+            if (!search) {
+                return "<h3>Searching...</h3>"
+            }
+
+            window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+
+            const results = search(term);
+
+            let html;
+            if (results.length === 0) {
+                html = `No search results for '${escapeHTML(term)}'.`
+            } else {
+                html = `<h4>${results.length} search result${results.length > 1 ? "s" : ""} for '${escapeHTML(term)}'.</h4>`;
+            }
+            for (let result of results.slice(0, 10)) {
+                let doc = result.doc;
+                let url = `../${doc.modulename.replaceAll(".", "/")}.html`;
+                if (doc.qualname) {
+                    url += `#${doc.qualname}`;
+                }
+
+                let heading;
+                switch (result.doc.kind) {
+                    case "function":
+                        if (doc.fullname.endsWith(".__init__")) {
+                            heading = `<span class="name">${doc.fullname.replace(/\.__init__$/, "")}</span>${doc.signature}`;
+                        } else {
+                            heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span>${doc.signature}`;
+                        }
+                        break;
+                    case "class":
+                        heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;
+                        if (doc.bases)
+                            heading += `<wbr>(<span class="base">${doc.bases}</span>)`;
+                        heading += `:`;
+                        break;
+                    case "variable":
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        if (doc.annotation)
+                            heading += `<span class="annotation">${doc.annotation}</span>`;
+                        if (doc.default_value)
+                            heading += `<span class="default_value"> = ${doc.default_value}</span>`;
+                        break;
+                    default:
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        break;
+                }
+                html += `
+                        <section class="search-result">
+                        <a href="${url}" class="attr ${doc.kind}">${heading}</a>
+                        <div class="docstring">${doc.doc}</div>
+                        </section>
+                    `;
+
+            }
+            return html;
+        })());
+    }
+
+    if (getSearchTerm()) {
+        initialize();
+        searchBox.value = getSearchTerm();
+        onInput();
+    } else {
+        searchBox.addEventListener("focus", initialize, {once: true});
+    }
+
+    searchBox.addEventListener("keydown", e => {
+        if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) {
+            let focused = currentContent.querySelector(".search-result.focused");
+            if (!focused) {
+                currentContent.querySelector(".search-result").classList.add("focused");
+            } else if (
+                e.key === "ArrowDown"
+                && focused.nextElementSibling
+                && focused.nextElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.nextElementSibling.classList.add("focused");
+                focused.nextElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "ArrowUp"
+                && focused.previousElementSibling
+                && focused.previousElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.previousElementSibling.classList.add("focused");
+                focused.previousElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "Enter"
+            ) {
+                focused.querySelector("a").click();
+            }
+        }
+    });
+</script></body>
+</html>

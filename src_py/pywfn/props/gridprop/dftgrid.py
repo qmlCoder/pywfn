@@ -76,6 +76,83 @@ class Calculator:
         """
         return self.core.frag_grids(frag)
 
+    def atm_grids_p(
+        self, iatm: int, nrad: int, nsph: int, prune: bool = True
+    ) -> tuple[ndarray, list[float]]:
+        """计算指定原子的 DFT 格点（可裁剪）
+
+        Args:
+            iatm: 原子索引（从 0 开始）
+            nrad: 径向格点数量
+            nsph: 球面格点数量
+            prune: 是否裁剪
+
+        Returns:
+            (格点坐标, 格点权重) 二元组
+        """
+        return self.core.atm_grids_p(iatm, nrad, nsph, prune)
+
+    def atm_grids_meta(
+        self, iatm: int, nrad: int, nsph: int, prune: bool = True
+    ) -> tuple[ndarray, list[float], list[float]]:
+        """计算指定原子的 DFT 格点及其元信息
+
+        Args:
+            iatm: 原子索引（从 0 开始）
+            nrad: 径向格点数量
+            nsph: 球面格点数量
+            prune: 是否裁剪
+
+        Returns:
+            (格点坐标, 格点权重, 元信息) 三元组
+        """
+        return self.core.atm_grids_meta(iatm, nrad, nsph, prune)
+
+    def elm_grids(
+        self, nuc: int, nrad: int, nsph: int
+    ) -> tuple[ndarray, list[float]]:
+        """按元素类型计算 DFT 格点
+
+        Args:
+            nuc: 原子序数
+            nrad: 径向格点数量
+            nsph: 球面格点数量
+
+        Returns:
+            (格点坐标, 格点权重) 二元组
+        """
+        return self.core.elm_grids(nuc, nrad, nsph)
+
+    def mol_grids_p(
+        self, nrad: int, fsph: int, prune: bool = True
+    ) -> tuple[ndarray, list[float]]:
+        """计算整个分子的 DFT 格点（可裁剪）
+
+        Args:
+            nrad: 径向格点数量
+            fsph: 球面格点因子
+            prune: 是否裁剪
+
+        Returns:
+            (格点坐标, 格点权重) 二元组
+        """
+        return self.core.mol_grids_p(nrad, fsph, prune)
+
+    def mol_grids_meta(
+        self, nrad: int, fsph: int, prune: bool = True
+    ) -> tuple[ndarray, list[float], list[int], list[float]]:
+        """计算整个分子的 DFT 格点及其元信息
+
+        Args:
+            nrad: 径向格点数量
+            fsph: 球面格点因子
+            prune: 是否裁剪
+
+        Returns:
+            (格点坐标, 格点权重, 原子索引, 元信息) 四元组
+        """
+        return self.core.mol_grids_meta(nrad, fsph, prune)
+
 
 def rad_grids(R: float, nrad: int) -> tuple[list[float], list[float]]:
     """计算 DFT 原子径向格点及其权重。

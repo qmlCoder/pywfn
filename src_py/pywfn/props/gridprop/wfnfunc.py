@@ -93,3 +93,31 @@ def cgf(
         每个格点上的 (波函数值, 梯度, Hessian) 向量列表
     """
     return _core.props.gridprop.wfnfunc.cgf(xyzs, lmn, alps, coes, level)  # type: ignore
+
+def ato_wfn(mole: Mole, grid: list[float], level: int = 0):
+    """计算单个原子在格点上的波函数值
+
+    Args:
+        mole: 分子对象
+        grid: 格点坐标
+        level: 计算级别（0=仅值，1=值+梯度，2=值+梯度+Hessian）
+
+    Returns:
+        (函数值数组, 梯度数组, Hessian 数组) 三元组
+    """
+    return _core.props.gridprop.wfnfunc.ato_wfn(mole.core, grid, level)  # type: ignore
+
+
+def stf(xyz: list[float], nuc: int, Z: float, nlm: tuple[int, int, int]) -> float:
+    """计算 Slater 型轨道的值
+
+    Args:
+        xyz: 格点坐标
+        nuc: 原子序数
+        Z: 有效核电荷
+        nlm: 量子数 (n, l, m)
+
+    Returns:
+        float: Slater 型轨道在格点上的值
+    """
+    return _core.props.gridprop.wfnfunc.stf(xyz, nuc, Z, nlm)  # type: ignore

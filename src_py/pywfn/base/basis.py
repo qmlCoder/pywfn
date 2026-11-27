@@ -17,6 +17,93 @@ import pywfn
 from pywfn import _core
 
 
+class Ato:
+    """单个原子轨道（基函数）"""
+
+    def __init__(self, core: _core.base.Ato) -> None:  # type: ignore
+        self.core = core
+
+    @property
+    def atm(self) -> int:
+        """所属原子索引"""
+        return self.core.atm
+
+    @property
+    def shl(self) -> int:
+        """所属壳层索引"""
+        return self.core.shl
+
+    @property
+    def ang(self) -> int:
+        """角动量量子数"""
+        return self.core.ang
+
+    @property
+    def sym(self) -> str:
+        """轨道符号"""
+        return self.core.sym
+
+    @property
+    def loc(self) -> int:
+        """起始位置"""
+        return self.core.loc
+
+    @property
+    def form(self) -> str:
+        """基函数形式"""
+        return self.core.form
+
+    @property
+    def alps(self) -> list[float]:
+        """高斯指数列表"""
+        return self.core.alps
+
+    @property
+    def coes(self) -> list[float]:
+        """收缩系数列表"""
+        return self.core.coes
+
+    def coes_norm(self) -> list[float]:
+        """归一化后的收缩系数"""
+        return self.core.coes_norm()
+
+    def lmn(self) -> list[int]:
+        """量子数 (l, m, n)"""
+        return self.core.lmn()
+
+
+class Bas:
+    """单个高斯基函数（primitive）的原始数据"""
+
+    def __init__(self, core: _core.base.Bas) -> None:  # type: ignore
+        self.core = core
+
+    @property
+    def atm(self) -> int:
+        """所属原子索引"""
+        return self.core.atm
+
+    @property
+    def shl(self) -> int:
+        """所属壳层索引"""
+        return self.core.shl
+
+    @property
+    def ang(self) -> int:
+        """角动量量子数"""
+        return self.core.ang
+
+    @property
+    def alp(self) -> float:
+        """高斯指数"""
+        return self.core.alp
+
+    @property
+    def coe(self) -> float:
+        """收缩系数"""
+        return self.core.coe
+
+
 class Atos:
     def __init__(self, _core: _core.base.Atos) -> None:  # type: ignore
         self.core = _core
@@ -36,6 +123,10 @@ class Atos:
     def syms(self, form: str = "raw") -> list[str]:
         """每个基函数的符号"""
         return self.core.syms(form)
+
+    def locs(self, form: str = "raw") -> list[int]:
+        """每个基函数的起始位置"""
+        return self.core.locs(form)
 
 
 class Shl:
@@ -70,6 +161,10 @@ class Shl:
     def coes(self) -> list[float]:
         return self.core.coes
 
+    def coes_norm(self) -> list[float]:
+        """归一化后的收缩系数列表"""
+        return self.core.coes_norm()
+
 
 class Shls:
     def __init__(self, core: _core.base.Shls) -> None:  # type: ignore
@@ -83,6 +178,14 @@ class Shls:
 
     def uplo(self, form: str = "raw") -> list[list[int]]:
         return self.core.uplo(form)
+
+    def nato(self, form: str = "raw") -> int:
+        """指定基函数形式的基函数数量"""
+        return self.core.nato(form)
+
+    def atm_uplo(self, form: str = "raw") -> list[list[int]]:
+        """指定基函数形式的原子对索引列表"""
+        return self.core.atm_uplo(form)
 
 
 class Basis:
@@ -107,6 +210,61 @@ class Basis:
     @cached_property
     def shls(self) -> Shls:
         return Shls(self.core.shls())
+
+    def build(self, shls: list[Shl]) -> None:
+        """重建基组
+
+        Args:
+            shls: 壳层列表
+        """
+        self.core.build([shl.core for shl in shls])
+
+    def is_none(self) -> bool:
+        """基组是否为空"""
+        return self.core.is_none()
+
+    def int_form(self) -> str:
+        """积分使用的基函数形式"""
+        return self.core.int_form()
+
+    def unify_form(self, form: str) -> "Basis":
+        """把基组统一到指定基函数形式
+
+        Args:
+            form: 目标基函数形式
+
+        Returns:
+            Basis: 新的基组对象
+        """
+        return Basis(self.core.unify_form(form), self.mole)
+
+    def get_by_atm(self, atm: int) -> list[Shl]:
+        """获取指定原子的所有壳层
+
+        Args:
+            atm: 原子索引
+        """
+        return [Shl(core) for core in self.core.get_by_atm(atm)]
+
+    def ato_keys(self) -> list[str]:
+        """获取所有原子轨道的键"""
+        return self.core.ato_keys()
+
+    def nbas(self) -> int:
+        """基函数数量"""
+        return self.core.nbas()
+
+    def nshl(self) -> int:
+        """壳层数量"""
+        return self.core.nshl()
+
+    def equal(self, other: "Basis") -> bool:
+        """判断两个基组是否相同
+
+        Args:
+            other: 另一个基组
+        """
+        return self.core.equal(other.core)
 
     def __repr__(self) -> str:
         return self.core.__repr__()

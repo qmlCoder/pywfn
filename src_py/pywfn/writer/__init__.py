@@ -2,6 +2,7 @@ from pywfn.writer.cub import CubWriter
 from pywfn.writer.dmo import DmoWriter
 from pywfn.writer.fch import FchWriter
 from pywfn.writer.gjf import GjfWriter
+from pywfn.writer.mfn import MfnWriter
 from pywfn.writer.obj import ObjWriter
 from pywfn.writer.xyz import XyzWriter
 
@@ -10,6 +11,7 @@ __all__ = [
     "DmoWriter",
     "FchWriter",
     "GjfWriter",
+    "MfnWriter",
     "ObjWriter",
     "XyzWriter",
 ]

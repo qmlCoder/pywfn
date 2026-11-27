@@ -138,11 +138,53 @@ pub fn cgf(
         .collect()
 }
 
+/// 计算单个原子在格点上的波函数值
+///
+/// ## 参数
+/// - `py`: Python 解释器标记
+/// - `mole`: 分子对象
+/// - `grid`: 格点坐标
+/// - `level`: 计算级别（0=仅值，1=值+梯度，2=值+梯度+Hessian）
+///
+/// ## 返回
+/// 返回 (函数值数组, 梯度数组, Hessian 数组)
+#[pyfunction]
+pub fn ato_wfn(
+    py: Python,
+    mole: Mole,
+    grid: [f64; 3],
+    level: usize,
+) -> (Py<PyArray1<f64>>, Py<PyArray2<f64>>, Py<PyArray3<f64>>) {
+    let (vals, grads, hesss) = rswfn::props::gridprop::wfnfunc::ato_wfn(&mole.core, &grid, level);
+    let vals = vals.into_pyarray(py).unbind();
+    let grads = crate::props::gridprop::grads2array(grads)
+        .into_pyarray(py)
+        .unbind();
+    let hesss = crate::props::gridprop::hesss2array(hesss)
+        .into_pyarray(py)
+        .unbind();
+    (vals, grads, hesss)
+}
+
+/// 计算 Slater 型轨道的值
+///
+/// ## 参数
+/// - `xyz`: 格点坐标
+/// - `nuc`: 原子序数
+/// - `Z`: 有效核电荷
+/// - `nlm`: 量子数 (n, l, m)
+#[pyfunction]
+pub fn stf(xyz: [f64; 3], nuc: usize, Z: f64, nlm: (usize, usize, isize)) -> f64 {
+    rswfn::props::gridprop::wfnfunc::stf(&xyz, nuc, Z, &nlm)
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "wfnfunc")?;
     m.add_class::<Calculator>()?;
     m.add_function(wrap_pyfunction!(gtf, &m)?)?;
     m.add_function(wrap_pyfunction!(cgf, &m)?)?;
+    m.add_function(wrap_pyfunction!(ato_wfn, &m)?)?;
+    m.add_function(wrap_pyfunction!(stf, &m)?)?;
     parent_module.add_submodule(&m)
 }
 

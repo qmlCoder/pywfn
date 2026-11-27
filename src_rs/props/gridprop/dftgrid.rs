@@ -81,6 +81,114 @@ impl Calculator {
         let (grids, weits) = self.caler().frag_grids(&frag);
         Ok((grids2array3(py, grids), weits.into_pyarray(py).unbind()))
     }
+    /// 计算指定原子的 DFT 格点（可裁剪）
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `iatm`: 原子索引
+    /// - `nrad`: 径向格点数
+    /// - `nsph`: 球面格点数
+    /// - `prune`: 是否裁剪
+    ///
+    /// ## 返回
+    /// 返回 (格点坐标数组, 权重列表)
+    pub fn atm_grids_p(
+        &self,
+        py: Python,
+        iatm: usize,
+        nrad: usize,
+        nsph: usize,
+        prune: bool,
+    ) -> (Py<PyArray2<f64>>, Vec<f64>) {
+        let (grids, weits) = self.caler().atm_grids_p(iatm, nrad, nsph, prune);
+        (grids2array3(py, grids), weits)
+    }
+
+    /// 计算指定原子的 DFT 格点及其元信息
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `iatm`: 原子索引
+    /// - `nrad`: 径向格点数
+    /// - `nsph`: 球面格点数
+    /// - `prune`: 是否裁剪
+    ///
+    /// ## 返回
+    /// 返回 (格点坐标数组, 权重列表, 元信息列表)
+    pub fn atm_grids_meta(
+        &self,
+        py: Python,
+        iatm: usize,
+        nrad: usize,
+        nsph: usize,
+        prune: bool,
+    ) -> (Py<PyArray2<f64>>, Vec<f64>, Vec<f64>) {
+        let (grids, weits, meta) = self.caler().atm_grids_meta(iatm, nrad, nsph, prune);
+        (grids2array3(py, grids), weits, meta)
+    }
+
+    /// 按元素类型计算 DFT 格点
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `nuc`: 原子序数
+    /// - `nrad`: 径向格点数
+    /// - `nsph`: 球面格点数
+    ///
+    /// ## 返回
+    /// 返回 (格点坐标数组, 权重列表)
+    pub fn elm_grids(
+        &self,
+        py: Python,
+        nuc: usize,
+        nrad: usize,
+        nsph: usize,
+    ) -> (Py<PyArray2<f64>>, Vec<f64>) {
+        let (grids, weits) = self.caler().elm_grids(nuc, nrad, nsph);
+        (grids2array3(py, grids), weits)
+    }
+
+    /// 计算整个分子的 DFT 格点（可裁剪）
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `nrad`: 径向格点数
+    /// - `fsph`: 球面格点因子
+    /// - `prune`: 是否裁剪
+    ///
+    /// ## 返回
+    /// 返回 (格点坐标数组, 权重列表)
+    pub fn mol_grids_p(
+        &self,
+        py: Python,
+        nrad: usize,
+        fsph: usize,
+        prune: bool,
+    ) -> (Py<PyArray2<f64>>, Vec<f64>) {
+        let (grids, weits) = self.caler().mol_grids_p(nrad, fsph, prune);
+        (grids2array3(py, grids), weits)
+    }
+
+    /// 计算整个分子的 DFT 格点及其元信息
+    ///
+    /// ## 参数
+    /// - `py`: Python 解释器标记
+    /// - `nrad`: 径向格点数
+    /// - `fsph`: 球面格点因子
+    /// - `prune`: 是否裁剪
+    ///
+    /// ## 返回
+    /// 返回 (格点坐标数组, 权重列表, 原子索引列表, 元信息列表)
+    pub fn mol_grids_meta(
+        &self,
+        py: Python,
+        nrad: usize,
+        fsph: usize,
+        prune: bool,
+    ) -> (Py<PyArray2<f64>>, Vec<f64>, Vec<usize>, Vec<f64>) {
+        let (grids, weits, atms, meta) = self.caler().mol_grids_meta(nrad, fsph, prune);
+        (grids2array3(py, grids), weits, atms, meta)
+    }
 }
 
 #[pyfunction]

@@ -1,19 +1,23 @@
 use crate::base::Mole;
+use pyo3::exceptions::PyRuntimeError;
 use pyo3::prelude::*;
 use rswfn;
 
 /// 新建分子计算器
 ///
-/// 提供新建分子相关属性的计算功能。
+/// 提供自旋分离与 π 电子投影，生成新的分子变体。
 #[pyclass]
 pub struct Calculator {
     pub mole: Mole,
+    pub atms: Vec<usize>,
 }
 
 impl Calculator {
     // 提取公共的 calculator 创建逻辑
     fn caler(&self) -> rswfn::props::moleprop::variants::Calculator<'_> {
-        rswfn::props::moleprop::variants::Calculator::new(&self.mole.core)
+        let mut caler = rswfn::props::moleprop::variants::Calculator::new(&self.mole.core);
+        caler.atms = &self.atms;
+        caler
     }
 }
 
@@ -22,10 +26,34 @@ impl Calculator {
     /// 创建一个新的新建分子计算器。
     ///
     /// # 参数
-    /// * `mole` - 分子对象。
+    /// * `mole` - 分子对象
+    /// * `atms` - 可选，参与 π 投影的原子索引列表，默认为全部原子
     #[new]
-    pub fn new(mole: Mole) -> Self {
-        Self { mole }
+    pub fn new(mole: Mole, atms: Option<Vec<usize>>) -> Self {
+        let atms = atms.unwrap_or_else(|| mole.core.atoms().idxs().clone());
+        Self { mole, atms }
+    }
+
+    /// 将分子分离为 α 和 β 自旋两个独立的分子对象。
+    pub fn mole_spin(&self) -> (Mole, Mole) {
+        let (mole_a, mole_b) = self.caler().mole_spin();
+        (Mole { core: mole_a }, Mole { core: mole_b })
+    }
+
+    /// 生成仅包含 π 电子成分（POCV 方法）的分子对象。
+    pub fn mole_pi_pocv(&self) -> PyResult<Mole> {
+        self.caler()
+            .mole_pi_pocv()
+            .map(|core| Mole { core })
+            .map_err(|e| PyRuntimeError::new_err(e))
+    }
+
+    /// 生成仅包含 π 电子成分（MOCV 方法）的分子对象。
+    pub fn mole_pi_mocv(&self) -> PyResult<Mole> {
+        self.caler()
+            .mole_pi_mocv()
+            .map(|core| Mole { core })
+            .map_err(|e| PyRuntimeError::new_err(e))
     }
 }
 

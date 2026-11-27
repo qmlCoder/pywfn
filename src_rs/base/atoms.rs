@@ -1,4 +1,4 @@
-use numpy::{IntoPyArray, PyArray2};
+use numpy::{IntoPyArray, PyArray2, PyArrayMethods};
 use pyo3::prelude::*;
 
 use rswfn;
@@ -68,6 +68,81 @@ impl Stm {
     pub fn __repr__(&self) -> String {
         format!("{}", self.core)
     }
+
+    /// 判断变换矩阵是否有效
+    pub fn check(&self) -> bool {
+        self.core.check()
+    }
+
+    /// 创建一个空的变换矩阵
+    #[staticmethod]
+    pub fn blank() -> Self {
+        Self {
+            core: rswfn::base::Stm::blank(),
+        }
+    }
+
+    /// 把矩阵展平为长度 9 的列表
+    pub fn vals(&self) -> Vec<f64> {
+        self.core.vals()
+    }
+
+    /// 从 3x3 矩阵创建变换矩阵
+    ///
+    /// **参数**
+    /// - `mat`: NumPy 二维数组，形状为 (3, 3)
+    #[staticmethod]
+    pub fn from_mat(mat: Bound<'_, PyArray2<f64>>) -> Self {
+        let mat = mat.readonly().as_array().to_owned();
+        Self {
+            core: rswfn::base::Stm::from_mat(mat),
+        }
+    }
+
+    /// 计算相对另一个变换矩阵的旋转
+    ///
+    /// **参数**
+    /// - `stmb`: 另一个变换矩阵
+    pub fn relative(&self, stmb: Stm) -> Self {
+        Self {
+            core: self.core.relative(&stmb.core),
+        }
+    }
+
+    /// 获取变换矩阵的三个行向量
+    pub fn dirs(&self) -> [[f64; 3]; 3] {
+        self.core.dirs()
+    }
+
+    /// 从另一个变换矩阵复制内容
+    ///
+    /// **参数**
+    /// - `stm`: 源变换矩阵
+    pub fn copy(&mut self, stm: Stm) {
+        self.core.copy(&stm.core)
+    }
+
+    /// 由给定 x 轴构造随机变换矩阵
+    ///
+    /// **参数**
+    /// - `ex`: x 轴方向
+    #[staticmethod]
+    pub fn rand_ex(ex: [f64; 3]) -> Self {
+        Self {
+            core: rswfn::base::Stm::rand_ex(ex),
+        }
+    }
+
+    /// 由给定 z 轴构造随机变换矩阵
+    ///
+    /// **参数**
+    /// - `ez`: z 轴方向
+    #[staticmethod]
+    pub fn rand_ez(ez: [f64; 3]) -> Self {
+        Self {
+            core: rswfn::base::Stm::rand_ez(ez),
+        }
+    }
 }
 
 #[pyclass]
@@ -88,10 +163,22 @@ impl Atom {
     pub fn sym(&self) -> String {
         self.core.sym.clone()
     }
+
+    /// 获取由坐标原点指向该原子的向量
+    pub fn vec(&self) -> Vec3 {
+        Vec3 {
+            core: self.core.vec(),
+        }
+    }
+
+    /// 获取原子在周期表中的行号
+    pub fn irow(&self) -> usize {
+        self.core.irow()
+    }
 }
 
 #[derive(Clone)]
-#[pyclass]
+#[pyclass(from_py_object)]
 pub struct Atoms {
     pub core: rswfn::base::Atoms,
 }
@@ -191,5 +278,86 @@ impl Atoms {
 
     pub fn face_ang(&self, ai: usize, aj: usize, ak: usize, al: usize) -> f64 {
         self.core.face_ang(ai, aj, ak, al)
+    }
+
+    /// 计算所有原子间的距离矩阵
+    ///
+    /// **参数**
+    /// - `py`: Python 解释器标记
+    ///
+    /// **返回**
+    /// - NumPy 二维数组，形状为 (n_atom, n_atom)
+    pub fn dmat(&self, py: Python) -> Py<PyArray2<f64>> {
+        self.core.dmat().into_pyarray(py).unbind()
+    }
+
+    /// 计算核间排斥能
+    pub fn nuc_eng(&self) -> f64 {
+        self.core.nuc_eng()
+    }
+
+    /// 获取所有原子的坐标（单位为埃）
+    pub fn xyzs_ang(&self) -> Vec<[f64; 3]> {
+        self.core.xyzs_ang()
+    }
+
+    /// 获取所有原子的半径列表
+    pub fn rads(&self) -> Vec<f64> {
+        self.core.rads()
+    }
+
+    /// 获取所有原子的局域坐标系
+    pub fn stms(&self) -> Vec<Option<Stm>> {
+        self.core
+            .stms()
+            .iter()
+            .map(|stm| stm.clone().map(|core| Stm { core }))
+            .collect()
+    }
+
+    /// 获取所有原子的索引列表
+    pub fn idxs(&self) -> Vec<usize> {
+        self.core.idxs().clone()
+    }
+
+    /// 计算三个原子形成的夹角
+    ///
+    /// **参数**
+    /// - `ai`: 第一个原子索引
+    /// - `aj`: 顶点原子索引
+    /// - `ak`: 第三个原子索引
+    pub fn ang(&self, ai: usize, aj: usize, ak: usize) -> f64 {
+        self.core.ang(ai, aj, ak)
+    }
+
+    /// 获取分子中的成键原子对
+    pub fn bonds(&self) -> Vec<[usize; 2]> {
+        self.core.bonds()
+    }
+
+    /// 设置分子中的成键原子对
+    ///
+    /// **参数**
+    /// - `bonds`: 成键原子对列表
+    pub fn set_bonds(&self, bonds: Vec<[usize; 2]>) {
+        self.core.set_bonds(bonds)
+    }
+
+    /// 计算指定原子集合的几何中心
+    ///
+    /// **参数**
+    /// - `atms`: 原子索引列表
+    pub fn cent(&self, atms: Vec<usize>) -> Vec3 {
+        Vec3 {
+            core: self.core.cent(&atms),
+        }
+    }
+
+    /// 判断两个原子集合是否完全相同
+    ///
+    /// **参数**
+    /// - `other`: 另一个原子集合
+    pub fn equal(&self, other: Atoms) -> bool {
+        self.core.equal(&other.core)
     }
 }

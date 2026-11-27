@@ -62,4 +62,28 @@ impl CubReader {
             None
         }
     }
+
+    /// 读取格点信息
+    ///
+    /// ## 返回
+    /// 返回 `CubeGrid` 对象，包含三个方向的格点数、起点坐标和步长
+    pub fn read_cube(&self) -> crate::props::gridprop::CubeGrid {
+        crate::props::gridprop::CubeGrid::from_core(self.core.read_cube())
+    }
+
+    /// 读取原子信息
+    ///
+    /// ## 返回
+    /// 返回 (原子序数列表, 原子电荷列表, 原子坐标列表)
+    pub fn read_atms(&self) -> (Vec<usize>, Vec<f64>, Vec<[f64; 3]>) {
+        self.core.read_atms()
+    }
+
+    /// 读取格点数值
+    ///
+    /// ## 返回
+    /// 返回 (轨道索引列表, 每个轨道在全部格点上的数值列表)
+    pub fn read_vals(&self) -> (Vec<usize>, Vec<Vec<f64>>) {
+        self.core.read_vals()
+    }
 }

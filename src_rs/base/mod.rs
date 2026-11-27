@@ -10,7 +10,7 @@ mod vect;
 pub use mole::Mole;
 
 pub use atoms::{Atom, Atoms, Stm};
-pub use basis::{Atos, Basis, Shl, Shls};
+pub use basis::{Ato, Atos, Bas, Basis, Shl, Shls};
 pub use coefs::Coefs;
 pub use vect::Vec3;
 
@@ -22,8 +22,10 @@ pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<Shl>()?;
     m.add_class::<Shls>()?;
 
+    m.add_class::<Ato>()?;
     m.add_class::<Basis>()?;
     m.add_class::<Atos>()?;
+    m.add_class::<Bas>()?;
 
     m.add_class::<Coefs>()?;
 
@@ -38,6 +40,10 @@ pub mod base {
     use super::Atom;
     #[pymodule_export]
     use super::Atoms;
+    #[pymodule_export]
+    use super::Ato;
+    #[pymodule_export]
+    use super::Bas;
     #[pymodule_export]
     use super::Basis;
     #[pymodule_export]

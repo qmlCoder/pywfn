@@ -135,4 +135,54 @@ impl Mole {
             core: self.core.clone(),
         }
     }
+
+    /// 获取分子的化学式
+    pub fn formula(&self) -> String {
+        self.core.formula()
+    }
+
+    /// 获取分子的核电荷总数
+    pub fn ncrg(&self) -> usize {
+        self.core.ncrg()
+    }
+
+    /// 计算格点到分子中最近原子的距离
+    ///
+    /// **参数**
+    /// - `grid`: 格点坐标
+    pub fn dist(&self, grid: [f64; 3]) -> f64 {
+        self.core.dist(&grid)
+    }
+
+    /// 获取分子中的所有环
+    pub fn rings(&self) -> Vec<Vec<usize>> {
+        self.core.rings()
+    }
+
+    /// 判断两个分子是否相同
+    ///
+    /// **参数**
+    /// - `other`: 另一个分子
+    pub fn equal(&self, other: Mole) -> bool {
+        self.core.equal(&other.core)
+    }
+
+    /// 判断分子是否为直线型
+    pub fn is_line(&self) -> bool {
+        self.core.is_line()
+    }
+
+    /// 由原子、基组、轨道系数创建分子
+    ///
+    /// **参数**
+    /// - `atoms`: 原子集合
+    /// - `basis`: 基组，可选
+    /// - `coefs`: 轨道系数，可选
+    #[staticmethod]
+    #[pyo3(signature = (atoms, basis=None, coefs=None))]
+    pub fn build(atoms: Atoms, basis: Option<Basis>, coefs: Option<Coefs>) -> Self {
+        Self {
+            core: rswfn::base::Mole::new(atoms.core, basis.map(|b| b.core), coefs.map(|c| c.core)),
+        }
+    }
 }

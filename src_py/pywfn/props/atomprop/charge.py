@@ -73,6 +73,23 @@ class Calculator:
         stms = {atm: Stm(stm) for atm, stm in stms.items()}
         return stms, atos, np.array(eles)
 
+    def eles(self, ctype: str = "mulliken") -> np.ndarray:
+        """计算每个原子的电子数
+
+        Args:
+            ctype: 电荷类型
+        """
+        return np.array(self.caler.eles(ctype))
+
+    def eles_obt(self, ctype: str, obt: int) -> np.ndarray:
+        """计算指定轨道上的电子数
+
+        Args:
+            ctype: 电荷类型
+            obt: 分子轨道索引
+        """
+        return np.array(self.caler.eles_obt(ctype, obt))
+
     def pi_mocv_v2(
         self, ctype: str = "mulliken"
     ) -> tuple[dict[int, Stm], list[int], np.ndarray]:
@@ -108,3 +125,41 @@ def lowdin(dmat: np.ndarray, smat: np.ndarray, uplo: list[list[int]]) -> np.ndar
         np.ndarray: Lowdin电荷
     """
     return _core.props.atomprop.charge.lowdin(dmat, smat, uplo)  # type: ignore
+
+def hirshfeld(
+    atom_nucs: list[int],
+    atom_xyzs: list[list[float]],
+    mole_grids: list[list[float]],
+    mole_weits: list[float],
+    mole_dens: list[float],
+    pro_mole_dens: list[float],
+) -> list[float]:
+    """计算Hirshfeld电荷
+
+    Args:
+        atom_nucs: 每个原子的核电荷数
+        atom_xyzs: 每个原子的坐标
+        mole_grids: 分子格点坐标
+        mole_weits: 分子格点权重
+        mole_dens: 分子在格点上的密度
+        pro_mole_dens: 参考原子密度在格点上的加和
+
+    Returns:
+        list[float]: 每个原子的 Hirshfeld 电荷
+    """
+    return _core.props.atomprop.charge.hirshfeld(  # type: ignore
+        atom_nucs, atom_xyzs, mole_grids, mole_weits, mole_dens, pro_mole_dens
+    )
+
+
+def qmat2eles(qmat: np.ndarray, uplo: list[list[int]]) -> list[float]:
+    """由原子轨道布居矩阵汇总每个原子的电子数
+
+    Args:
+        qmat: 布居矩阵
+        uplo: 原子轨道索引
+
+    Returns:
+        list[float]: 每个原子的电子数
+    """
+    return _core.props.atomprop.charge.qmat2eles(qmat, uplo)  # type: ignore

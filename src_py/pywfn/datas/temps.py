@@ -147,3 +147,15 @@ Created by pywfn
 [BONDBLOCK]
 M  END
 """
+
+# ===== 与 rswfn 对齐的模板（来自底层 rswfn 的 datas::temps） =====
+from pywfn import _core
+
+# Gaussian 输入文件模板
+GJF: str = _core.datas.temps.GJF()  # type: ignore
+
+# 补充材料（SI）文档模板
+SI: str = _core.datas.temps.SI()  # type: ignore
+
+# XYZ 文件模板
+XYZ: str = _core.datas.temps.XYZ()  # type: ignore

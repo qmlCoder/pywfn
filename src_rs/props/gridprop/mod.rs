@@ -1,6 +1,7 @@
 pub mod density;
 pub mod dftgrid;
 pub mod potential;
+pub mod topolog;
 pub mod wfnfunc;
 
 use ndarray::{Array2, Array3};
@@ -70,6 +71,36 @@ impl RectGrid {
         self.core.set_v2(&p0, &p1, &p2, step);
     }
 
+    /// 由三个顶点和格点数量确定矩形网格
+    ///
+    /// ## 参数
+    /// - `p00`: 第一个顶点
+    /// - `p01`: 第二个顶点
+    /// - `p11`: 第三个顶点
+    /// - `size`: 两个方向的格点数量
+    pub fn set_v3(&mut self, p00: [f64; 3], p01: [f64; 3], p11: [f64; 3], size: [usize; 2]) {
+        let p00 = Vec3::from_arr(p00);
+        let p01 = Vec3::from_arr(p01);
+        let p11 = Vec3::from_arr(p11);
+        self.core.set_v3(&p00, &p01, &p11, size);
+    }
+
+    /// 计算矩形网格的平面参数
+    ///
+    /// ## 参数
+    /// - `p00`: 第一个顶点
+    /// - `p01`: 第二个顶点
+    /// - `p11`: 第三个顶点
+    ///
+    /// ## 返回
+    /// 返回 [a, b, c, d] 四个参数
+    pub fn paras(&self, p00: [f64; 3], p01: [f64; 3], p11: [f64; 3]) -> [f64; 4] {
+        let p00 = Vec3::from_arr(p00);
+        let p01 = Vec3::from_arr(p01);
+        let p11 = Vec3::from_arr(p11);
+        self.core.paras(&p00, &p01, &p11)
+    }
+
     pub fn get(&self) -> ([usize; 2], Vec<[f64; 3]>) {
         let (shape, grids) = self.core.get();
         (shape, grids.clone())
@@ -81,6 +112,13 @@ pub struct CubeGrid {
     core: rswfn::props::gridprop::CubeGrid,
 }
 
+impl CubeGrid {
+    /// 由底层对象包装成 Python 对象
+    pub fn from_core(core: rswfn::props::gridprop::CubeGrid) -> Self {
+        Self { core }
+    }
+}
+
 #[pymethods]
 impl CubeGrid {
     #[new]
@@ -88,6 +126,24 @@ impl CubeGrid {
         CubeGrid {
             core: rswfn::props::gridprop::CubeGrid::new(),
         }
+    }
+
+    /// 三个方向的格点数
+    #[getter]
+    pub fn shape(&self) -> [usize; 3] {
+        self.core.shape
+    }
+
+    /// 格点起点坐标
+    #[getter]
+    pub fn start(&self) -> [f64; 3] {
+        self.core.start
+    }
+
+    /// 三个方向的格点步长
+    #[getter]
+    pub fn steps(&self) -> [f64; 3] {
+        self.core.steps
     }
 
     pub fn set_v1(&mut self, p0: [f64; 3], p1: [f64; 3], step: f64, bord: f64) {
@@ -101,15 +157,99 @@ impl CubeGrid {
     }
 }
 
+/// 格点上函数值及其各级导数
+#[pyclass(from_py_object)]
+#[derive(Clone)]
+pub struct GridVals {
+    pub core: rswfn::props::gridprop::GridVals,
+}
+
+#[pymethods]
+impl GridVals {
+    /// 创建一个格点函数值对象
+    ///
+    /// ## 参数
+    /// - `val0`: 函数值
+    /// - `val1`: 梯度 [dx, dy, dz]
+    /// - `val2`: Hessian 矩阵 3x3
+    #[new]
+    #[pyo3(signature = (val0=0.0, val1=None, val2=None))]
+    pub fn new(val0: f64, val1: Option<[f64; 3]>, val2: Option<[[f64; 3]; 3]>) -> Self {
+        let val1 = val1.unwrap_or([0.0, 0.0, 0.0]);
+        let val2 = val2.unwrap_or([[0.0; 3]; 3]);
+        Self {
+            core: rswfn::props::gridprop::GridVals::new(val0, val1, val2),
+        }
+    }
+
+    /// 设置函数值及其各级导数
+    ///
+    /// ## 参数
+    /// - `val0`: 函数值
+    /// - `val1`: 梯度 [dx, dy, dz]
+    /// - `val2`: Hessian 矩阵 3x3
+    pub fn set(&mut self, val0: f64, val1: [f64; 3], val2: [[f64; 3]; 3]) {
+        self.core.set(val0, val1, val2);
+    }
+
+    /// 返回一个全零的格点函数值对象
+    #[staticmethod]
+    pub fn non() -> Self {
+        Self {
+            core: rswfn::props::gridprop::GridVals::non(),
+        }
+    }
+
+    /// 函数值
+    #[getter]
+    pub fn val0(&self) -> f64 {
+        self.core.val0
+    }
+
+    /// 梯度
+    #[getter]
+    pub fn val1(&self) -> [f64; 3] {
+        self.core.val1
+    }
+
+    /// Hessian 矩阵
+    #[getter]
+    pub fn val2(&self) -> [[f64; 3]; 3] {
+        self.core.val2
+    }
+
+    /// 梯度的模
+    pub fn grad_norm(&self) -> f64 {
+        self.core.grad_norm()
+    }
+
+    /// 梯度模的平方
+    pub fn grad_norm2(&self) -> f64 {
+        self.core.grad_norm2()
+    }
+
+    /// Hessian 矩阵展平为长度 9 的列表
+    pub fn val2s(&self) -> [f64; 9] {
+        self.core.val2s()
+    }
+}
+
+/// 把 rswfn 的格点函数值包装成 Python 对象
+pub fn wrap_gridvals(core: rswfn::props::gridprop::GridVals) -> GridVals {
+    GridVals { core }
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "gridprop")?;
     density::register_module(&m)?;
     dftgrid::register_module(&m)?;
     wfnfunc::register_module(&m)?;
     potential::register_module(&m)?;
+    topolog::register_module(&m)?;
     m.add_class::<LineGrid>()?;
     m.add_class::<RectGrid>()?;
     m.add_class::<CubeGrid>()?;
+    m.add_class::<GridVals>()?;
     parent_module.add_submodule(&m)
 }
 

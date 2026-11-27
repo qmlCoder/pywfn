@@ -1,7 +1,7 @@
 use crate::base::Mole;
 use crate::props::gridprop::vals2numpy;
 
-use numpy::{IntoPyArray, PyArray1, PyArray2, PyArray3};
+use numpy::{IntoPyArray, PyArray1, PyArray2, PyArray3, PyArrayMethods};
 use pyo3::{prelude::*, BoundObject};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use rswfn;
@@ -305,11 +305,109 @@ impl Calculator {
             .map(|grid| caler.infoentro(&grid))
             .collect()
     }
+    /// 获取 π 电子（POCV 方法）对应的分子对象
+    pub fn mole_pi_pocv(&self) -> Mole {
+        Mole {
+            core: self.caler().mole_pi_pocv().clone(),
+        }
+    }
+
+    /// 获取 π 电子（MOCV 方法）对应的分子对象
+    pub fn mole_pi_mocv(&self) -> Mole {
+        Mole {
+            core: self.caler().mole_pi_mocv().clone(),
+        }
+    }
+
+    /// 获取自旋密度对应的两个分子对象（alpha, beta）
+    pub fn mole_spin(&self) -> (Mole, Mole) {
+        let caler = self.caler();
+        let (a, b) = caler.mole_spin();
+        (Mole { core: a.clone() }, Mole { core: b.clone() })
+    }
+
+    /// 计算自旋密度
+    ///
+    /// ## 参数
+    /// - `grid`: 格点坐标
+    /// - `level`: 计算级别
+    ///
+    /// ## 返回
+    /// 返回 (alpha 密度, beta 密度)
+    pub fn mol_rho_spin(
+        &self,
+        grid: [f64; 3],
+        level: usize,
+    ) -> (
+        crate::props::gridprop::GridVals,
+        crate::props::gridprop::GridVals,
+    ) {
+        let [a, b] = self.caler().mol_rho_spin(&grid, level);
+        (
+            crate::props::gridprop::wrap_gridvals(a),
+            crate::props::gridprop::wrap_gridvals(b),
+        )
+    }
+
+    /// 计算指定格点上的活化能指标
+    pub fn activate(&self, grid: [f64; 3]) -> f64 {
+        self.caler().activate(&grid)
+    }
+
+    /// 计算指定格点上的曲率
+    pub fn curvature(&self, grid: [f64; 3]) -> f64 {
+        self.caler().curvature(&grid)
+    }
+
+    /// 计算指定格点上的核静电势
+    pub fn nuc_esp(&self, grid: [f64; 3]) -> f64 {
+        self.caler().nuc_esp(&grid)
+    }
+
+    /// 计算指定格点上的电子静电势
+    pub fn ele_esp(&self, grid: [f64; 3]) -> f64 {
+        self.caler().ele_esp(&grid)
+    }
+
+    /// 计算指定格点上的总静电势
+    pub fn tot_esp(&self, grid: [f64; 3]) -> f64 {
+        self.caler().tot_esp(&grid)
+    }
+}
+
+/// 由原子波函数数据计算分子电子密度
+///
+/// ## 参数
+/// - to_atms: 每个基函数所属的原子索引
+/// - dmat_car: 笛卡尔基下的密度矩阵
+/// - to_wfn0: 每个基函数在格点上的值
+/// - to_wfn1: 每个基函数在格点上的梯度
+/// - to_wfn2: 每个基函数在格点上的 Hessian
+/// - tms: 需要参与计算的原子索引
+/// - level: 计算级别
+///
+/// ## 返回
+/// 返回 (密度值, 梯度, Hessian)
+#[pyfunction]
+pub fn mol_rho_dm(
+    ato_atms: Vec<usize>,
+    dmat_car: Bound<'_, PyArray2<f64>>,
+    ato_wfn0: Vec<f64>,
+    ato_wfn1: Vec<[f64; 3]>,
+    ato_wfn2: Vec<[[f64; 3]; 3]>,
+    atms: Vec<usize>,
+    level: usize,
+) -> (f64, [f64; 3], [[f64; 3]; 3]) {
+    let dmat_car = dmat_car.readonly().as_array().to_owned();
+    rswfn::props::gridprop::density::mol_rho_dm(
+        &ato_atms, &dmat_car, &ato_wfn0, &ato_wfn1, &ato_wfn2, &atms, level,
+    )
 }
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "density")?;
     m.add_class::<Calculator>()?;
+    m.add_function(wrap_pyfunction!(mol_rho_dm, &m)?)?;
     parent_module.add_submodule(&m)
 }
 

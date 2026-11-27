@@ -109,7 +109,7 @@ def get_fmat3():
 fmat = get_fmat2()  # 0.1822
 # fmat = get_fmat3()  # 0.2027
 
-omat *= fmat
+omat = omat * fmat
 
 for i in range(natm):
     for j in range(natm):

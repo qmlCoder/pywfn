@@ -48,6 +48,13 @@ impl Calculator {
     pub fn pi_eles_mocv(&self) -> Vec<f64> {
         self.caler().pi_eles_mocv()
     }
+    /// 计算各原子轨道上的电子数
+    ///
+    /// ## 返回
+    /// 每个原子的电子数列表
+    pub fn eles(&self) -> Vec<f64> {
+        self.caler().eles()
+    }
 }
 
 /// 在父模块中注册 `obtval` 子模块。

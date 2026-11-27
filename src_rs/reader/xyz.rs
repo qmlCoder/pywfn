@@ -62,4 +62,18 @@ impl XyzReader {
             None
         }
     }
+
+    /// 读取所有几何结构（支持多个构象）
+    ///
+    /// ## 返回
+    /// 返回 `Atoms` 对象列表，每个元素对应文件中的一个结构
+    pub fn read_geomes(&self) -> Vec<Atoms> {
+        self.core
+            .read_geomes()
+            .iter()
+            .map(|atoms| Atoms {
+                core: atoms.clone(),
+            })
+            .collect()
+    }
 }

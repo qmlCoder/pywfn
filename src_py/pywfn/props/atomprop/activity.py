@@ -112,3 +112,14 @@ class Calculator:
         """
         stand, orders, value = self.core.freev_dir(atm, dir, nebs, otype, mtype)
         return stand, np.array(orders), value
+
+def element_valence(crg: int) -> list[float]:
+    """获取元素在给定电荷下的价电子信息
+
+    Args:
+        crg: 元素电荷数（原子序数）
+
+    Returns:
+        list[float]: [价电子数, 有效核电荷]
+    """
+    return _core.props.atomprop.activity.element_valence(crg)  # type: ignore

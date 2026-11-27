@@ -114,8 +114,21 @@ impl Calculator {
     }
 }
 
+/// 获取元素在给定电荷下的价电子信息
+///
+/// ## 参数
+/// - `crg`: 元素电荷数（原子序数）
+///
+/// ## 返回
+/// 返回 [价电子数, 有效核电荷] 两个值
+#[pyfunction]
+pub fn element_valence(crg: usize) -> [f64; 2] {
+    rswfn::props::atomprop::activity::element_valence(crg)
+}
+
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "activity")?;
     m.add_class::<Calculator>()?;
+    m.add_function(wrap_pyfunction!(element_valence, &m)?)?;
     parent_module.add_submodule(&m)
 }

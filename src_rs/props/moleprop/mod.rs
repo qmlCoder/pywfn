@@ -1,14 +1,18 @@
 use pyo3::prelude::*;
 
 pub mod aromacity;
+pub mod energy;
 pub mod newmole;
 pub mod population;
+pub mod variants;
 
 pub fn register_module(parent_module: &Bound<'_, PyModule>) -> PyResult<()> {
     let m = PyModule::new(parent_module.py(), "moleprop")?;
     population::register_module(&m)?;
     aromacity::register_module(&m)?;
     newmole::register_module(&m)?;
+    energy::register_module(&m)?;
+    variants::register_module(&m)?;
     parent_module.add_submodule(&m)
 }
 
@@ -20,4 +24,6 @@ pub mod moleprop {
     use super::newmole::newmole;
     #[pymodule_export]
     use super::population::population;
+    #[pymodule_export]
+    use super::variants::variants;
 }

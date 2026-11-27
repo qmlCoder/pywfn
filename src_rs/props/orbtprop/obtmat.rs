@@ -109,6 +109,10 @@ impl Calculator {
         let cmat = cmat.into_pyarray(py).unbind();
         cmat
     }
+    /// 执行 LMO（定域分子轨道）分析
+    pub fn LMO(&self) {
+        self.caler().LMO()
+    }
 }
 
 #[pyfunction]

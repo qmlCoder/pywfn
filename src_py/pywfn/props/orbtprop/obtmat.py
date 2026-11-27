@@ -73,6 +73,10 @@ class Calculator:
         stms = {atm: stm.core for atm, stm in stms.items()}
         return self.core.ldao(stms)
 
+    def LMO(self) -> None:
+        """执行 LMO（定域分子轨道）分析"""
+        self.core.LMO()
+
 
 def mocv(L: np.ndarray, rcoefs: np.ndarray, keeps: np.ndarray) -> np.ndarray:
     """计算MOCV分解

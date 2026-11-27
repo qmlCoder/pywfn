@@ -14,3 +14,7 @@ class Calculator:
     def pi_eles_mocv(self) -> list[float]:
         """使用mocv方法计算pi电子数"""
         return self.core.pi_eles_mocv()
+
+    def eles(self) -> list[float]:
+        """计算各原子轨道上的电子数"""
+        return self.core.eles()

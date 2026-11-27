@@ -13,7 +13,7 @@ mole = Mole.from_file(r"E:\code\articles\MOCV\moles\phx\phcl.fch")
 mole = Mole.from_file(r"E:\code\articles\MOCV\moles\sicl2o.log")
 # mole = Mole.from_file(r"C:\Users\11032\Desktop\gfile\pywfn\C6H6.out")
 cmat_caler = obtmat.Calculator(mole)
-stms, atos, cmat = cmat_caler.pi_mocv(0)
+stms, atos, cmat = cmat_caler.pi_mocv()
 print(atos)
 # dirs, cmat = cmat_caler.pi_pocv()
 obts = mole.coefs.obt_idxs(True)  # 占据分子轨道的索引

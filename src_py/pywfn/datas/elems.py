@@ -140,3 +140,62 @@ def ELEM_DATA() -> list[tuple[int, str, float, int, int, str]]:
         (原子序数, 元素符号, 原子半径, 周期数, 族数, 颜色) 的列表
     """
     return _core.datas.elems.ELEM_DATA()  # type: ignore
+
+def get_by_sym_no_cache(sym: str) -> ELEM:
+    """通过元素符号查找元素信息（不使用缓存）"""
+    return ELEM(_core.datas.elems.get_by_sym_no_cache(sym))  # type: ignore
+
+
+def get_by_sym_prime_cache(sym: str) -> ELEM:
+    """通过元素符号查找元素信息（预填充缓存）"""
+    return ELEM(_core.datas.elems.get_by_sym_prime_cache(sym))  # type: ignore
+
+
+def get_by_idx_no_cache(idx: int) -> ELEM:
+    """按原子序数查找元素信息（不使用缓存）"""
+    return ELEM(_core.datas.elems.get_by_idx_no_cache(idx))  # type: ignore
+
+
+def get_by_idx_prime_cache(idx: int) -> ELEM:
+    """按原子序数查找元素信息（预填充缓存）"""
+    return ELEM(_core.datas.elems.get_by_idx_prime_cache(idx))  # type: ignore
+
+
+def atm2sym_no_cache(atm: int) -> str:
+    """根据原子序数返回元素符号（不使用缓存）"""
+    return _core.datas.elems.atm2sym_no_cache(atm)  # type: ignore
+
+
+def atm2sym_prime_cache(atm: int) -> str:
+    """根据原子序数返回元素符号（预填充缓存）"""
+    return _core.datas.elems.atm2sym_prime_cache(atm)  # type: ignore
+
+
+def atm2rad_no_cache(idx: int) -> float:
+    """根据原子序数返回原子半径（不使用缓存）"""
+    return _core.datas.elems.atm2rad_no_cache(idx)  # type: ignore
+
+
+def atm2rad_prime_cache(idx: int) -> float:
+    """根据原子序数返回原子半径（预填充缓存）"""
+    return _core.datas.elems.atm2rad_prime_cache(idx)  # type: ignore
+
+
+def atm2row_no_cache(atm: int) -> int:
+    """根据原子序数返回周期数（不使用缓存）"""
+    return _core.datas.elems.atm2row_no_cache(atm)  # type: ignore
+
+
+def atm2row_prime_cache(atm: int) -> int:
+    """根据原子序数返回周期数（预填充缓存）"""
+    return _core.datas.elems.atm2row_prime_cache(atm)  # type: ignore
+
+
+def zeff_no_cache(atm: int, neb: int) -> float:
+    """返回指定原子的有效核电荷数（不使用缓存）"""
+    return _core.datas.elems.zeff_no_cache(atm, neb)  # type: ignore
+
+
+def zeff_prime_cache(atm: int, neb: int) -> float:
+    """返回指定原子的有效核电荷数（预填充缓存）"""
+    return _core.datas.elems.zeff_prime_cache(atm, neb)  # type: ignore

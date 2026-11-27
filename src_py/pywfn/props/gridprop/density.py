@@ -260,3 +260,51 @@ class Calculator:
             每个格点上的信息熵密度值
         """
         return self.caler.infoentro(grids)
+
+    def mole_pi_pocv(self) -> Mole:
+        """获取 π 电子（POCV 方法）对应的分子对象"""
+        return Mole(self.caler.mole_pi_pocv())
+
+    def mole_pi_mocv(self) -> Mole:
+        """获取 π 电子（MOCV 方法）对应的分子对象"""
+        return Mole(self.caler.mole_pi_mocv())
+
+    def mole_spin(self) -> tuple[Mole, Mole]:
+        """获取自旋密度对应的两个分子对象（alpha, beta）"""
+        a, b = self.caler.mole_spin()
+        return Mole(a), Mole(b)
+
+    def mol_rho_spin(self, grid: list[float], level: int = 0):
+        """计算自旋密度
+
+        Args:
+            grid: 格点坐标
+            level: 计算级别
+
+        Returns:
+            (alpha 密度, beta 密度)，均为 `GridVals` 对象
+        """
+        from pywfn.props.gridprop import GridVals
+
+        a, b = self.caler.mol_rho_spin(grid, level)
+        return GridVals(a), GridVals(b)
+
+    def activate(self, grid: list[float]) -> float:
+        """计算指定格点上的活化能指标"""
+        return self.caler.activate(grid)
+
+    def curvature(self, grid: list[float]) -> float:
+        """计算指定格点上的曲率"""
+        return self.caler.curvature(grid)
+
+    def nuc_esp(self, grid: list[float]) -> float:
+        """计算指定格点上的核静电势"""
+        return self.caler.nuc_esp(grid)
+
+    def ele_esp(self, grid: list[float]) -> float:
+        """计算指定格点上的电子静电势"""
+        return self.caler.ele_esp(grid)
+
+    def tot_esp(self, grid: list[float]) -> float:
+        """计算指定格点上的总静电势"""
+        return self.caler.tot_esp(grid)

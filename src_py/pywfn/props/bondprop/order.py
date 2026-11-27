@@ -92,6 +92,17 @@ class Calculator:
     def decom(self, ai: int, aj: int, otype: str = "mayer") -> list[float]:
         return self.core.decom(ai, aj, otype)
 
+    def order(self, otype: str = "mayer") -> np.ndarray:
+        """按指定键级类型计算原子轨道键级矩阵
+
+        Args:
+            otype: 键级类型
+
+        Returns:
+            np.ndarray: 原子轨道键级矩阵
+        """
+        return self.core.order(otype)
+
 
 def mayer(dmat: np.ndarray, smat: np.ndarray) -> np.ndarray:
     """计算Mayer键级
@@ -130,3 +141,17 @@ def ato2atm(omat: np.ndarray, uplo: list[list[int]]) -> np.ndarray:
         np.ndarray: 原子间键级矩阵
     """
     return _core.props.bondprop.order.ato2atm(omat, uplo)  # type: ignore
+
+
+def order(dmat: np.ndarray, smat: np.ndarray, otype: str) -> np.ndarray:
+    """按指定键级类型计算原子轨道键级矩阵
+
+    Args:
+        dmat: 密度矩阵
+        smat: 重叠矩阵
+        otype: 键级类型
+
+    Returns:
+        np.ndarray: 原子轨道键级矩阵
+    """
+    return _core.props.bondprop.order.order(dmat, smat, otype)  # type: ignore

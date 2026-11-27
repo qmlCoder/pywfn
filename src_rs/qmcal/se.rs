@@ -38,6 +38,18 @@ impl RSE {
         let (eng, core) = self.caler().calc_rse(false);
         (eng, Coefs { core })
     }
+
+    /// 执行扩展 Hückel（RSE）计算
+    ///
+    /// ## 参数
+    /// - `lcs`: 是否使用局域坐标系（local coordinate system）构建基函数
+    ///
+    /// ## 返回
+    /// 二元组 `(总能量, 分子轨道系数)`
+    pub fn calc_rse(&self, lcs: bool) -> (f64, Coefs) {
+        let (eng, core) = self.caler().calc_rse(lcs);
+        (eng, Coefs { core })
+    }
 }
 
 /// 在父模块中注册 `se` 子模块。

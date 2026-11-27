@@ -25,12 +25,28 @@ fn to_array2(rows: &[Vec<f64>], name: &str) -> PyResult<Array2<f64>> {
 
 #[pymethods]
 impl DmoWriter {
+    /// 创建一个空的 DmoWriter 实例（等价于 `DmoWriter()`）
+    ///
+    /// ## 返回
+    /// 返回一个空的 DmoWriter 对象
     #[new]
     pub fn blank() -> PyResult<Self> {
         let writer = Self {
             core: rswfn::writer::DmoWriter::blank(),
         };
         Ok(writer)
+    }
+
+    /// 创建一个空的 DmoWriter 实例，与 `DmoWriter()` 等价
+    ///
+    /// 对应 `rswfn::writer::DmoWriter::blank`，便于按文档写法调用。
+    ///
+    /// ## 返回
+    /// 返回一个空的 DmoWriter 对象
+    #[staticmethod]
+    #[pyo3(name = "blank")]
+    pub fn blank_new() -> PyResult<Self> {
+        Self::blank()
     }
 
     #[getter(syms)]

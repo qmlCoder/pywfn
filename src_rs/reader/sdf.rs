@@ -62,4 +62,12 @@ impl SdfReader {
             None
         }
     }
+
+    /// 读取几何结构
+    ///
+    /// ## 返回
+    /// 返回 (原子序数列表, 原子坐标列表)
+    pub fn read_geome(&self) -> (Vec<usize>, Vec<[f64; 3]>) {
+        self.core.read_geome()
+    }
 }

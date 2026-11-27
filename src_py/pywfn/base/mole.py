@@ -87,3 +87,53 @@ class Mole:  # type: ignore
     def clone(self) -> 'Mole':
         """克隆分子对象"""
         return Mole(self.core.clone())
+
+    @staticmethod
+    def build(
+        atoms: Atoms, basis: "pywfn.base.Basis | None" = None, coefs: "pywfn.base.Coefs | None" = None
+    ) -> "Mole":
+        """由原子、基组、轨道系数创建分子
+
+        Args:
+            atoms: 原子集合
+            basis: 基组，可选
+            coefs: 轨道系数，可选
+        """
+        core = _core.base.Mole.build(  # type: ignore
+            atoms.core,
+            basis.core if basis is not None else None,
+            coefs.core if coefs is not None else None,
+        )
+        return Mole(core)
+
+    def formula(self) -> str:
+        """化学式"""
+        return self.core.formula()
+
+    def ncrg(self) -> int:
+        """核电荷总数"""
+        return self.core.ncrg()
+
+    def dist(self, grid: list[float]) -> float:
+        """计算格点到分子中最近原子的距离
+
+        Args:
+            grid: 格点坐标
+        """
+        return self.core.dist(grid)
+
+    def rings(self) -> list[list[int]]:
+        """分子中的所有环"""
+        return self.core.rings()
+
+    def equal(self, other: "Mole") -> bool:
+        """判断两个分子是否相同
+
+        Args:
+            other: 另一个分子
+        """
+        return self.core.equal(other.core)
+
+    def is_line(self) -> bool:
+        """判断分子是否为直线型"""
+        return self.core.is_line()
